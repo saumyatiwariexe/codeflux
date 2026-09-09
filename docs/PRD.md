@@ -420,6 +420,7 @@ Floating action button that expands to:
 - **Clubs & Communities:** Roles across all clubs
 - **Memory Lane Preview:** Last 3 campus memories
 - **SquadUp Stats:** Teams formed, competitions entered, wins
+- **Settings:** App preferences including a **Light / Dark Theme Toggle**
 
 #### 10.2 Verification Tiers
 - 📧 Email Verified (LPU email)
@@ -569,24 +570,25 @@ Floating action button that expands to:
 
 ## 8. Design System
 
-**Color Palette:**
+**Adopted Design System:** Stitch Minimalist Social Discovery Platform UI
+
+**Color Palette (Stitch UI Based):**
 - Primary: `#6C63FF` (Electric Violet — energy, campus vibrancy)
 - Secondary: `#FF6584` (Coral — warmth, connection)
-- Accent: `#43E97B` (Neon Green — XP, progress, quests)
-- Background (Dark): `#0D0D1A` (Deep Space)
-- Background (Light): `#F4F6FF` (Cloud White)
-- Gold: `#FFD700` (Achievements, badges)
+- Accent: `#43E97B` (Neon Emerald — XP, progress, quests)
+- Background (Dark): Deep Space Canvas (`#0B0C14` / `#121324`)
+- Theme Toggle: Support for both Light and Dark modes accessible from Settings.
+- Gold: `#F59E0B` (Achievements, badges)
 
 **Typography:**
-- Headings: `Outfit` (bold, modern)
-- Body: `Inter` (clean, legible)
-- Code/Monospace: `JetBrains Mono`
+- Headings & Displays: `Outfit` (bold, geometric)
+- Body & Controls: `Inter` (clean, high x-height)
 
-**Design Language:**
-- Glassmorphism cards (frosted glass effect)
-- Gradient accents (violet → coral on CTAs)
-- Smooth spring physics animations
-- Micro-interactions on every tap
+**Design Language (Apple-Minimalist Glassmorphism):**
+- Frosted glass containers with ultra-fine borders (`backdrop-blur-2xl`)
+- Gradient accents and chromatic back-glows
+- Pill geometry and continuous Apple squircle curves (`rounded-2xl`, `rounded-3xl`)
+- Smooth spring physics animations and micro-interactions
 
 ---
 

@@ -43,6 +43,7 @@ The CampusVerse map is the flagship feature. It must be:
 - Color-blind safe palette (tested with Deuteranopia and Protanopia filters)
 - Screen reader accessible (WCAG 2.1 AA)
 - International student mode (simplified navigation terminology)
+- Light / Dark Theme toggle accessible from Profile -> Settings for visual preference and accessibility.
 
 ---
 
