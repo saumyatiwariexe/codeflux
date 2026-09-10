@@ -1,4 +1,4 @@
-﻿# 📝 Campus Pulse — Amendment Log
+#  Paladeium — Amendment Log
 > This file is the **single source of truth for all plan changes**.
 > Every agent must check this file LAST — entries here override PRD.md and IMPLEMENTATION_GUIDE.md.
 > Maintained automatically by the amendment protocol in `.agents/rules/AGENTS.md`.
@@ -23,7 +23,7 @@
 Initial project plan established. This is the baseline all future amendments are measured against.
 
 ### Key Decisions Locked
-- App name: **Campus Pulse**
+- App name: **Paladeium**
 - Core differentiators vs Macbease: SquadUp, EduRev Connect, LostPulse, GTA5 fog-of-war
 - Tech stack: React Native + Expo, Mapbox, Fastify, Supabase, MongoDB, Redis, Firebase Auth
 - 10 core modules defined in PRD.md
@@ -67,4 +67,26 @@ To elevate the visual experience and support user preference with a light/dark m
 ### Impact
 - Modules affected: All UI components, Profile module
 - Files to update: PRD.md, IMPLEMENTATION_GUIDE.md
+- Breaking changes: No
+
+---
+
+## AMD-003 — Global Rename to Paladeium & SVG Enforcement
+**Date:** 2026-09-11 00:35 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+Globally renamed the app from "Campus Pulse" to "Paladeium". Also established a strict rule forbidding the use of emojis in the UI or documentation, mandating the use of SVG components (via `@expo/vector-icons`) for all iconography.
+
+### Overrides
+- PRD.md:Header — "Campus Pulse" -> "Paladeium"
+- AGENTS.md:6. Design System Rules — "NEW ADDITION" -> "Added No Emojis & SVG Icon rules"
+
+### Rationale
+Requested by the team to rebrand the application to Paladeium and maintain a professional, minimalist design aesthetic by avoiding native text emojis in favor of scalable vector graphics.
+
+### Impact
+- Modules affected: All UI, All Documentation
+- Files to update: Globally across the entire project
 - Breaking changes: No

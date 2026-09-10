@@ -1,4 +1,4 @@
-# 🤖 Campus Pulse — Agent Rules
+#  Paladeium — Agent Rules
 > These rules are automatically loaded by any Antigravity agent working on this project.
 > **Do NOT delete or modify this file without running the amendment protocol below.**
 
@@ -6,7 +6,7 @@
 
 ## 0. Project Identity
 
-- **App Name:** Campus Pulse
+- **App Name:** Paladeium
 - **Tagline:** *"Your Campus. Your Quests. Your People."*
 - **Target:** Lovely Professional University (LPU) students
 - **Competition Track:** Campus Life & Student Experience
@@ -122,6 +122,8 @@ The following are **locked** decisions (require AMD to change):
 - **Style:** Apple-minimalist Glassmorphism (frosted glass, ultra-fine borders, deep space canvas `#0B0C14` / `#121324`)
 - **No plain borders** — use gradient borders or glassmorphism
 - **Every tap must have a micro-animation** (spring scale, opacity pulse, or ripple)
+- **No Emojis:** Absolutely no emojis are allowed anywhere in the app UI or documentation.
+- **Icons:** All visual iconography must use standard SVG components (e.g., via `@expo/vector-icons`).
 
 ---
 

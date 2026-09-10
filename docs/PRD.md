@@ -1,5 +1,5 @@
-# 📋 Product Requirements Document (PRD)
-## Campus Pulse — The LPU Student Life Super-App
+#  Product Requirements Document (PRD)
+## Paladeium — The LPU Student Life Super-App
 **Tagline:** *"Your Campus. Your Quests. Your People."*
 **Document Version:** 1.0 | **Date:** September 2026 | **Status:** Hackathon Draft
 
@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-**Campus Pulse** is a mobile-first campus super-app designed exclusively for Lovely Professional University that merges the best elements of:
+**Paladeium** is a mobile-first campus super-app designed exclusively for Lovely Professional University that merges the best elements of:
 - **Hinge** → swipe-based skill-matched teammate finding
 - **GTA 5 Map** → vectorized LPU campus with fog-of-war exploration
 - **Pokémon GO** → location-based quests and real-world rewards
@@ -61,7 +61,7 @@ The result is a single app where every friction point of LPU student life is sol
 
 ---
 
-### MODULE 1: 🗺️ CampusVerse — The GTA 5 Campus Map
+### MODULE 1:  CampusVerse — The GTA 5 Campus Map
 
 **Overview:** A beautiful, vectorized top-down map of LPU's 600-acre campus that loads with a cinematic GTA 5-style fog-of-war effect. Areas unlock as you physically visit them (GPS verification).
 
@@ -75,22 +75,22 @@ The result is a single app where every friction point of LPU student life is sol
 
 #### 1.2 Live Event Pins
 - Floating animated pins appear on the map for:
-  - 🎯 Active events (happening right now)
-  - 📅 Upcoming events (next 48 hours)
-  - 🔴 Live sessions (ongoing workshops, guest lectures)
-  - 🏆 Competitions (registration open)
+  -  Active events (happening right now)
+  -  Upcoming events (next 48 hours)
+  -  Live sessions (ongoing workshops, guest lectures)
+  -  Competitions (registration open)
 - Tapping a pin opens an event card with RSVP, map route, and ticket purchase
 
 #### 1.3 Zone Territories
 - The campus is divided into named Territories (inspired by Macbease but richer):
-  - 🖥️ Tech District (CSE, ECE blocks)
-  - 🎨 Creative Quarter (Design, Architecture)
-  - ⚕️ MedZone (Pharmacy, Hospital)
-  - 🍕 Food Republic (all canteens, Suto Café, Unimall)
-  - 🏋️ Power Zone (Gyms, Sports fields)
-  - 📚 Knowledge Core (Central Library, tutorial rooms)
-  - 🏠 Residential Grid (Hostels)
-  - 🌿 Green Campus (parks, gardens, open areas)
+  -  Tech District (CSE, ECE blocks)
+  -  Creative Quarter (Design, Architecture)
+  -  MedZone (Pharmacy, Hospital)
+  -  Food Republic (all canteens, Suto Café, Unimall)
+  -  Power Zone (Gyms, Sports fields)
+  -  Knowledge Core (Central Library, tutorial rooms)
+  -  Residential Grid (Hostels)
+  -  Green Campus (parks, gardens, open areas)
 
 #### 1.4 Indoor Navigation
 - Block-level routing: "Find shortest path from Block B to Block G, Floor 3"
@@ -108,9 +108,9 @@ The result is a single app where every friction point of LPU student life is sol
 
 ---
 
-### MODULE 2: 🤝 SquadUp — Hinge-Style Teammate Matching
+### MODULE 2:  SquadUp — Hinge-Style Teammate Matching
 
-**Overview:** The heart of Campus Pulse. A swipe-based team-finding feature that matches students based on skills, interests, availability, and goals. Like Hinge, but for building your hackathon dream team.
+**Overview:** The heart of Paladeium. A swipe-based team-finding feature that matches students based on skills, interests, availability, and goals. Like Hinge, but for building your hackathon dream team.
 
 **Core Features:**
 
@@ -126,10 +126,10 @@ Each student's card shows:
 - **Portfolio highlights:** 3 pinned projects with tech stack
 
 #### 2.2 Swipe Mechanics
-- ✅ **Swipe Right / Heart** → Interested in teaming up
-- ❌ **Swipe Left / Pass** → Not a fit
-- ⭐ **Super Connect** → Priority outreach (limited per day, earn more via quests)
-- 💬 **Message First** → Send a note before swiping (like Hinge's "comment on prompt")
+-  **Swipe Right / Heart** → Interested in teaming up
+-  **Swipe Left / Pass** → Not a fit
+-  **Super Connect** → Priority outreach (limited per day, earn more via quests)
+-  **Message First** → Send a note before swiping (like Hinge's "comment on prompt")
 
 #### 2.3 AI Recommendation Engine
 - **Complementary Skill Matching:** If you're a backend dev, prioritize frontend/ML people
@@ -154,7 +154,7 @@ Each student's card shows:
 
 ---
 
-### MODULE 3: 🎯 QuestZone — Gamified Campus Life
+### MODULE 3:  QuestZone — Gamified Campus Life
 
 **Overview:** A Pokémon GO-style quest system that makes exploring campus, attending events, joining clubs, and growing academically feel like leveling up in a game.
 
@@ -162,25 +162,25 @@ Each student's card shows:
 
 #### 3.1 Quest Types
 
-**🗺️ Explorer Quests** (Campus Discovery)
+** Explorer Quests** (Campus Discovery)
 - "Visit the Central Library for the first time" → +50 XP
 - "Eat at 5 different food courts" → +100 XP + Food Explorer badge
 - "Find the secret garden behind Block 32" → +200 XP + Rare badge
 - "Visit all 8 campus territories in one week" → Platinum Explorer achievement
 
-**🎓 Academic Quests** (EduRevolution-linked)
+** Academic Quests** (EduRevolution-linked)
 - "Submit your first EduRevolution achievement" → +300 XP
 - "Attend 3 workshops this month" → +150 XP
 - "Get a certification on NPTEL/SWAYAM" → +500 XP + EduRev point boost
 - "Win a competition" → +1000 XP + Gold badge
 
-**🤝 Social Quests** (Community Building)
+** Social Quests** (Community Building)
 - "Join your first club" → +100 XP
 - "Make 5 SquadUp matches" → +200 XP
 - "Post in community feed for the first time" → +50 XP
 - "Attend an event with your SquadUp team" → +300 XP
 
-**📅 Daily/Weekly Quests** (Retention)
+** Daily/Weekly Quests** (Retention)
 - "Check in to campus today" → +10 XP
 - "Explore a new Territory this week" → +75 XP
 - "Complete your profile" → +200 XP
@@ -210,7 +210,7 @@ Each student's card shows:
 
 ---
 
-### MODULE 4: 🏛️ ClubVerse — Club & Community Ecosystem
+### MODULE 4:  ClubVerse — Club & Community Ecosystem
 
 **Overview:** A Discord-meets-LinkedIn layer for every LPU club and academic community.
 
@@ -259,7 +259,7 @@ Within each club/community:
 
 ---
 
-### MODULE 5: 📅 EventHub — Events, Ticketing & RSVP
+### MODULE 5:  EventHub — Events, Ticketing & RSVP
 
 **Overview:** One-stop shop for discovering, registering for, and attending every campus event.
 
@@ -294,7 +294,7 @@ Within each club/community:
 
 ---
 
-### MODULE 6: 🏆 EduRev Connect — EduRevolution Integration
+### MODULE 6:  EduRev Connect — EduRevolution Integration
 
 **Overview:** The only app with official EduRevolution integration — turning LPU's transformative academic initiative into a tangible, trackable, rewarding experience.
 
@@ -302,19 +302,19 @@ Within each club/community:
 
 #### 6.1 Achievement Tracker
 - Students log achievements in structured categories:
-  - 📄 Research Papers (journal, conference)
-  - 🏆 Competition Wins (hackathon, sports, cultural)
-  - 📜 Certifications (NPTEL, AWS, Google, Coursera)
-  - 💡 Patents (filed, published)
-  - 💼 Internships (duration, company, stipend)
-  - 🚀 Startups (registered, revenue, team size)
-  - 📖 MOOCs & Self-Learning
+  -  Research Papers (journal, conference)
+  -  Competition Wins (hackathon, sports, cultural)
+  -  Certifications (NPTEL, AWS, Google, Coursera)
+  -  Patents (filed, published)
+  -  Internships (duration, company, stipend)
+  -  Startups (registered, revenue, team size)
+  -  MOOCs & Self-Learning
 
 #### 6.2 Benefit Calculator
 - Real-time display: "Based on your achievements, you qualify for:"
-  - ✅ Grade Exemption in [Subject]
-  - ✅ Attendance Relaxation (X%)
-  - ✅ Scholarship Eligibility
+  -  Grade Exemption in [Subject]
+  -  Attendance Relaxation (X%)
+  -  Scholarship Eligibility
 - One-tap submission to EduRevolution portal (pre-fills form data)
 
 #### 6.3 EduRev Dashboard (Admin/DSW View)
@@ -331,7 +331,7 @@ Within each club/community:
 
 ---
 
-### MODULE 7: 🔍 LostPulse — Smart Lost & Found
+### MODULE 7:  LostPulse — Smart Lost & Found
 
 **Overview:** AI-powered lost item recovery system. Post what you lost, AI matches it with found items.
 
@@ -361,7 +361,7 @@ Within each club/community:
 
 ---
 
-### MODULE 8: 📱 Social Layer — Feed, Stories & Memories
+### MODULE 8:  Social Layer — Feed, Stories & Memories
 
 **Overview:** Campus-specific social feed that captures the vibrancy of LPU life.
 
@@ -376,11 +376,11 @@ Within each club/community:
 
 #### 8.2 Speed-Dial FAB
 Floating action button that expands to:
-- 📸 Capture a Moment
-- ✍️ Post an Update
-- 🎯 Post a Recruitment
-- 🗓️ Create an Event
-- 🔍 Report Lost Item
+-  Capture a Moment
+-  Post an Update
+-  Post a Recruitment
+-  Create an Event
+-  Report Lost Item
 
 #### 8.3 Memory Lane
 - Calendar-indexed personal archive of campus memories
@@ -390,7 +390,7 @@ Floating action button that expands to:
 
 ---
 
-### MODULE 9: 💬 PulseChat — Messaging & Community Rooms
+### MODULE 9:  PulseChat — Messaging & Community Rooms
 
 **Overview:** End-to-end encrypted messaging with club rooms, team chats, and tier-gated event rooms.
 
@@ -405,7 +405,7 @@ Floating action button that expands to:
 
 ---
 
-### MODULE 10: 👤 Profile & Identity
+### MODULE 10:  Profile & Identity
 
 **Overview:** A rich student identity layer that goes beyond Macbease.
 
@@ -423,10 +423,10 @@ Floating action button that expands to:
 - **Settings:** App preferences including a **Light / Dark Theme Toggle**
 
 #### 10.2 Verification Tiers
-- 📧 Email Verified (LPU email)
-- 🆔 Student ID Verified (photo upload → admin verified)
-- 📱 Phone Verified
-- ✅ EduRevolution Verified (linked to UMS)
+-  Email Verified (LPU email)
+-  Student ID Verified (photo upload → admin verified)
+-  Phone Verified
+-  EduRevolution Verified (linked to UMS)
 
 #### 10.3 Profile Sharing
 - QR Code (scannable at offline events)
@@ -438,22 +438,22 @@ Floating action button that expands to:
 ## 4. Navigation Architecture
 
 ```
-📱 CAMPUS PULSE
+ Paladeium
 
 ┌─ Bottom Navigation ─────────────────────────────┐
 │                                                  │
-│  🏠 HOME     🗺️ MAP      ⚡ SQUAD    🏛️ CLUBS   👤 ME │
+│   HOME      MAP       SQUAD     CLUBS    ME │
 │                                                  │
 └──────────────────────────────────────────────────┘
 
-🏠 HOME TAB
+ HOME TAB
 ├── Stories Row
 ├── Activity Feed (posts, events, club updates)
 ├── Live Event Banner (if something is happening now)
 ├── Quests Carousel (daily/weekly)
 └── Speed-Dial FAB (+)
 
-🗺️ MAP TAB (CampusVerse)
+ MAP TAB (CampusVerse)
 ├── Vectorized LPU Map (fog-of-war)
 ├── Floating Event Pins
 ├── Zone Territory Labels
@@ -463,14 +463,14 @@ Floating action button that expands to:
 ├── Navigation Mode (turn-by-turn)
 └── Layers: Events | Density | Food | Study Rooms
 
-⚡ SQUAD TAB (SquadUp)
+ SQUAD TAB (SquadUp)
 ├── Swipe Deck (skill-matched profiles)
 ├── My Matches
 ├── Active Teams
 ├── Recruitment Feed (club postings)
 └── Competition Browser
 
-🏛️ CLUBS TAB (ClubVerse)
+ CLUBS TAB (ClubVerse)
 ├── My Clubs
 ├── Browse All Clubs
 ├── Academic Communities
@@ -478,7 +478,7 @@ Floating action button that expands to:
 ├── Lost & Found
 └── EduRev Connect
 
-👤 ME TAB (Profile)
+ ME TAB (Profile)
 ├── My Profile
 ├── My Tickets
 ├── Achievement Wall
@@ -595,11 +595,11 @@ Floating action button that expands to:
 ## 9. Phased Rollout
 
 ### Phase 0 — Hackathon (This Weekend)
-- ✅ High-fidelity UI prototype (all key screens)
-- ✅ CampusVerse map mockup with event pins
-- ✅ SquadUp swipe deck demo
-- ✅ EduRev dashboard wireframe
-- ✅ This PRD + Problem Validation document
+-  High-fidelity UI prototype (all key screens)
+-  CampusVerse map mockup with event pins
+-  SquadUp swipe deck demo
+-  EduRev dashboard wireframe
+-  This PRD + Problem Validation document
 
 ### Phase 1 — MVP (Month 1-2)
 - User auth (LPU email)
@@ -624,4 +624,4 @@ Floating action button that expands to:
 ---
 
 *Document prepared for: Hackathon Submission — Campus Life & Student Experience Track*
-*Team: Campus Pulse | University: Lovely Professional University*
+*Team: Paladeium | University: Lovely Professional University*

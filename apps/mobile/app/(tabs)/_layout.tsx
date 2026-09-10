@@ -1,13 +1,36 @@
 import { Tabs } from 'expo-router';
+import { useColorScheme, View, StyleSheet } from 'react-native';
 import { useThemeStore } from '../../stores/useThemeStore';
-import { useColorScheme } from 'react-native';
+import { Text } from '../../components/ui/Text';
 
-// For icons, we'll just use a simple text placeholder for now or unicode
-// In a real app you'd use @expo/vector-icons
+interface TabIconProps {
+  emoji: string;
+  label: string;
+  focused: boolean;
+}
 
-export default function TabLayout() {
+function TabIcon({ emoji, label, focused }: TabIconProps) {
   const systemColorScheme = useColorScheme();
-  const theme = useThemeStore((state) => state.getColors(systemColorScheme));
+  const theme = useThemeStore((s) => s.getColors(systemColorScheme));
+
+  return (
+    <View style={[styles.tabIconWrapper, focused && { opacity: 1 }]}>
+      <Text style={[styles.tabEmoji, { opacity: focused ? 1 : 0.5 }]}>{emoji}</Text>
+      <Text
+        style={[
+          styles.tabLabel,
+          { color: focused ? theme.primary : theme.onSurfaceVariant },
+        ]}
+      >
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+export default function TabsLayout() {
+  const systemColorScheme = useColorScheme();
+  const theme = useThemeStore((s) => s.getColors(systemColorScheme));
 
   return (
     <Tabs
@@ -16,49 +39,70 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: theme.surfaceSpaceElevated,
           borderTopColor: theme.glassBorder,
+          borderTopWidth: 1,
           height: 80,
-          paddingBottom: 16,
+          paddingBottom: 12,
+          paddingTop: 8,
         },
-        tabBarActiveTintColor: theme.primary,
-        tabBarInactiveTintColor: theme.onSurfaceVariant,
+        tabBarShowLabel: false,
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="" label="Pulse" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="campusverse"
         options={{
-          title: 'Map',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="" label="Campus" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="squadup"
         options={{
-          title: 'Squad',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="" label="Squad" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="eventhub"
         options={{
-          title: 'Events',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="" label="Events" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="clubverse"
         options={{
-          title: 'Clubs',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="" label="Clubs" focused={focused} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
+          tabBarIcon: ({ focused }) => (
+            <TabIcon emoji="" label="Me" focused={focused} />
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabIconWrapper: {
+    alignItems: 'center', justifyContent: 'center', gap: 3,
+  },
+  tabEmoji: { fontSize: 22 },
+  tabLabel: { fontSize: 10, fontFamily: 'Inter', fontWeight: '600' },
+});

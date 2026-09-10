@@ -1,5 +1,5 @@
-# ⚙️ Agent Rules & Implementation Guide
-## Campus Pulse — Development Playbook
+#  Agent Rules & Implementation Guide
+## Paladeium — Development Playbook
 **Document Version:** 1.0 | **Date:** September 2026
 
 ---
@@ -657,15 +657,15 @@ POST /api/v1/lostfound/:id/claim → Claim a found item
 ## Part 9 — Definition of Done (Per Feature)
 
 A feature is "Done" when:
-1. ✅ Core user flow works end-to-end on both iOS and Android
-2. ✅ Error states handled (network error, empty state, loading state)
-3. ✅ Accessibility: keyboard navigable, screen reader labeled
-4. ✅ Performance: < 200ms response for user actions
-5. ✅ Test coverage: ≥ 70% for service-layer logic
-6. ✅ Reviewed for data privacy compliance
-7. ✅ Offline behavior defined and implemented or explicitly deferred
+1.  Core user flow works end-to-end on both iOS and Android
+2.  Error states handled (network error, empty state, loading state)
+3.  Accessibility: keyboard navigable, screen reader labeled
+4.  Performance: < 200ms response for user actions
+5.  Test coverage: ≥ 70% for service-layer logic
+6.  Reviewed for data privacy compliance
+7.  Offline behavior defined and implemented or explicitly deferred
 
 ---
 
 *Document prepared for: Hackathon Submission — Campus Life & Student Experience Track*
-*Team: Campus Pulse | University: Lovely Professional University*
+*Team: Paladeium | University: Lovely Professional University*

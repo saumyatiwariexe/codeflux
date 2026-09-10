@@ -1,84 +1,205 @@
-import React from 'react';
-import { View, StyleSheet, useColorScheme } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View, StyleSheet, useColorScheme, TouchableOpacity, Animated, Dimensions, ScrollView,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '../../components/ui/Text';
-import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
+import { Card } from '../../components/ui/Card';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { MapCanvas } from '../../components/map/MapCanvas';
+
+const { width: W, height: H } = Dimensions.get('window');
+
+// ---- Mock LPU Campus zones (simulated map) ----
+const CAMPUS_ZONES = [
+  { id: 'tech', label: 'Tech District', emoji: '', x: 0.25, y: 0.3, revealed: true, color: '#6C63FF' },
+  { id: 'sports', label: 'Sports Complex', emoji: '', x: 0.65, y: 0.2, revealed: true, color: '#43E97B' },
+  { id: 'hostel', label: 'Hostel Zone', emoji: '', x: 0.7, y: 0.6, revealed: false, color: '#F59E0B' },
+  { id: 'library', label: 'Central Library', emoji: '', x: 0.4, y: 0.5, revealed: true, color: '#60A5FA' },
+  { id: 'food', label: 'Food Court', emoji: '', x: 0.2, y: 0.65, revealed: false, color: '#F97316' },
+  { id: 'admin', label: 'Main Admin', emoji: '', x: 0.5, y: 0.2, revealed: true, color: '#EC4899' },
+];
+
+const MAP_PINS = [
+  { id: 'p1', type: 'event', label: 'HackLPU', x: 0.35, y: 0.35, color: '#FF6584', emoji: '' },
+  { id: 'p2', type: 'quest', label: '+150 XP', x: 0.62, y: 0.48, color: '#43E97B', emoji: '' },
+  { id: 'p3', type: 'event', label: 'Diwali Fest', x: 0.5, y: 0.6, color: '#F59E0B', emoji: '' },
+];
+
+type MapLayer = 'all' | 'quests' | 'events' | 'clubs';
 
 export default function CampusVerseScreen() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((state) => state.getColors(systemColorScheme));
+  const [activeLayer, setActiveLayer] = useState<MapLayer>('all');
+
+  // Pulse animations for pins
+  const pinPulse = useRef(new Animated.Value(1)).current;
+  const fogOpacity = useRef(new Animated.Value(0.82)).current;
+  const drawerY = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Pulse live event pins
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pinPulse, { toValue: 1.4, duration: 800, useNativeDriver: true }),
+        Animated.timing(pinPulse, { toValue: 1, duration: 800, useNativeDriver: true }),
+      ])
+    ).start();
+
+    // Subtle fog breathing
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(fogOpacity, { toValue: 0.78, duration: 3000, useNativeDriver: true }),
+        Animated.timing(fogOpacity, { toValue: 0.85, duration: 3000, useNativeDriver: true }),
+      ])
+    ).start();
+  }, []);
+
+  const MAP_H = H * 0.58;
+
+  const visiblePins = MAP_PINS.filter((p) => {
+    if (activeLayer === 'all') return true;
+    if (activeLayer === 'quests') return p.type === 'quest';
+    if (activeLayer === 'events') return p.type === 'event';
+    return true;
+  });
 
   return (
-    <SafeAreaView style={[styles.container, { backgroundColor: theme.surfaceSpaceDeep }]} edges={['top']}>
-      {/* Map Viewport Area (Fake Map for prototype) */}
-      <View style={styles.mapContainer}>
-        {/* We would use react-native-maps here in a real build. For now, a placeholder replicating the fog of war map */}
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surfaceContainerLowest }]} />
-        
-        {/* Fake grid/roads overlay */}
-        <View style={styles.mapGridOverlay}>
-           <Text variant="display-hero" color="outlineVariant" style={{ opacity: 0.1 }}>LPU CAMPUS MAP</Text>
-        </View>
+    <SafeAreaView style={[styles.container, { backgroundColor: '#0A0B12' }]} edges={['top']}>
 
-        {/* Fog of war overlay */}
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.surfaceSpaceDeep, opacity: 0.85 }]} />
+      {/* === MAP VIEWPORT === */}
+      <View style={[styles.mapContainer, { height: MAP_H }]}>
+        <MapCanvas activeLayer={activeLayer} />
 
-        {/* Top Overlay Controls */}
+        {/* ---- Top controls ---- */}
         <View style={styles.topControls}>
-          <View style={[styles.searchPill, { backgroundColor: theme.surfaceSpaceElevated }]}>
-             <Text variant="body-md" color="onSurfaceVariant">Search block, lab room...</Text>
+          {/* Search bar */}
+          <View style={[styles.searchBar, { backgroundColor: theme.surfaceSpaceElevated + 'F2' }]}>
+            <Text style={{ fontSize: 14 }}></Text>
+            <Text variant="body-sm" color="onSurfaceVariant"> Search block, lab, room...</Text>
           </View>
-          <View style={styles.filtersScroll}>
-             <Badge label="All Layers" variant="squad" style={{ backgroundColor: theme.primary }} />
-             <Badge label="Quests (3)" variant="squad" />
-             <Badge label="Events (2)" variant="squad" />
-          </View>
+          {/* Layer filters */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            <View style={styles.filterRow}>
+              {(['all', 'quests', 'events', 'clubs'] as MapLayer[]).map((layer) => (
+                <TouchableOpacity
+                  key={layer}
+                  style={[styles.filterChip, { backgroundColor: activeLayer === layer ? theme.primary : theme.surfaceContainerLow + 'E0' }]}
+                  onPress={() => setActiveLayer(layer)}
+                >
+                  <Text variant="label-sm" style={{ color: activeLayer === layer ? theme.onPrimary : theme.onSurfaceVariant }}>
+                    {layer === 'all' ? ' All' : layer === 'quests' ? ' Quests (3)' : layer === 'events' ? ' Events (2)' : ' Clubs'}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
         </View>
 
-        {/* Fake Pins */}
-        <View style={[styles.pin, { top: '40%', left: '30%' }]}>
-           <Badge label="Live Fest" variant="notification" />
+        {/* ---- XP Fog stats (top right) ---- */}
+        <View style={[styles.fogStats, { backgroundColor: theme.surfaceSpaceElevated + 'E0' }]}>
+          <Text variant="label-xs" color="onSurfaceVariant">DISCOVERED</Text>
+          <Text variant="headline-sm" color="primary">4/12</Text>
+          <Text variant="label-xs" color="onSurfaceVariant">ZONES</Text>
         </View>
-        <View style={[styles.pin, { top: '60%', left: '60%' }]}>
-           <Badge label="+150 XP" variant="xp" />
-        </View>
-
       </View>
 
-      {/* Bottom Drawer Quest Tracker */}
-      <View style={styles.bottomDrawer}>
-        <Card variant="elevated" style={styles.questTrackerCard}>
-          <View style={styles.drawerHandle} />
-          <View style={styles.questHeader}>
-             <Badge label="ACTIVE QUEST" variant="xp" />
-             <Text variant="label-sm" color="onSurfaceVariant">12m left</Text>
+      {/* === BOTTOM QUEST DRAWER === */}
+      <ScrollView
+        style={[styles.drawer, { backgroundColor: theme.surfaceSpaceDeep }]}
+        contentContainerStyle={styles.drawerContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[styles.drawerHandle, { backgroundColor: theme.outlineVariant }]} />
+
+        {/* Active Quest */}
+        <Card variant="elevated" style={styles.activeQuestCard}>
+          <View style={styles.questCardHeader}>
+            <Badge label="ACTIVE QUEST" variant="xp" />
+            <Text variant="label-sm" color="secondary">12m left </Text>
           </View>
-          <Text variant="headline-sm">Locate Block 34 Mac Lab</Text>
-          <Text variant="body-sm" color="onSurfaceVariant">Navigate to the iOS development lab to claim your daily check-in XP.</Text>
-          
-          <View style={[styles.radarBox, { backgroundColor: theme.surfaceContainer }]}>
-             <Text variant="headline-sm" color="primary">84m away</Text>
-             <Text variant="label-sm" color="onSurfaceVariant">Walk North-East</Text>
+          <Text variant="headline-sm" style={{ marginTop: 8 }}>Locate Block 34 Mac Lab</Text>
+          <Text variant="body-sm" color="onSurfaceVariant" style={{ marginTop: 4 }}>
+            Navigate to the iOS development lab to claim your daily check-in XP.
+          </Text>
+          <View style={[styles.radarBox, { backgroundColor: theme.primaryContainer }]}>
+            <Text variant="headline-md" color="primary">84m away</Text>
+            <Text variant="label-sm" color="onSurfaceVariant"> Walk North-East</Text>
           </View>
         </Card>
-      </View>
+
+        {/* Nearby Events */}
+        <Text variant="headline-sm" style={{ marginTop: 20, marginBottom: 12 }}>Nearby Events</Text>
+        {[
+          { title: 'HackLPU Opening Ceremony', distance: '120m', emoji: '', time: 'Starting in 45m' },
+          { title: 'RoboQuest Demo Station', distance: '340m', emoji: '', time: 'Live Now' },
+        ].map((ev, i) => (
+          <Card key={i} variant="default" style={styles.nearbyCard}>
+            <View style={styles.nearbyRow}>
+              <Text style={{ fontSize: 28 }}>{ev.emoji}</Text>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text variant="headline-sm">{ev.title}</Text>
+                <Text variant="label-sm" color="onSurfaceVariant">{ev.time} · {ev.distance}</Text>
+              </View>
+            </View>
+          </Card>
+        ))}
+
+        <View style={{ height: 24 }} />
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  mapContainer: { flex: 1, position: 'relative', overflow: 'hidden' },
-  mapGridOverlay: { ...StyleSheet.absoluteFillObject, alignItems: 'center', justifyContent: 'center' },
-  topControls: { position: 'absolute', top: 16, left: 20, right: 20, zIndex: 10, gap: 12 },
-  searchPill: { height: 48, borderRadius: 24, justifyContent: 'center', paddingHorizontal: 16, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
-  filtersScroll: { flexDirection: 'row', gap: 8 },
-  pin: { position: 'absolute', zIndex: 20 },
-  bottomDrawer: { position: 'absolute', bottom: 90, left: 20, right: 20, zIndex: 30 },
-  questTrackerCard: { padding: 16 },
-  drawerHandle: { width: 40, height: 4, backgroundColor: '#888', borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
-  questHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  radarBox: { marginTop: 16, padding: 16, borderRadius: 12, alignItems: 'center' },
+  mapContainer: { position: 'relative', overflow: 'hidden' },
+  gridLine: { position: 'absolute' },
+  gridH: { left: 0, right: 0, height: 1 },
+  gridV: { top: 0, bottom: 0, width: 1 },
+  zoneBlobWrapper: { position: 'absolute' },
+  zoneBlob: { width: 80, height: 80, borderRadius: 40, borderWidth: 1 },
+  zoneLabel: { position: 'absolute', zIndex: 15 },
+  zoneLabelInner: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 8, paddingVertical: 4,
+    borderRadius: 12, borderWidth: 1,
+  },
+  pinContainer: { position: 'absolute', zIndex: 20, alignItems: 'center' },
+  pulsRing: {
+    position: 'absolute', width: 44, height: 44, borderRadius: 22,
+    borderWidth: 2, top: -8,
+  },
+  pinBubble: {
+    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10,
+    flexDirection: 'row', alignItems: 'center',
+  },
+  pinStem: { width: 2, height: 8, marginTop: 2 },
+  playerDot: { position: 'absolute', zIndex: 25, width: 16, height: 16 },
+  playerPulse: {
+    position: 'absolute', width: 28, height: 28, borderRadius: 14,
+    borderWidth: 2, top: -6, left: -6,
+  },
+  playerCenter: { width: 14, height: 14, borderRadius: 7, top: 1, left: 1 },
+  topControls: { position: 'absolute', top: 12, left: 16, right: 16, zIndex: 30, gap: 10 },
+  searchBar: {
+    height: 44, borderRadius: 22, paddingHorizontal: 16,
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+  },
+  filterRow: { flexDirection: 'row', gap: 8 },
+  filterChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  fogStats: {
+    position: 'absolute', top: 12, right: 16, zIndex: 30,
+    padding: 10, borderRadius: 14, alignItems: 'center',
+  },
+  drawer: { flex: 1 },
+  drawerContent: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 100 },
+  drawerHandle: { width: 36, height: 4, borderRadius: 2, alignSelf: 'center', marginBottom: 16 },
+  activeQuestCard: { padding: 16 },
+  questCardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  radarBox: { marginTop: 14, padding: 14, borderRadius: 12, alignItems: 'center', gap: 2 },
+  nearbyCard: { padding: 14, marginBottom: 10 },
+  nearbyRow: { flexDirection: 'row', alignItems: 'center' },
 });

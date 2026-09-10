@@ -1,14 +1,14 @@
 ﻿---
 name: amend-plan
 description: >-
-  Use this skill whenever the user proposes any change to the Campus Pulse plan —
+  Use this skill whenever the user proposes any change to the Paladeium plan —
   a new feature, a removed feature, a tech stack swap, a priority change, a
   scope reduction, or a design update. Guides the agent through the full amendment
   protocol: understand -> log AMD entry -> update source docs -> confirm.
 trigger: model_decision
 ---
 
-# Campus Pulse — Plan Amendment Skill
+# Paladeium — Plan Amendment Skill
 
 Activate this skill when the user says things like:
 - "change X to Y"
@@ -99,7 +99,7 @@ After writing the amendment, update the affected section in the source doc(s).
 
 Reply to the user with:
 
-> ✅ **Amendment AMD-[NNN] logged.**
+>  **Amendment AMD-[NNN] logged.**
 > 
 > **What changed:** [one-liner summary]
 > **Docs updated:** [list of files touched]

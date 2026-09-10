@@ -1,5 +1,5 @@
 ---
-name: Campus Pulse
+name: Paladeium
 colors:
   surface: '#12131b'
   surface-dim: '#12131b'

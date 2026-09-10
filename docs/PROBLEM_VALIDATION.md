@@ -1,5 +1,5 @@
-# 🔍 Problem Validation & Research Report
-## Campus Pulse — LPU Student Life Super-App
+#  Problem Validation & Research Report
+## Paladeium — LPU Student Life Super-App
 **Document Version:** 1.0 | **Date:** September 2026 | **Research Scope:** Lovely Professional University, Phagwara, Punjab
 
 ---
@@ -22,7 +22,7 @@
 
 ## 2. Validated Problem Statements
 
-### Problem #1 — The Hackathon Team-Finding Crisis ❌
+### Problem #1 — The Hackathon Team-Finding Crisis 
 **Pain Point:** Finding quality teammates for hackathons, competitions, and project collaborations is entirely word-of-mouth.
 
 **Evidence:**
@@ -37,7 +37,7 @@
 
 ---
 
-### Problem #2 — The Invisible Events Problem 📅
+### Problem #2 — The Invisible Events Problem 
 **Pain Point:** Students miss events, workshops, and fests because there is no unified, real-time discovery layer.
 
 **Evidence:**
@@ -52,7 +52,7 @@
 
 ---
 
-### Problem #3 — Campus Navigation is Broken for Freshers 🗺️
+### Problem #3 — Campus Navigation is Broken for Freshers 
 **Pain Point:** New students spend weeks figuring out where things are on a 600-acre campus.
 
 **Evidence:**
@@ -68,7 +68,7 @@
 
 ---
 
-### Problem #4 — Club Discovery & Recruitment is Fragmented 🏛️
+### Problem #4 — Club Discovery & Recruitment is Fragmented 
 **Pain Point:** Students who want to join clubs have no centralized, trusted directory.
 
 **Evidence:**
@@ -84,7 +84,7 @@
 
 ---
 
-### Problem #5 — The EduRevolution Awareness & Tracking Gap 🏆
+### Problem #5 — The EduRevolution Awareness & Tracking Gap 
 **Pain Point:** Students earn achievements (hackathon wins, research papers, certifications) but don't know how to claim EduRevolution benefits, or forget to submit on time.
 
 **Evidence:**
@@ -100,7 +100,7 @@
 
 ---
 
-### Problem #6 — Lost & Found is a Chaos System 🔍
+### Problem #6 — Lost & Found is a Chaos System 
 **Pain Point:** Students lose items (wallets, ID cards, laptops, chargers) on a 600-acre campus with no recovery system.
 
 **Evidence:**
@@ -116,7 +116,7 @@
 
 ---
 
-### Problem #7 — Social Isolation & Finding Your Tribe 👥
+### Problem #7 — Social Isolation & Finding Your Tribe 
 **Pain Point:** LPU's sheer size means many students — especially introverts and freshers — feel socially isolated despite being surrounded by thousands.
 
 **Evidence:**
@@ -137,17 +137,17 @@
 
 | Feature Area | Macbease Has | Our App Adds |
 |---|---|---|
-| Campus Mapping | ✅ 2D/3D Territories | ✅ + GTA5 fog-of-war discovery, AR quests, real-time events pins |
-| Events | ✅ Marketplace + QR tickets | ✅ + Live event pins on map, conflict detection, RSVP via map |
-| Clubs | ✅ Directory + Leaderboard | ✅ + Recruitment swipe deck, analytics dashboard for clubs |
-| Gamification | ✅ Interstellar Points | ✅ + Pokemon GO exploration, EduRevolution integrated rewards |
-| Social Feed | ✅ Stories + Snippets | ✅ + Hinge-style teammate matching, AI skill compatibility score |
-| Chat | ✅ Tier-gated rooms | ✅ + Match-based DMs, club community rooms (Discord-style) |
-| Profile | ✅ Verification + Memory Lane | ✅ + Skills graph, EduRevolution portfolio, achievement wall |
-| **Teammate Finding** | ❌ Not present | ✅ **Core differentiator — swipe-based skill matching** |
-| **EduRevolution Integration** | ❌ Not present | ✅ **Official LPU initiative dashboard** |
-| **Lost & Found** | ❌ Not present | ✅ **AI-image-match lost item recovery** |
-| **Quest/Campus Exploration** | ❌ Not present | ✅ **Pokemon GO style unlocking of campus zones** |
+| Campus Mapping |  2D/3D Territories |  + GTA5 fog-of-war discovery, AR quests, real-time events pins |
+| Events |  Marketplace + QR tickets |  + Live event pins on map, conflict detection, RSVP via map |
+| Clubs |  Directory + Leaderboard |  + Recruitment swipe deck, analytics dashboard for clubs |
+| Gamification |  Interstellar Points |  + Pokemon GO exploration, EduRevolution integrated rewards |
+| Social Feed |  Stories + Snippets |  + Hinge-style teammate matching, AI skill compatibility score |
+| Chat |  Tier-gated rooms |  + Match-based DMs, club community rooms (Discord-style) |
+| Profile |  Verification + Memory Lane |  + Skills graph, EduRevolution portfolio, achievement wall |
+| **Teammate Finding** |  Not present |  **Core differentiator — swipe-based skill matching** |
+| **EduRevolution Integration** |  Not present |  **Official LPU initiative dashboard** |
+| **Lost & Found** |  Not present |  **AI-image-match lost item recovery** |
+| **Quest/Campus Exploration** |  Not present |  **Pokemon GO style unlocking of campus zones** |
 
 ### Key Insight — Our Unfair Advantages vs. Macbease:
 1. **Hinge-style teammate finding** = solves the #1 pain point Macbease ignores
@@ -161,13 +161,13 @@
 
 | # | Problem | Solution | Urgency | Impact |
 |---|---|---|---|---|
-| 1 | Can't find hackathon teammates | Hinge-style skill swipe matching | 🔴 Critical | 🔴 High |
-| 2 | Missing campus events | Live map pins + push alerts | 🔴 Critical | 🟠 High |
-| 3 | Navigation confusion for freshers | GTA5 map with fog-of-war + quests | 🟠 High | 🟡 Medium |
-| 4 | Club discovery fragmented | Unified club hub + recruitment cards | 🟠 High | 🔴 High |
-| 5 | EduRevolution unclaimed | Integrated portal + achievement tracker | 🟠 High | 🟡 Medium |
-| 6 | Lost & found inefficient | AI image-match lost item system | 🟡 Medium | 🟡 Medium |
-| 7 | Social isolation | Profile matching + community spaces | 🔴 Critical | 🔴 High |
+| 1 | Can't find hackathon teammates | Hinge-style skill swipe matching |  Critical |  High |
+| 2 | Missing campus events | Live map pins + push alerts |  Critical |  High |
+| 3 | Navigation confusion for freshers | GTA5 map with fog-of-war + quests |  High |  Medium |
+| 4 | Club discovery fragmented | Unified club hub + recruitment cards |  High |  High |
+| 5 | EduRevolution unclaimed | Integrated portal + achievement tracker |  High |  Medium |
+| 6 | Lost & found inefficient | AI image-match lost item system |  Medium |  Medium |
+| 7 | Social isolation | Profile matching + community spaces |  Critical |  High |
 
 ---
 
@@ -182,4 +182,4 @@
 ---
 
 *Document prepared for: Hackathon Submission — Campus Life & Student Experience Track*
-*Team: Campus Pulse | University: Lovely Professional University*
+*Team: Paladeium | University: Lovely Professional University*
