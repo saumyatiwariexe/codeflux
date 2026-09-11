@@ -213,12 +213,18 @@ User confirmed EduRev is a real, current LPU program students genuinely care abo
 
 ---
 
+<<<<<<< Updated upstream
 ## AMD-008 — Auth Provider Swap: Firebase Auth → Clerk (Google OAuth + Email/Password)
 **Date:** 2026-09-12 00:10 IST
+=======
+## AMD-008 — Replace Firebase Auth with Clerk OAuth; Add Supabase Client + File Uploads
+**Date:** 2026-09-12 00:44 IST
+>>>>>>> Stashed changes
 **Requested by:** Team
 **Status:** ACTIVE
 
 ### What Changed
+<<<<<<< Updated upstream
 Firebase Auth is removed entirely. Clerk replaces it as the sole authentication provider, supporting:
 - **Google OAuth** (one-tap sign-in)
 - **Email/Password** (standard Clerk flow)
@@ -238,3 +244,24 @@ Clerk provides a vastly simpler developer experience: prebuilt React Native auth
 - Modules affected: Auth flow, API auth middleware (lib/auth.ts), mobile useAuthStore
 - Files to update: packages/api/src/lib/auth.ts, packages/api/.env.example, apps/mobile package.json, apps/mobile/stores/useAuthStore.ts
 - Breaking changes: firebase-admin removed from API; mobile apps no longer need Firebase SDK
+=======
+1. **Auth provider swapped from Firebase Auth (LPU email OTP) to Clerk OAuth.** The `lpu-verify.tsx` screen and LPU-email-only gate are removed. Students now sign in via Google or GitHub OAuth using `@clerk/clerk-expo`. Clerk manages session tokens — Zustand's `useAuthStore` is simplified to hold only the UI-facing user profile, not raw tokens.
+2. **Supabase JS client added to the mobile app.** `services/supabase.ts` initializes `@supabase/supabase-js` with AsyncStorage session persistence. Supabase RLS policies updated to key off the Clerk JWT (`auth.jwt() ->> 'sub'` = Clerk `userId`) instead of `firebase_uid`.
+3. **File upload support added via Supabase Storage.** `services/storage.ts` wraps the Supabase Storage client with typed helpers for three buckets: `avatars`, `lostfound`, and `edurev`. `expo-image-picker` added for camera-roll access.
+4. **New Supabase migration `005_clerk_auth_storage.sql` generated.** Alters the `users` table: renames `firebase_uid` to `clerk_user_id`, creates the three Storage buckets, and updates all RLS policies to use the Clerk subject claim.
+
+### Overrides
+- IMPLEMENTATION_GUIDE.md:Part 2 (Frontend Libraries) — Firebase Auth client removed -> `@clerk/clerk-expo` + `@supabase/supabase-js` + `expo-image-picker` + `expo-web-browser` + `expo-secure-store` added
+- IMPLEMENTATION_GUIDE.md:Part 2 (Locked Decisions) — Auth row: "Firebase Auth (OTP via LPU email)" -> "Clerk OAuth (Google + GitHub)"
+- IMPLEMENTATION_GUIDE.md:Part 5 (API Contract, Auth endpoints) — OTP endpoints removed -> Clerk webhook endpoints noted
+- AGENTS.md:Section 4 Locked Table — Auth row updated to Clerk
+
+### Rationale
+Firebase Auth OTP requires a working email relay and LPU SMTP integration to demo, which is a dependency risk for the hackathon deadline. Clerk OAuth (Google/GitHub) works out of the box with zero backend setup, lets us demo auth end-to-end immediately, and is more familiar to the student audience. Supabase was already the planned primary DB (AMD-001); this simply connects the mobile client directly rather than waiting for the Fastify proxy.
+
+### Impact
+- Modules affected: Auth Flow, Profile, EduRev Connect (file upload for certificates), LostPulse (item photo upload)
+- Files to update: IMPLEMENTATION_GUIDE.md (Parts 2, 5), AGENTS.md (Section 4)
+- Breaking changes: Yes — `firebase_uid` column renamed to `clerk_user_id` in existing `users` table migration. All RLS policies rewritten to match Clerk JWT structure. Run migration 005 to apply.
+
+>>>>>>> Stashed changes

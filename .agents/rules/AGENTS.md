@@ -89,7 +89,7 @@ The following are **locked** decisions (require AMD to change):
 | Primary DB | PostgreSQL via Supabase |
 | Social/Chat DB | MongoDB Atlas |
 | Cache/Realtime | Redis (Upstash) |
-| Auth | Firebase Auth (OTP via LPU email) |
+| Auth | Clerk OAuth (Google + GitHub) — updated by AMD-008 |
 | State Management | Zustand (client) + TanStack Query (server) |
 | AI Matching | Vector embeddings (complementary skill scoring) |
 
