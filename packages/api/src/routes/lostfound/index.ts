@@ -1,93 +1,171 @@
 import { FastifyPluginAsync } from 'fastify';
-import { ApiResponse, LostItem, FoundItem } from '../../../shared/src/types';
+import { z } from 'zod';
+import { ApiResponse, LostItem, FoundItem, LostFoundCategory } from '../../../../shared/src/types';
+import { supabase } from '../../lib/supabase';
+import { requireAuth, JwtPayload } from '../../lib/auth';
 
-const MOCK_LOST: LostItem[] = [
-  {
-    id: 'lost_001',
-    reporterId: 'profile_aarav',
-    title: 'Black OnePlus 12R — Lost near Cafeteria',
-    description: 'Lost my black OnePlus 12R near the main cafeteria around 1 PM. Has a cracked screen protector. IMEI locked.',
-    category: 'electronics',
-    lastSeenLocation: 'Main Cafeteria Block, Ground Floor',
-    lastSeenAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-    status: 'open',
-    reportedAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'lost_002',
-    reporterId: 'profile_priya',
-    title: 'LPU ID Card — Priya Krishnan',
-    description: 'Lost my student ID card. Needed urgently for hostel access. Please contact if found.',
-    category: 'id_card',
-    lastSeenLocation: 'Library, 2nd Floor',
-    lastSeenAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-    status: 'open',
-    reportedAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-  },
-];
+const CATEGORIES: LostFoundCategory[] = ['electronics', 'bag', 'wallet', 'id_card', 'keys', 'clothing', 'books', 'other'];
 
-const MOCK_FOUND: FoundItem[] = [
-  {
-    id: 'found_001',
-    reporterId: 'profile_rohan',
-    title: 'Found: Android Phone near Block 34',
-    description: 'Found a phone with cracked back on the bench outside Block 34. Still has battery.',
-    category: 'electronics',
-    foundLocation: 'Outside Block 34, Bench near entrance',
-    foundAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-    status: 'unclaimed',
-    reportedAt: new Date(Date.now() - 1 * 60 * 60 * 1000).toISOString(),
-  },
-];
+const lostItemSchema = z.object({
+  title: z.string().min(1).max(120),
+  description: z.string().min(1).max(1000),
+  category: z.enum(CATEGORIES as [string, ...string[]]),
+  lastSeenLocation: z.string().optional(),
+  lastSeenAt: z.string().datetime().optional(),
+  imageUrl: z.string().url().optional(),
+});
+
+const foundItemSchema = z.object({
+  title: z.string().min(1).max(120),
+  description: z.string().min(1).max(1000),
+  category: z.enum(CATEGORIES as [string, ...string[]]),
+  foundLocation: z.string().optional(),
+  foundAt: z.string().datetime().optional(),
+  imageUrl: z.string().url().optional(),
+});
+
+function mapLost(row: any): LostItem {
+  return {
+    id: row.id,
+    reporterId: row.reporter_id,
+    title: row.title,
+    description: row.description,
+    category: row.category,
+    lastSeenLocation: row.last_seen_location ?? undefined,
+    lastSeenAt: row.last_seen_at ?? undefined,
+    imageUrl: row.image_url ?? undefined,
+    status: row.status,
+    reportedAt: row.reported_at,
+  };
+}
+
+function mapFound(row: any): FoundItem {
+  return {
+    id: row.id,
+    reporterId: row.reporter_id,
+    title: row.title,
+    description: row.description,
+    category: row.category,
+    foundLocation: row.found_location ?? undefined,
+    foundAt: row.found_at ?? undefined,
+    imageUrl: row.image_url ?? undefined,
+    status: row.status,
+    reportedAt: row.reported_at,
+  };
+}
+
+/** Word-overlap heuristic — NOT AI/ML. Real image/embedding matching is future scope. */
+function textSimilarity(a: string, b: string): number {
+  const wordsA = new Set(a.toLowerCase().split(/\W+/).filter((w) => w.length > 2));
+  const wordsB = new Set(b.toLowerCase().split(/\W+/).filter((w) => w.length > 2));
+  if (wordsA.size === 0 || wordsB.size === 0) return 0;
+  let overlap = 0;
+  for (const w of wordsA) if (wordsB.has(w)) overlap++;
+  return overlap / Math.max(wordsA.size, wordsB.size);
+}
 
 const lostfoundRoutes: FastifyPluginAsync = async (fastify) => {
-  const requireAuth = async (request: any, reply: any) => {
-    try { await request.jwtVerify(); } catch { reply.status(401).send({ success: false, data: null, error: 'Unauthorized' }); }
-  };
-
   fastify.get('/lost', async (_req, reply) => {
-    return reply.send({ success: true, data: MOCK_LOST, error: null } satisfies ApiResponse<LostItem[]>);
+    const { data, error } = await supabase.from('lost_items').select('*').order('reported_at', { ascending: false });
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+    return reply.send({ success: true, data: (data ?? []).map(mapLost), error: null } satisfies ApiResponse<LostItem[]>);
   });
 
   fastify.get('/found', async (_req, reply) => {
-    return reply.send({ success: true, data: MOCK_FOUND, error: null } satisfies ApiResponse<FoundItem[]>);
+    const { data, error } = await supabase.from('found_items').select('*').order('reported_at', { ascending: false });
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+    return reply.send({ success: true, data: (data ?? []).map(mapFound), error: null } satisfies ApiResponse<FoundItem[]>);
   });
 
-  fastify.post('/lost', { preHandler: requireAuth }, async (request: any, reply) => {
-    const item: LostItem = {
-      id: `lost_${Date.now()}`,
-      reporterId: request.user.userId,
-      status: 'open',
-      reportedAt: new Date().toISOString(),
-      ...(request.body as Partial<LostItem>),
-      title: (request.body as any).title ?? 'Lost Item',
-      description: (request.body as any).description ?? '',
-      category: (request.body as any).category ?? 'other',
-    };
-    return reply.status(201).send({ success: true, data: item, error: null } satisfies ApiResponse<LostItem>);
+  fastify.post('/lost', { preHandler: requireAuth }, async (request, reply) => {
+    const { userId } = request.user as JwtPayload;
+    const body = lostItemSchema.safeParse(request.body);
+    if (!body.success) {
+      return reply.status(400).send({ success: false, data: null, error: body.error.errors[0].message });
+    }
+
+    const { data, error } = await supabase
+      .from('lost_items')
+      .insert({
+        reporter_id: userId,
+        title: body.data.title,
+        description: body.data.description,
+        category: body.data.category,
+        last_seen_location: body.data.lastSeenLocation,
+        last_seen_at: body.data.lastSeenAt,
+        image_url: body.data.imageUrl,
+      })
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: error?.message ?? 'Failed to post item' });
+    }
+
+    return reply.status(201).send({ success: true, data: mapLost(data), error: null } satisfies ApiResponse<LostItem>);
   });
 
-  fastify.post('/found', { preHandler: requireAuth }, async (request: any, reply) => {
-    const item: FoundItem = {
-      id: `found_${Date.now()}`,
-      reporterId: request.user.userId,
-      status: 'unclaimed',
-      reportedAt: new Date().toISOString(),
-      ...(request.body as Partial<FoundItem>),
-      title: (request.body as any).title ?? 'Found Item',
-      description: (request.body as any).description ?? '',
-      category: (request.body as any).category ?? 'other',
-    };
-    return reply.status(201).send({ success: true, data: item, error: null } satisfies ApiResponse<FoundItem>);
+  fastify.post('/found', { preHandler: requireAuth }, async (request, reply) => {
+    const { userId } = request.user as JwtPayload;
+    const body = foundItemSchema.safeParse(request.body);
+    if (!body.success) {
+      return reply.status(400).send({ success: false, data: null, error: body.error.errors[0].message });
+    }
+
+    const { data, error } = await supabase
+      .from('found_items')
+      .insert({
+        reporter_id: userId,
+        title: body.data.title,
+        description: body.data.description,
+        category: body.data.category,
+        found_location: body.data.foundLocation,
+        found_at: body.data.foundAt,
+        image_url: body.data.imageUrl,
+      })
+      .select('*')
+      .single();
+
+    if (error || !data) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: error?.message ?? 'Failed to post item' });
+    }
+
+    return reply.status(201).send({ success: true, data: mapFound(data), error: null } satisfies ApiResponse<FoundItem>);
   });
 
+  /** GET /api/v1/lostfound/matches — heuristic category + text-overlap match, real data, no ML. */
   fastify.get('/matches', { preHandler: requireAuth }, async (_req, reply) => {
-    // Mock AI match — in prod: compare embeddings
-    return reply.send({
-      success: true,
-      data: [{ lostItem: MOCK_LOST[0], matchedFound: MOCK_FOUND[0], score: 0.82 }],
-      error: null,
-    });
+    const [{ data: lost, error: lostErr }, { data: found, error: foundErr }] = await Promise.all([
+      supabase.from('lost_items').select('*').eq('status', 'open'),
+      supabase.from('found_items').select('*').eq('status', 'unclaimed'),
+    ]);
+
+    if (lostErr || foundErr) {
+      fastify.log.error(lostErr ?? foundErr);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+
+    const matches: { lostItem: LostItem; matchedFound: FoundItem; score: number }[] = [];
+    for (const l of lost ?? []) {
+      for (const f of found ?? []) {
+        if (l.category !== f.category) continue;
+        const score = textSimilarity(`${l.title} ${l.description}`, `${f.title} ${f.description}`);
+        if (score > 0.15) {
+          matches.push({ lostItem: mapLost(l), matchedFound: mapFound(f), score: Math.round(score * 100) / 100 });
+        }
+      }
+    }
+    matches.sort((a, b) => b.score - a.score);
+
+    return reply.send({ success: true, data: matches, error: null });
   });
 };
 

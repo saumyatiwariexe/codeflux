@@ -1,81 +1,95 @@
 import { FastifyPluginAsync } from 'fastify';
-import { ApiResponse, EduRevAchievement, EduRevCategory } from '../../../shared/src/types';
+import { z } from 'zod';
+import { ApiResponse, EduRevAchievement, EduRevCategory } from '../../../../shared/src/types';
+import { supabase } from '../../lib/supabase';
+import { requireAuth, JwtPayload } from '../../lib/auth';
 
-const MOCK_ACHIEVEMENTS: EduRevAchievement[] = [
-  {
-    id: 'ach_001',
-    profileId: 'demo_user',
-    title: 'AWS Cloud Practitioner Certification',
-    description: 'Passed the AWS Cloud Practitioner exam with 90% score.',
-    category: 'CERTIFICATION',
-    status: 'approved',
-    attendanceRelaxation: 5,
-    gradeBenefit: 'Grade improvement in Cloud Computing elective',
-    xpAwarded: 200,
-    submittedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString(),
-    reviewedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'ach_002',
-    profileId: 'demo_user',
-    title: '2nd Place — National Hackathon, VIT Vellore',
-    description: 'Built an AI-powered campus safety system in 24 hours. Team of 4. Won ₹50,000.',
-    category: 'COMPETITION_WIN',
-    status: 'approved',
-    attendanceRelaxation: 8,
-    gradeBenefit: 'Extra credit in Software Engineering',
-    xpAwarded: 500,
-    submittedAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    reviewedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'ach_003',
-    profileId: 'demo_user',
-    title: 'Research Paper: "Efficient Transformers for Edge Devices"',
-    description: 'Co-authored paper accepted at IEEE ICISC 2026 conference. Under guidance of Dr. Singh.',
-    category: 'RESEARCH_PAPER',
-    status: 'pending',
-    submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-];
+function mapAchievement(row: any): EduRevAchievement {
+  return {
+    id: row.id,
+    profileId: row.profile_id,
+    title: row.title,
+    description: row.description ?? '',
+    category: row.category,
+    proofUrl: row.proof_url ?? undefined,
+    status: row.status,
+    attendanceRelaxation: row.attendance_relaxation ?? undefined,
+    gradeBenefit: row.grade_benefit ?? undefined,
+    xpAwarded: row.xp_awarded ?? undefined,
+    submittedAt: row.submitted_at,
+    reviewedAt: row.reviewed_at ?? undefined,
+    reviewNote: row.review_note ?? undefined,
+  };
+}
+
+// LPU EduRevolution attendance-relaxation cap (see docs/PROBLEM_VALIDATION.md).
+const ATTENDANCE_RELAXATION_CAP = 25;
+
+const achievementSchema = z.object({
+  title: z.string().min(1).max(200),
+  description: z.string().min(1).max(1000),
+});
 
 const edurevRoutes: FastifyPluginAsync = async (fastify) => {
-  const requireAuth = async (request: any, reply: any) => {
-    try { await request.jwtVerify(); } catch { reply.status(401).send({ success: false, data: null, error: 'Unauthorized' }); }
-  };
-
   /** GET /api/v1/edurev/history */
-  fastify.get('/history', { preHandler: requireAuth }, async (_req, reply) => {
-    return reply.send({ success: true, data: MOCK_ACHIEVEMENTS, error: null } satisfies ApiResponse<EduRevAchievement[]>);
+  fastify.get('/history', { preHandler: requireAuth }, async (request, reply) => {
+    const { userId } = request.user as JwtPayload;
+    const { data, error } = await supabase
+      .from('edurev_achievements')
+      .select('*')
+      .eq('profile_id', userId)
+      .order('submitted_at', { ascending: false });
+
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+    return reply.send({ success: true, data: (data ?? []).map(mapAchievement), error: null } satisfies ApiResponse<EduRevAchievement[]>);
   });
 
-  /** GET /api/v1/edurev/benefits — aggregate benefit calculation */
-  fastify.get('/benefits', { preHandler: requireAuth }, async (_req, reply) => {
-    const approved = MOCK_ACHIEVEMENTS.filter((a) => a.status === 'approved');
-    const totalAttendanceRelaxation = approved.reduce((sum, a) => sum + (a.attendanceRelaxation ?? 0), 0);
-    const totalXp = approved.reduce((sum, a) => sum + (a.xpAwarded ?? 0), 0);
+  /** GET /api/v1/edurev/benefits — aggregate benefit calculation, fed by quest-linked + manual achievements (AMD-007) */
+  fastify.get('/benefits', { preHandler: requireAuth }, async (request, reply) => {
+    const { userId } = request.user as JwtPayload;
+    const { data, error } = await supabase.from('edurev_achievements').select('*').eq('profile_id', userId);
+
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+
+    const all = data ?? [];
+    const approved = all.filter((a) => a.status === 'approved' || a.status === 'submitted');
+    const totalAttendanceRelaxation = approved.reduce((sum, a) => sum + (a.attendance_relaxation ?? 0), 0);
+    const totalXp = approved.reduce((sum, a) => sum + (a.xp_awarded ?? 0), 0);
 
     return reply.send({
       success: true,
       data: {
-        approvedCount: approved.length,
-        pendingCount: MOCK_ACHIEVEMENTS.filter((a) => a.status === 'pending').length,
-        totalAttendanceRelaxation: Math.min(totalAttendanceRelaxation, 25), // LPU cap
+        approvedCount: all.filter((a) => a.status === 'approved').length,
+        pendingCount: all.filter((a) => a.status === 'pending' || a.status === 'submitted').length,
+        totalAttendanceRelaxation: Math.min(totalAttendanceRelaxation, ATTENDANCE_RELAXATION_CAP),
         totalXpEarned: totalXp,
-        achievements: approved,
+        achievements: approved.map(mapAchievement),
       },
       error: null,
     });
   });
 
-  /** POST /api/v1/edurev/achievement — log new achievement (AI-classifies) */
-  fastify.post<{ Body: { title: string; description: string } }>(
+  /**
+   * POST /api/v1/edurev/achievement — manual log (keyword heuristic classification, NOT AI/ML — see docs/AMENDMENTS.md).
+   * Quest-driven submissions bypass this route entirely (see routes/quests/index.ts :id/verify).
+   */
+  fastify.post<{ Body: z.infer<typeof achievementSchema> }>(
     '/achievement',
     { preHandler: requireAuth },
-    async (request: any, reply) => {
-      const { title, description } = request.body;
+    async (request, reply) => {
+      const { userId } = request.user as JwtPayload;
+      const body = achievementSchema.safeParse(request.body);
+      if (!body.success) {
+        return reply.status(400).send({ success: false, data: null, error: body.error.errors[0].message });
+      }
+      const { title, description } = body.data;
 
-      // Mock AI classification (in prod: call Anthropic API)
       const CATEGORY_KEYWORDS: [EduRevCategory, string[]][] = [
         ['RESEARCH_PAPER', ['paper', 'journal', 'conference', 'published', 'ieee', 'acm']],
         ['COMPETITION_WIN', ['hackathon', 'won', 'winner', 'prize', 'championship', 'rank']],
@@ -94,17 +108,18 @@ const edurevRoutes: FastifyPluginAsync = async (fastify) => {
         }
       }
 
-      const achievement: EduRevAchievement = {
-        id: `ach_${Date.now()}`,
-        profileId: request.user.userId,
-        title,
-        description,
-        category: detectedCategory,
-        status: 'pending',
-        submittedAt: new Date().toISOString(),
-      };
+      const { data, error } = await supabase
+        .from('edurev_achievements')
+        .insert({ profile_id: userId, title, description, category: detectedCategory, status: 'pending' })
+        .select('*')
+        .single();
 
-      return reply.status(201).send({ success: true, data: achievement, error: null } satisfies ApiResponse<EduRevAchievement>);
+      if (error || !data) {
+        fastify.log.error(error);
+        return reply.status(500).send({ success: false, data: null, error: error?.message ?? 'Failed to log achievement' });
+      }
+
+      return reply.status(201).send({ success: true, data: mapAchievement(data), error: null } satisfies ApiResponse<EduRevAchievement>);
     }
   );
 };

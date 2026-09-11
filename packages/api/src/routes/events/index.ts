@@ -1,136 +1,137 @@
 import { FastifyPluginAsync } from 'fastify';
-import { ApiResponse, Event } from '../../../shared/src/types';
+import { ApiResponse, Event } from '../../../../shared/src/types';
+import { supabase } from '../../lib/supabase';
+import { requireAuth, JwtPayload } from '../../lib/auth';
 
-/** Mock events for demo */
-const MOCK_EVENTS: Event[] = [
-  {
-    id: 'evt_hacklpu',
-    title: 'HackLPU 2026: The National Innovation Odyssey',
-    description: 'India\'s biggest university hackathon with ₹15,00,000 in prizes across 8 challenge tracks.',
-    organizerId: 'club_scs',
-    organizerType: 'club',
-    locationName: 'LPU Main Auditorium, Block 38',
-    locationCoords: { lat: 31.2534, lng: 75.7052 },
-    blockReference: 'Block 38, Shatabdi Hall',
-    startTime: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toISOString(),
-    category: 'hackathon',
-    maxAttendees: 2000,
-    registrationDeadline: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    posterUrl: undefined,
-    status: 'upcoming',
-    isTeamEvent: true,
-    minTeamSize: 2,
-    maxTeamSize: 4,
-    createdAt: new Date().toISOString(),
-    attendeeCount: 842,
-    tiers: [
-      { id: 'tier_free', eventId: 'evt_hacklpu', name: 'General', price: 0, quantity: 2000, soldCount: 842 },
-    ],
-  },
-  {
-    id: 'evt_roboquest',
-    title: 'RoboQuest: Autonomous Navigation Challenge',
-    description: 'Design and program a robot to navigate a dynamic obstacle course.',
-    organizerId: 'club_robotics',
-    organizerType: 'club',
-    locationName: 'Robotics Lab, Block 16',
-    locationCoords: { lat: 31.2521, lng: 75.7048 },
-    blockReference: 'Block 16, R-Lab',
-    startTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000 + 8 * 60 * 60 * 1000).toISOString(),
-    category: 'academic',
-    maxAttendees: 120,
-    posterUrl: undefined,
-    status: 'upcoming',
-    isTeamEvent: true,
-    minTeamSize: 2,
-    maxTeamSize: 3,
-    createdAt: new Date().toISOString(),
-    attendeeCount: 67,
-  },
-  {
-    id: 'evt_designthon',
-    title: 'DesignThon: AI UI/UX Sprint',
-    description: '24-hour design sprint to reimagine AI interfaces. Top 3 teams win cash + internship offers.',
-    organizerId: 'club_hci',
-    organizerType: 'club',
-    locationName: 'Design Studio, Block 32',
-    locationCoords: { lat: 31.2528, lng: 75.7065 },
-    blockReference: 'Block 32, Design Studio',
-    startTime: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString(),
-    category: 'hackathon',
-    maxAttendees: 80,
-    posterUrl: undefined,
-    status: 'upcoming',
-    isTeamEvent: true,
-    minTeamSize: 1,
-    maxTeamSize: 3,
-    createdAt: new Date().toISOString(),
-    attendeeCount: 54,
-  },
-  {
-    id: 'evt_culturenight',
-    title: 'Diwali Dhamaka: Campus Cultural Night',
-    description: 'Annual cultural celebration with performances, dance, music, and food stalls from across India.',
-    organizerId: 'admin',
-    organizerType: 'admin',
-    locationName: 'Uni Plaza, Central Lawn',
-    locationCoords: { lat: 31.2542, lng: 75.7058 },
-    blockReference: 'Central Campus Lawn',
-    startTime: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString(),
-    endTime: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000 + 6 * 60 * 60 * 1000).toISOString(),
-    category: 'cultural',
-    maxAttendees: 5000,
-    posterUrl: undefined,
-    status: 'upcoming',
-    isTeamEvent: false,
-    createdAt: new Date().toISOString(),
-    attendeeCount: 1240,
-    tiers: [
-      { id: 'tier_gen', eventId: 'evt_culturenight', name: 'General', price: 0, quantity: 4000, soldCount: 1240 },
-      { id: 'tier_vip', eventId: 'evt_culturenight', name: 'VIP (Front Row + Backstage)', price: 199, quantity: 100, soldCount: 58 },
-    ],
-  },
-];
+function mapEvent(row: any): Event {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description ?? undefined,
+    organizerId: row.organizer_id,
+    organizerType: row.organizer_type,
+    locationName: row.location_name ?? undefined,
+    locationCoords: row.location_coords ?? undefined,
+    blockReference: row.block_reference ?? undefined,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    category: row.category,
+    maxAttendees: row.max_attendees ?? undefined,
+    registrationDeadline: row.registration_deadline ?? undefined,
+    posterUrl: row.poster_url ?? undefined,
+    status: row.status,
+    isTeamEvent: row.is_team_event,
+    minTeamSize: row.min_team_size ?? undefined,
+    maxTeamSize: row.max_team_size ?? undefined,
+    createdAt: row.created_at,
+    tiers: row.ticket_tiers?.map((t: any) => ({
+      id: t.id,
+      eventId: row.id,
+      name: t.name,
+      price: Number(t.price),
+      quantity: t.quantity ?? undefined,
+      perks: t.perks ?? undefined,
+      soldCount: t.sold_count,
+    })),
+  };
+}
 
 /** Events routes */
 const eventRoutes: FastifyPluginAsync = async (fastify) => {
-  const requireAuth = async (request: any, reply: any) => {
-    try { await request.jwtVerify(); } catch { reply.status(401).send({ success: false, data: null, error: 'Unauthorized' }); }
-  };
-
-  /** GET /api/v1/events — list all events with optional category filter */
-  fastify.get('/', async (request: any, reply) => {
+  /** GET /api/v1/events — list all events with optional category/status filter */
+  fastify.get('/', async (request, reply) => {
     const { category, status } = request.query as { category?: string; status?: string };
-    let events = [...MOCK_EVENTS];
-    if (category) events = events.filter((e) => e.category === category);
-    if (status) events = events.filter((e) => e.status === status);
-    return reply.send({ success: true, data: events, error: null } satisfies ApiResponse<Event[]>);
+    let query = supabase.from('events').select('*, ticket_tiers(*)').order('start_time', { ascending: true });
+    if (category) query = query.eq('category', category);
+    if (status) query = query.eq('status', status);
+
+    const { data, error } = await query;
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+    return reply.send({ success: true, data: (data ?? []).map(mapEvent), error: null } satisfies ApiResponse<Event[]>);
   });
 
   /** GET /api/v1/events/:id — event detail */
   fastify.get<{ Params: { id: string } }>('/:id', async (request, reply) => {
-    const event = MOCK_EVENTS.find((e) => e.id === request.params.id);
-    if (!event) return reply.status(404).send({ success: false, data: null, error: 'Event not found' });
-    return reply.send({ success: true, data: event, error: null } satisfies ApiResponse<Event>);
+    const { data, error } = await supabase
+      .from('events')
+      .select('*, ticket_tiers(*)')
+      .eq('id', request.params.id)
+      .maybeSingle();
+
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+    if (!data) return reply.status(404).send({ success: false, data: null, error: 'Event not found' });
+    return reply.send({ success: true, data: mapEvent(data), error: null } satisfies ApiResponse<Event>);
   });
 
-  /** POST /api/v1/events/:id/rsvp — RSVP to a free event */
-  fastify.post<{ Params: { id: string } }>('/:id/rsvp', { preHandler: requireAuth }, async (request: any, reply) => {
-    const event = MOCK_EVENTS.find((e) => e.id === request.params.id);
+  /** POST /api/v1/events/:id/rsvp — RSVP to the event's free/general tier */
+  fastify.post<{ Params: { id: string } }>('/:id/rsvp', { preHandler: requireAuth }, async (request, reply) => {
+    const { userId } = request.user as JwtPayload;
+    const eventId = request.params.id;
+
+    const { data: event, error: eventErr } = await supabase
+      .from('events')
+      .select('id, title, start_time, location_name')
+      .eq('id', eventId)
+      .maybeSingle();
+    if (eventErr) {
+      fastify.log.error(eventErr);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
     if (!event) return reply.status(404).send({ success: false, data: null, error: 'Event not found' });
 
+    let { data: tier } = await supabase
+      .from('ticket_tiers')
+      .select('id')
+      .eq('event_id', eventId)
+      .order('price', { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (!tier) {
+      const { data: createdTier, error: tierErr } = await supabase
+        .from('ticket_tiers')
+        .insert({ event_id: eventId, name: 'General', price: 0 })
+        .select('id')
+        .single();
+      if (tierErr || !createdTier) {
+        fastify.log.error(tierErr);
+        return reply.status(500).send({ success: false, data: null, error: 'Failed to create RSVP tier' });
+      }
+      tier = createdTier;
+    }
+
     const bookingId = `TIX-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
-    const qrCode = Buffer.from(JSON.stringify({ bookingId, eventId: event.id, userId: request.user.userId })).toString('base64');
+    const qrCode = Buffer.from(JSON.stringify({ bookingId, eventId, userId })).toString('base64');
+
+    const { error: ticketErr } = await supabase.from('tickets').insert({
+      tier_id: tier.id,
+      event_id: eventId,
+      holder_id: userId,
+      qr_code: qrCode,
+      booking_id: bookingId,
+    });
+    if (ticketErr) {
+      fastify.log.error(ticketErr);
+      return reply.status(500).send({ success: false, data: null, error: 'Failed to RSVP' });
+    }
+
+    const { data: tierRow } = await supabase.from('ticket_tiers').select('sold_count').eq('id', tier.id).single();
+    if (tierRow) {
+      await supabase.from('ticket_tiers').update({ sold_count: tierRow.sold_count + 1 }).eq('id', tier.id);
+    }
 
     return reply.status(201).send({
       success: true,
       data: {
         bookingId,
         qrCode,
-        event: { id: event.id, title: event.title, startTime: event.startTime, locationName: event.locationName },
+        event: { id: event.id, title: event.title, startTime: event.start_time, locationName: event.location_name },
       },
       error: null,
     });

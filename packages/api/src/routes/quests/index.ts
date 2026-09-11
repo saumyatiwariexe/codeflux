@@ -1,117 +1,158 @@
 import { FastifyPluginAsync } from 'fastify';
-import { ApiResponse, Quest, QuestProgress } from '../../../shared/src/types';
+import { z } from 'zod';
+import { ApiResponse, Quest, QuestProgress } from '../../../../shared/src/types';
+import { supabase } from '../../lib/supabase';
+import { requireAuth, JwtPayload } from '../../lib/auth';
+import { distanceMeters } from '../../lib/geo';
 
-const MOCK_QUESTS: Quest[] = [
-  {
-    id: 'quest_explorer_1',
-    title: 'Discover the Hidden Courtyard',
-    description: 'Navigate to the serene courtyard behind Block 34 and check in to reveal this secret zone on your campus map.',
-    type: 'explorer',
-    xpReward: 150,
-    edurevLinkage: false,
-    locationRequired: true,
-    targetLocation: { lat: 31.2528, lng: 75.7045, radiusMeters: 50 },
-    isActive: true,
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'quest_daily_1',
-    title: 'Morning Mover',
-    description: 'Visit the campus gym or sports complex before 9 AM to earn your daily streak bonus.',
-    type: 'daily',
-    xpReward: 50,
-    edurevLinkage: false,
-    locationRequired: true,
-    targetLocation: { lat: 31.2545, lng: 75.7060, radiusMeters: 100 },
-    isActive: true,
-    expiresAt: new Date(new Date().setHours(23, 59, 59, 0)).toISOString(),
-  },
-  {
-    id: 'quest_social_1',
-    title: 'Squad Builder',
-    description: 'Form a team of at least 3 members on SquadUp and register for an upcoming event together.',
-    type: 'social',
-    xpReward: 300,
-    edurevLinkage: false,
-    locationRequired: false,
-    isActive: true,
-  },
-  {
-    id: 'quest_academic_1',
-    title: 'EduRev Pioneer',
-    description: 'Log your first achievement on EduRevolution — any certification, competition win, or research paper counts.',
-    type: 'academic',
-    xpReward: 200,
-    edurevLinkage: true,
-    locationRequired: false,
-    isActive: true,
-  },
-  {
-    id: 'quest_weekly_1',
-    title: 'Campus Cartographer',
-    description: 'Reveal 5 new zones on the CampusVerse map this week by physically visiting those locations.',
-    type: 'weekly',
-    xpReward: 500,
-    edurevLinkage: false,
-    locationRequired: true,
-    isActive: true,
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'quest_explorer_2',
-    title: 'Mac Lab Discovery',
-    description: 'Find and check in at the iOS development lab in Block 34 — home to the Xcode setups.',
-    type: 'explorer',
-    xpReward: 100,
-    edurevLinkage: false,
-    locationRequired: true,
-    targetLocation: { lat: 31.2531, lng: 75.7049, radiusMeters: 50 },
-    isActive: true,
-  },
-];
+function mapQuest(row: any): Quest {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description ?? undefined,
+    type: row.type,
+    xpReward: row.xp_reward,
+    badgeId: row.badge_id ?? undefined,
+    edurevLinkage: row.edurev_linkage,
+    locationRequired: row.location_required,
+    targetLocation: row.target_location ?? undefined,
+    completionCriteria: row.completion_criteria ?? undefined,
+    expiresAt: row.expires_at ?? undefined,
+    isActive: row.is_active,
+  };
+}
+
+const verifySchema = z.object({ lat: z.number(), lng: z.number() });
 
 const questRoutes: FastifyPluginAsync = async (fastify) => {
-  const requireAuth = async (request: any, reply: any) => {
-    try { await request.jwtVerify(); } catch { reply.status(401).send({ success: false, data: null, error: 'Unauthorized' }); }
-  };
-
-  /** GET /api/v1/quests — active quests for user */
+  /** GET /api/v1/quests — active quests, for CampusVerse's Discovery Layer to render as map spawns (AMD-006) */
   fastify.get('/', { preHandler: requireAuth }, async (_request, reply) => {
-    return reply.send({ success: true, data: MOCK_QUESTS, error: null } satisfies ApiResponse<Quest[]>);
+    const { data, error } = await supabase
+      .from('quests')
+      .select('*')
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+    return reply.send({ success: true, data: (data ?? []).map(mapQuest), error: null } satisfies ApiResponse<Quest[]>);
   });
 
   /** GET /api/v1/quests/leaderboard */
   fastify.get('/leaderboard', async (_request, reply) => {
-    const leaderboard = [
-      { rank: 1, handle: 'rohan_blockchain', displayName: 'Rohan Mehta', campusXp: 12000, level: 7, department: 'ECE' },
-      { rank: 2, handle: 'neha_devops', displayName: 'Neha Sharma', campusXp: 11200, level: 7, department: 'CSE' },
-      { rank: 3, handle: 'aarav_sharma', displayName: 'Aarav Sharma', campusXp: 8400, level: 5, department: 'CSE' },
-      { rank: 4, handle: 'ritika_research', displayName: 'Ritika Bhatia', campusXp: 7600, level: 5, department: 'BioTech' },
-      { rank: 5, handle: 'sahil_cybersec', displayName: 'Sahil Verma', campusXp: 6800, level: 5, department: 'CSE' },
-    ];
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('handle, display_name, campus_xp, level, department')
+      .order('campus_xp', { ascending: false })
+      .limit(10);
+
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+
+    const leaderboard = (data ?? []).map((row, i) => ({
+      rank: i + 1,
+      handle: row.handle,
+      displayName: row.display_name,
+      campusXp: row.campus_xp,
+      level: row.level,
+      department: row.department,
+    }));
+
     return reply.send({ success: true, data: leaderboard, error: null });
   });
 
-  /** POST /api/v1/quests/:id/verify — submit location for quest completion */
-  fastify.post<{ Params: { id: string }; Body: { lat: number; lng: number } }>(
+  /**
+   * POST /api/v1/quests/:id/verify — GPS-radius check, awards XP, and (per AMD-007)
+   * auto-generates EduRev evidence for edurev_linkage quests instead of requiring manual submission.
+   */
+  fastify.post<{ Params: { id: string }; Body: z.infer<typeof verifySchema> }>(
     '/:id/verify',
     { preHandler: requireAuth },
-    async (request: any, reply) => {
-      const quest = MOCK_QUESTS.find((q) => q.id === request.params.id);
+    async (request, reply) => {
+      const { userId } = request.user as JwtPayload;
+      const body = verifySchema.safeParse(request.body);
+      if (!body.success) {
+        return reply.status(400).send({ success: false, data: null, error: body.error.errors[0].message });
+      }
+
+      const { data: quest, error: questErr } = await supabase
+        .from('quests')
+        .select('*')
+        .eq('id', request.params.id)
+        .maybeSingle();
+      if (questErr) {
+        fastify.log.error(questErr);
+        return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+      }
       if (!quest) return reply.status(404).send({ success: false, data: null, error: 'Quest not found' });
 
-      // In prod: verify GPS coordinates against target_location with radius check
-      const progress: QuestProgress = {
-        id: `prog_${Date.now()}`,
-        profileId: request.user.userId,
-        questId: quest.id,
-        status: 'completed',
-        completedAt: new Date().toISOString(),
-        xpAwarded: quest.xpReward,
-        quest,
+      if (quest.location_required) {
+        const target = quest.target_location as { lat: number; lng: number; radius_meters: number } | null;
+        if (!target) {
+          return reply.status(400).send({ success: false, data: null, error: 'Quest has no target location configured' });
+        }
+        const dist = distanceMeters({ lat: body.data.lat, lng: body.data.lng }, { lat: target.lat, lng: target.lng });
+        if (dist > target.radius_meters) {
+          return reply.status(400).send({
+            success: false,
+            data: null,
+            error: `You're ${Math.round(dist)}m away — get within ${target.radius_meters}m to complete this quest.`,
+          });
+        }
+      }
+
+      const { data: progress, error: progressErr } = await supabase
+        .from('quest_progress')
+        .upsert(
+          {
+            profile_id: userId,
+            quest_id: quest.id,
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+            xp_awarded: quest.xp_reward,
+          },
+          { onConflict: 'profile_id,quest_id' }
+        )
+        .select('*')
+        .single();
+
+      if (progressErr || !progress) {
+        fastify.log.error(progressErr);
+        return reply.status(500).send({ success: false, data: null, error: 'Failed to record quest completion' });
+      }
+
+      const { data: profile } = await supabase.from('profiles').select('campus_xp').eq('id', userId).single();
+      if (profile) {
+        await supabase.from('profiles').update({ campus_xp: profile.campus_xp + quest.xp_reward }).eq('id', userId);
+      }
+
+      // AMD-007: quest completion is the primary data path into EduRev Connect — auto-submit evidence.
+      if (quest.edurev_linkage) {
+        await supabase.from('edurev_achievements').insert({
+          profile_id: userId,
+          title: `Quest completed: ${quest.title}`,
+          description: quest.description ?? '',
+          category: 'MOOC',
+          status: 'submitted',
+          xp_awarded: quest.xp_reward,
+        });
+      }
+
+      const result: QuestProgress = {
+        id: progress.id,
+        profileId: progress.profile_id,
+        questId: progress.quest_id,
+        status: progress.status,
+        completedAt: progress.completed_at ?? undefined,
+        xpAwarded: progress.xp_awarded ?? undefined,
+        quest: mapQuest(quest),
       };
 
-      return reply.send({ success: true, data: progress, error: null } satisfies ApiResponse<QuestProgress>);
+      return reply.send({ success: true, data: result, error: null } satisfies ApiResponse<QuestProgress>);
     }
   );
 };

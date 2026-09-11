@@ -32,6 +32,16 @@ export interface User {
   createdAt: string;
 }
 
+export interface ProfilePhoto {
+  url: string;
+  position: number;
+}
+
+export interface ProfilePrompt {
+  prompt: string;
+  answer: string;
+}
+
 export interface Profile {
   id: string;
   handle: string;
@@ -49,6 +59,8 @@ export interface Profile {
   level: number;
   squadVisibility: 'all' | 'dept' | 'off';
   onboardingComplete: boolean;
+  photos: ProfilePhoto[];
+  prompts: ProfilePrompt[];
   skills?: ProfileSkill[];
   badges?: ProfileBadge[];
 }

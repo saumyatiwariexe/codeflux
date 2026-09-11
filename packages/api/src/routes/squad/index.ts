@@ -1,96 +1,109 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { ApiResponse, SwipeDeckCard, SquadMatch, SwipeAction } from '../../../shared/src/types';
-import { MOCK_PROFILES } from '../users/mock-data';
-import { calculateMatchScore } from '../../services/matching';
+import { ApiResponse, SwipeDeckCard, SquadMatch } from '../../../../shared/src/types';
+import { calculateMatchScore, getSkillComplementPercent } from '../../services/matching';
+import { supabase } from '../../lib/supabase';
+import { requireAuth, JwtPayload } from '../../lib/auth';
+import { mapProfileRow, PROFILE_SELECT_WITH_JOINS } from '../../lib/mappers';
 
 const swipeSchema = z.object({
-  targetId: z.string(),
+  targetId: z.string().uuid(),
   action: z.enum(['like', 'pass', 'super']),
   context: z.enum(['hackathon', 'project', 'general', 'internship']).default('general'),
 });
-
-// In-memory swipe storage for hackathon demo
-const swipeStore = new Map<string, { targetId: string; action: SwipeAction }[]>();
-const matchStore = new Map<string, SquadMatch[]>();
 
 /**
  * SquadUp routes: swipe deck, swipe actions, matches, teams
  */
 const squadRoutes: FastifyPluginAsync = async (fastify) => {
-  // Auth guard helper
-  const requireAuth = async (request: any, reply: any) => {
-    try {
-      await request.jwtVerify();
-    } catch {
-      reply.status(401).send({ success: false, data: null, error: 'Unauthorized' });
-    }
-  };
-
   /**
    * GET /api/v1/squad/deck
-   * Returns a paginated, AI-ranked swipe deck for the current user.
-   * Excludes already-swiped profiles.
+   * Real, AI-free (heuristic) ranked deck: excludes self and anyone already swiped on.
    */
-  fastify.get('/deck', { preHandler: requireAuth }, async (request: any, reply) => {
-    const { userId } = request.user as { userId: string };
-    const alreadySwiped = (swipeStore.get(userId) ?? []).map((s) => s.targetId);
+  fastify.get('/deck', { preHandler: requireAuth }, async (request, reply) => {
+    const { userId } = request.user as JwtPayload;
 
-    const currentUser = MOCK_PROFILES.find((p) => p.id === userId) ?? MOCK_PROFILES[0];
-    
-    const deck: SwipeDeckCard[] = MOCK_PROFILES
-      .filter((p) => p.id !== userId && !alreadySwiped.includes(p.id))
-      .slice(0, 10)
+    const [{ data: me, error: meErr }, { data: swiped, error: swipedErr }] = await Promise.all([
+      supabase.from('profiles').select(PROFILE_SELECT_WITH_JOINS).eq('id', userId).maybeSingle(),
+      supabase.from('squad_swipes').select('swiped_id').eq('swiper_id', userId),
+    ]);
+
+    if (meErr || swipedErr) {
+      fastify.log.error(meErr ?? swipedErr);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+    if (!me) {
+      return reply.status(400).send({ success: false, data: null, error: 'Complete your profile before using SquadUp' });
+    }
+
+    const excludeIds = [userId, ...(swiped ?? []).map((s) => s.swiped_id)];
+
+    const { data: candidates, error: candErr } = await supabase
+      .from('profiles')
+      .select(PROFILE_SELECT_WITH_JOINS)
+      .not('id', 'in', `(${excludeIds.join(',')})`)
+      .eq('onboarding_complete', true)
+      .limit(20);
+
+    if (candErr) {
+      fastify.log.error(candErr);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+
+    const currentProfile = mapProfileRow(me);
+    const deck: SwipeDeckCard[] = (candidates ?? [])
+      .map(mapProfileRow)
       .map((profile) => ({
         ...profile,
-        matchScore: calculateMatchScore(currentUser, profile),
-        skillComplementScore: 80,
-        mutualClubs: ['ACM-LPU', 'ISTE'],
+        matchScore: calculateMatchScore(currentProfile, profile),
+        skillComplementScore: getSkillComplementPercent(currentProfile, profile),
+        mutualClubs: [],
       }))
-      .sort((a, b) => b.matchScore - a.matchScore);
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, 10);
 
     return reply.send({ success: true, data: deck, error: null } satisfies ApiResponse<SwipeDeckCard[]>);
   });
 
   /**
    * POST /api/v1/squad/swipe
-   * Records a swipe action and checks for mutual match.
+   * Records a swipe and creates a squad_match row on mutual like.
    */
-  fastify.post<{ Body: z.infer<typeof swipeSchema> }>('/swipe', { preHandler: requireAuth }, async (request: any, reply) => {
+  fastify.post<{ Body: z.infer<typeof swipeSchema> }>('/swipe', { preHandler: requireAuth }, async (request, reply) => {
     const body = swipeSchema.safeParse(request.body);
     if (!body.success) {
       return reply.status(400).send({ success: false, data: null, error: body.error.errors[0].message });
     }
 
-    const { userId } = request.user as { userId: string };
+    const { userId } = request.user as JwtPayload;
     const { targetId, action, context } = body.data;
 
-    // Record the swipe
-    const userSwipes = swipeStore.get(userId) ?? [];
-    userSwipes.push({ targetId, action });
-    swipeStore.set(userId, userSwipes);
+    const { error: insertErr } = await supabase
+      .from('squad_swipes')
+      .upsert({ swiper_id: userId, swiped_id: targetId, action, context }, { onConflict: 'swiper_id,swiped_id' });
 
-    // Check for mutual match (if action is 'like' or 'super')
+    if (insertErr) {
+      fastify.log.error(insertErr);
+      return reply.status(500).send({ success: false, data: null, error: 'Failed to record swipe' });
+    }
+
     let isMatch = false;
     if (action !== 'pass') {
-      const targetSwipes = swipeStore.get(targetId) ?? [];
-      const theyLikedUs = targetSwipes.some(
-        (s) => s.targetId === userId && s.action !== 'pass'
-      );
+      const { data: reciprocal } = await supabase
+        .from('squad_swipes')
+        .select('action')
+        .eq('swiper_id', targetId)
+        .eq('swiped_id', userId)
+        .neq('action', 'pass')
+        .maybeSingle();
 
-      if (theyLikedUs) {
+      if (reciprocal) {
         isMatch = true;
-        const matchId = `match_${[userId, targetId].sort().join('_')}`;
-        const match: SquadMatch = {
-          id: matchId,
-          userA: userId,
-          userB: targetId,
-          matchedAt: new Date().toISOString(),
-          status: 'matched',
-        };
-        const userMatches = matchStore.get(userId) ?? [];
-        userMatches.push(match);
-        matchStore.set(userId, userMatches);
+        const [userA, userB] = [userId, targetId].sort();
+        const { error: matchErr } = await supabase
+          .from('squad_matches')
+          .upsert({ user_a: userA, user_b: userB, status: 'matched' }, { onConflict: 'user_a,user_b' });
+        if (matchErr) fastify.log.error(matchErr);
       }
     }
 
@@ -103,70 +116,36 @@ const squadRoutes: FastifyPluginAsync = async (fastify) => {
 
   /**
    * GET /api/v1/squad/matches
-   * Returns all mutual matches for the current user.
    */
-  fastify.get('/matches', { preHandler: requireAuth }, async (request: any, reply) => {
-    const { userId } = request.user as { userId: string };
-    const matches = matchStore.get(userId) ?? MOCK_MATCHES;
+  fastify.get('/matches', { preHandler: requireAuth }, async (request, reply) => {
+    const { userId } = request.user as JwtPayload;
+
+    const { data, error } = await supabase
+      .from('squad_matches')
+      .select(`*, profileA:profiles!squad_matches_user_a_fkey(${PROFILE_SELECT_WITH_JOINS}), profileB:profiles!squad_matches_user_b_fkey(${PROFILE_SELECT_WITH_JOINS})`)
+      .or(`user_a.eq.${userId},user_b.eq.${userId}`)
+      .order('matched_at', { ascending: false });
+
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+
+    const matches: SquadMatch[] = (data ?? []).map((row: any) => {
+      const otherRow = row.user_a === userId ? row.profileB : row.profileA;
+      return {
+        id: row.id,
+        userA: row.user_a,
+        userB: row.user_b,
+        matchedAt: row.matched_at,
+        teamId: row.team_id ?? undefined,
+        status: row.status,
+        otherProfile: otherRow ? mapProfileRow(otherRow) : undefined,
+      };
+    });
 
     return reply.send({ success: true, data: matches, error: null } satisfies ApiResponse<SquadMatch[]>);
   });
 };
-
-// ---- Mock matches for demo ----
-const MOCK_MATCHES: SquadMatch[] = [
-  {
-    id: 'match_001',
-    userA: 'demo_user',
-    userB: 'profile_aarav',
-    matchedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    status: 'matched',
-    otherProfile: {
-      id: 'profile_aarav',
-      handle: 'aarav_sharma',
-      displayName: 'Aarav Sharma',
-      avatarUrl: undefined,
-      department: 'CSE',
-      year: 3,
-      degreeLevel: 'UG',
-      isDayScholar: true,
-      campusXp: 8400,
-      level: 5,
-      squadVisibility: 'all',
-      onboardingComplete: true,
-      bio: 'Next.js 14, PyTorch, Supabase & Tailwind. Building blazing-fast LLM wrappers.',
-      skills: [
-        { skillId: 's1', skill: { id: 's1', name: 'React', category: 'Tech' }, proficiency: 'expert' },
-        { skillId: 's2', skill: { id: 's2', name: 'Computer Vision', category: 'Tech' }, proficiency: 'intermediate' },
-      ],
-    },
-  },
-  {
-    id: 'match_002',
-    userA: 'demo_user',
-    userB: 'profile_priya',
-    matchedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    status: 'matched',
-    otherProfile: {
-      id: 'profile_priya',
-      handle: 'priya_design',
-      displayName: 'Priya Krishnan',
-      avatarUrl: undefined,
-      department: 'Design',
-      year: 2,
-      degreeLevel: 'UG',
-      isDayScholar: false,
-      campusXp: 5200,
-      level: 4,
-      squadVisibility: 'all',
-      onboardingComplete: true,
-      bio: 'UI/UX designer. Figma wizard. Design systems enthusiast.',
-      skills: [
-        { skillId: 's3', skill: { id: 's3', name: 'Figma', category: 'Design' }, proficiency: 'expert' },
-        { skillId: 's4', skill: { id: 's4', name: 'Branding', category: 'Design' }, proficiency: 'expert' },
-      ],
-    },
-  },
-];
 
 export default squadRoutes;

@@ -1,8 +1,10 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { ApiResponse } from '../../../shared/src/types';
+import { ApiResponse } from '../../../../shared/src/types';
+import { supabase } from '../../lib/supabase';
 
-// ---- Mock data for hackathon demo ----
+// OTPs are short-lived and per-process — in-memory storage is fine for a single API instance.
+// Real delivery (email/SMS) is out of hackathon scope; see docs/AMENDMENTS.md.
 const MOCK_OTP_STORE = new Map<string, { otp: string; expires: number }>();
 
 const sendOtpSchema = z.object({
@@ -21,8 +23,6 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * POST /api/v1/auth/send-otp
    * Sends a 6-digit OTP to the provided LPU email address.
-   * In production: uses Firebase Auth or Nodemailer.
-   * In demo mode: returns the OTP in the response (dev only).
    */
   fastify.post<{ Body: z.infer<typeof sendOtpSchema> }>('/send-otp', async (request, reply) => {
     const body = sendOtpSchema.safeParse(request.body);
@@ -46,7 +46,6 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
       success: true,
       data: {
         expiresIn: 600,
-        // Only expose OTP in non-production for demo
         ...(process.env.NODE_ENV !== 'production' ? { devOtp: otp } : {}),
       },
       error: null,
@@ -57,7 +56,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   /**
    * POST /api/v1/auth/verify-otp
-   * Verifies the OTP and returns a JWT access token.
+   * Verifies the OTP, upserts a real `users` row, and returns a JWT keyed to that row's UUID.
    */
   fastify.post<{ Body: z.infer<typeof verifyOtpSchema> }>('/verify-otp', async (request, reply) => {
     const body = verifyOtpSchema.safeParse(request.body);
@@ -82,24 +81,54 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
 
     MOCK_OTP_STORE.delete(email);
 
-    // Generate mock user (in prod, create/fetch from Supabase)
-    const mockUserId = `user_${email.replace('@lpu.in', '').replace(/\W/g, '_')}`;
-    const token = fastify.jwt.sign(
-      { userId: mockUserId, email, role: 'student' },
-      { expiresIn: '7d' }
-    );
+    // Find or create the user row for this LPU email.
+    const { data: existingUser, error: findError } = await supabase
+      .from('users')
+      .select('id')
+      .eq('lpu_email', email)
+      .maybeSingle();
 
-    const response: ApiResponse<{
-      token: string;
-      userId: string;
-      isNewUser: boolean;
-    }> = {
+    if (findError) {
+      fastify.log.error(findError);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' } satisfies ApiResponse<null>);
+    }
+
+    let userId: string;
+    let isNewUser: boolean;
+
+    if (existingUser) {
+      userId = existingUser.id;
+      isNewUser = false;
+    } else {
+      const { data: created, error: insertError } = await supabase
+        .from('users')
+        .insert({ lpu_email: email, is_active: true })
+        .select('id')
+        .single();
+
+      if (insertError || !created) {
+        fastify.log.error(insertError);
+        return reply.status(500).send({ success: false, data: null, error: 'Failed to create user' } satisfies ApiResponse<null>);
+      }
+      userId = created.id;
+      isNewUser = true;
+    }
+
+    // A user row existing doesn't mean onboarding is done — check for a completed profile.
+    if (!isNewUser) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_complete')
+        .eq('id', userId)
+        .maybeSingle();
+      isNewUser = !profile?.onboarding_complete;
+    }
+
+    const token = fastify.jwt.sign({ userId, email, role: 'student' }, { expiresIn: '7d' });
+
+    const response: ApiResponse<{ token: string; userId: string; isNewUser: boolean }> = {
       success: true,
-      data: {
-        token,
-        userId: mockUserId,
-        isNewUser: true, // In prod: check if profile exists in DB
-      },
+      data: { token, userId, isNewUser },
       error: null,
     };
 
