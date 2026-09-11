@@ -73,7 +73,7 @@ Tell the user: "Amendment AMD-[NNN] has been logged and source docs updated."
 
 - **Every new feature must map to a validated pain point** in `PROBLEM_VALIDATION.md`. If it doesn't, add a new problem entry first.
 - **No feature can be added to PRD.md without a Problem # reference** in its description.
-- Macbease already has: mapping, events, clubs, gamification, social feed, chat, profiles. Our edge is **SquadUp (teammate matching)**, **EduRev Connect**, **LostPulse**, and **GTA5 fog-of-war quest exploration**. Do NOT drop any of these four — they are our differentiators.
+- Macbease already has: mapping, events, clubs, gamification, social feed, chat, profiles. Per AMD-006 + AMD-007, our hackathon edge is **SquadUp (teammate matching)**, **LostPulse**, **CampusVerse's GTA5 fog-of-war + Pokémon-GO proximity-quest discovery layer** (QuestZone is merged into CampusVerse, not a separate module), and **EduRev Connect** (restored to flagship — it's a real, currently-active official LPU policy affecting grades/attendance, confirmed via lpu.in, and is now data-fed by CampusVerse quest completions rather than a disconnected dashboard). Do NOT drop any of these four — they are our differentiators.
 
 ---
 
@@ -137,19 +137,21 @@ The following are **locked** decisions (require AMD to change):
 
 ---
 
-## 8. Module Priority (Hackathon Focus Order)
+## 8. Module Priority (Hackathon Focus Order) — updated by AMD-006, AMD-007
 
-Build in this order — if time runs out, earlier modules are more important:
+Build in this order — if time runs out, earlier modules are more important. Only the first 5 are pitched/demoed live; the rest exist in code but are not the story.
 
-1. CampusVerse (map) — flagship, must demo
-2. SquadUp (swipe matching) — unique differentiator, must demo
-3. Profile + Skills — powers matching, must demo
-4. EventHub (event pins on map + RSVP) — must demo
-5. EduRev Connect (dashboard) — LPU-specific hook, demo if time
-6. ClubVerse (directory) — demo if time
-7. QuestZone (gamification) — demo if time
-8. LostPulse (lost & found) — demo if time
-9. PulseChat — lowest hackathon priority (show UI only)
+1. **CampusVerse** (map, flagship) — fog-of-war + Pokémon-GO proximity quest spawns + GTA5 activity blips. QuestZone is built as PART of this, not a separate screen. EduRev-eligible quests are visually flagged.
+2. **EduRev Connect** (flagship, restored AMD-007) — benefit calculator/tracker fed directly by CampusVerse quest completions. Real official LPU policy (Course Equivalence, GROW, attendance relaxation) — the strongest must-have hook. Must demo the quest-to-EduRev data flow, not just a static dashboard.
+3. **SquadUp** (swipe matching) — unique differentiator, must demo, wired to real DB
+4. **LostPulse** (lost & found) — must demo, items as map pins, wired to real DB
+5. **EventHub** (event pins on map + RSVP) — must demo, map-first
+6. Profile + Skills — powers matching, must work but not a demo centerpiece
+7. ClubVerse (directory) — demo if time
+8. PulseChat — lowest priority (UI only)
+9. Social Layer / Feed — lowest priority (UI only)
+
+**Cut from standalone build:** QuestZone as its own tab/screen — folded into CampusVerse (see PRD.md Module 1 & 3, AMD-006).
 
 ---
 

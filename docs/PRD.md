@@ -61,19 +61,38 @@ The result is a single app where every friction point of LPU student life is sol
 
 ---
 
-### MODULE 1:  CampusVerse — The GTA 5 Campus Map
+### MODULE 1:  CampusVerse — The GTA 5 / Pokémon GO Campus Map (FLAGSHIP)
 
-**Overview:** A beautiful, vectorized top-down map of LPU's 600-acre campus that loads with a cinematic GTA 5-style fog-of-war effect. Areas unlock as you physically visit them (GPS verification).
+> **Per AMD-006:** CampusVerse is the app's spine for the hackathon build. QuestZone (formerly Module 3) is merged into this module as its Discovery Layer — there is no separate quest tab.
+
+**Overview:** A beautiful, vectorized top-down map of LPU's 600-acre campus that loads with a cinematic GTA 5-style fog-of-war effect. Areas unlock as you physically visit them (GPS verification). On top of that persistent world state, a Pokémon GO-style discovery layer spawns quests, XP nodes, and nearby activity only when the student is physically close enough to see them.
 
 **Core Features:**
 
-#### 1.1 Fog-of-War Exploration
+#### 1.1 Fog-of-War Exploration (GTA5-style persistent world)
 - On first launch, the entire campus is covered in a stylized fog/dark overlay
 - As a student physically walks to a location (GPS radius ~50m), the fog lifts in a smooth animation revealing that zone
+- Fog reveal is **permanent per-user state** (like GTA5's map reveal) — once explored, always visible on that student's map
 - Each zone unlock earns **CampusXP** and triggers a "Zone Discovered!" badge
+- Zone Territories (see 1.3) track **% explored** per player, shown as a progress ring on the territory label
 - Fully explored campus = Platinum Explorer badge + EduRevolution-linked quest completion
 
-#### 1.2 Live Event Pins
+#### 1.2 Discovery Layer — Proximity Spawns (Pokémon GO mechanic, replaces standalone QuestZone)
+- Quest markers, XP nodes, and badges are **invisible until the student is within GPS radius** (~30-75m depending on quest tier), then animate onto the map as a "spawn" — same beat as a Pokémon GO creature appearing
+- Quest types carried over from the original QuestZone spec (Explorer, Academic, Social, Daily/Weekly — see §3.2 below for XP table) now render as map spawns instead of a list:
+  - Explorer quests spawn near their target location (e.g., "secret garden behind Block 32" only appears once you're near Block 32)
+  - Daily/Weekly quests spawn near high-traffic zones to drive return visits
+- Completing a spawn (visiting it / tapping to claim while in radius) awards XP inline on the map, no separate screen needed
+- Leaderboards (all-campus, department, batch, club) remain accessible from Profile but are no longer a primary nav destination
+
+#### 1.3 GTA5-style Live Activity Blips (NEW)
+- In addition to static event pins, the map shows **live blips** the way GTA5's minimap shows other players/mission markers:
+  - Nearby SquadUp matches (opt-in, approximate location only — see Privacy rules, §7) show as blips, tying SquadUp into the map
+  - Active/imminent events pulse as blips distinct from scheduled event pins
+  - Newly reported lost/found items (LostPulse) appear as blips at their reported location
+- Blips are ephemeral (disappear when stale/expired) — this is distinct from the permanent fog-of-war reveal
+
+#### 1.4 Live Event Pins
 - Floating animated pins appear on the map for:
   -  Active events (happening right now)
   -  Upcoming events (next 48 hours)
@@ -81,7 +100,7 @@ The result is a single app where every friction point of LPU student life is sol
   -  Competitions (registration open)
 - Tapping a pin opens an event card with RSVP, map route, and ticket purchase
 
-#### 1.3 Zone Territories
+#### 1.5 Zone Territories
 - The campus is divided into named Territories (inspired by Macbease but richer):
   -  Tech District (CSE, ECE blocks)
   -  Creative Quarter (Design, Architecture)
@@ -91,14 +110,15 @@ The result is a single app where every friction point of LPU student life is sol
   -  Knowledge Core (Central Library, tutorial rooms)
   -  Residential Grid (Hostels)
   -  Green Campus (parks, gardens, open areas)
+- Each territory tracks per-player % explored (fog-of-war progress) — see 1.1
 
-#### 1.4 Indoor Navigation
+#### 1.6 Indoor Navigation *(post-hackathon — see Phased Rollout)*
 - Block-level routing: "Find shortest path from Block B to Block G, Floor 3"
 - Room-number search (e.g., "B4-302")
 - Accessible route mode (elevator-preferred paths)
 - Offline-cached maps (works without internet)
 
-#### 1.5 Real-Time Overlays
+#### 1.7 Real-Time Overlays *(post-hackathon — see Phased Rollout)*
 - Student density heatmap (shows busy areas to avoid queues)
 - Food court wait time estimator
 - Available study rooms in the library (green/red indicators)
@@ -154,9 +174,9 @@ Each student's card shows:
 
 ---
 
-### MODULE 3:  QuestZone — Gamified Campus Life
+### MODULE 3:  QuestZone — Gamified Campus Life *(MERGED into Module 1 CampusVerse per AMD-006 — no standalone tab/screen; content below now renders as map spawns, see 1.2)*
 
-**Overview:** A Pokémon GO-style quest system that makes exploring campus, attending events, joining clubs, and growing academically feel like leveling up in a game.
+**Overview:** A Pokémon GO-style quest system that makes exploring campus, attending events, joining clubs, and growing academically feel like leveling up in a game. Quest **content and XP economy** are still defined here; quest **presentation** now lives entirely inside CampusVerse's Discovery Layer.
 
 **Core Features:**
 
@@ -294,9 +314,11 @@ Within each club/community:
 
 ---
 
-### MODULE 6:  EduRev Connect — EduRevolution Integration
+### MODULE 6:  EduRev Connect — EduRevolution Integration (FLAGSHIP, restored by AMD-007)
 
-**Overview:** The only app with official EduRevolution integration — turning LPU's transformative academic initiative into a tangible, trackable, rewarding experience.
+**Overview:** The only app with official EduRevolution integration — turning LPU's transformative academic initiative into a tangible, trackable, rewarding experience. EduRevolution is a real, currently-active LPU policy (Course Equivalence & Attendance Relaxation, Grade Revision and Overall Welfare/GROW, attendance waivers — confirmed via lpu.in and official LPU notices, effective Spring Term 2024-25 onward), affecting real grades and attendance — this is the project's strongest "must-have" hook, not a convenience feature.
+
+**Quest Integration (promoted to core, AMD-007):** This module is data-fed by CampusVerse's Discovery Layer (Module 1.2) rather than being a disconnected dashboard. See §6.4.
 
 **Core Features:**
 
@@ -324,9 +346,10 @@ Within each club/community:
 - Analytics: Participation rates by department, trending achievement types
 - Export reports (CSV/PDF) for university records
 
-#### 6.4 Quest Integration
-- Quest completions that qualify for EduRevolution auto-submit evidence
-- E.g., "Attended 5 workshops" → attendances logged via QR check-in → auto-generates EduRev proof
+#### 6.4 Quest Integration (CORE, not optional — AMD-007)
+- Quest completions that qualify for EduRevolution auto-submit evidence — this is the primary data path into EduRev Connect, not a manual achievement log
+- E.g., "Attended 5 workshops" → attendances logged via QR check-in → auto-generates EduRev proof; "Get a certification on NPTEL/SWAYAM" quest (§3.1) → auto-populates Course Equivalence/Attendance Relaxation request
+- Quest spawns on the CampusVerse map that are EduRev-eligible are visually flagged ("counts toward EduRev") so students see the real stake while exploring
 - Removes the manual submission burden entirely
 
 ---
@@ -453,15 +476,16 @@ Floating action button that expands to:
 ├── Quests Carousel (daily/weekly)
 └── Speed-Dial FAB (+)
 
- MAP TAB (CampusVerse)
-├── Vectorized LPU Map (fog-of-war)
+ MAP TAB (CampusVerse) — FLAGSHIP, hackathon spine (AMD-006)
+├── Vectorized LPU Map (fog-of-war, permanent per-user reveal)
+├── Discovery Layer: proximity-spawned quests/XP nodes (Pokémon GO mechanic)
+├── Live Activity Blips: nearby SquadUp matches, active events, new lost/found (GTA5 mechanic)
 ├── Floating Event Pins
-├── Zone Territory Labels
+├── Zone Territory Labels (with % explored)
 ├── 2D/3D Toggle
 ├── Search Bar (room/block/facility)
 ├── My Location
-├── Navigation Mode (turn-by-turn)
-└── Layers: Events | Density | Food | Study Rooms
+└── Layers: Events | Density | Food | Study Rooms *(Indoor nav / turn-by-turn: post-hackathon)*
 
  SQUAD TAB (SquadUp)
 ├── Swipe Deck (skill-matched profiles)
@@ -594,11 +618,13 @@ Floating action button that expands to:
 
 ## 9. Phased Rollout
 
-### Phase 0 — Hackathon (This Weekend)
--  High-fidelity UI prototype (all key screens)
--  CampusVerse map mockup with event pins
--  SquadUp swipe deck demo
--  EduRev dashboard wireframe
+### Phase 0 — Hackathon (This Weekend) — 5-module scope per AMD-006 + AMD-007
+-  **CampusVerse** (flagship): fog-of-war + Pokémon-GO-style proximity quest spawns + GTA5-style activity blips, wired to real Supabase data (not mock); EduRev-eligible quests visually flagged
+-  **EduRev Connect** (flagship, restored AMD-007): benefit calculator fed directly by quest completions from CampusVerse — real official LPU policy, strongest must-have hook
+-  **SquadUp**: swipe deck, real matches persisted, map integration (nearby-match blips)
+-  **LostPulse**: post/claim flow with items as map pins
+-  **EventHub**: map-first discovery, list view secondary
+-  ClubVerse / PulseChat / Social Feed: UI only, demoed if time, not the pitch focus
 -  This PRD + Problem Validation document
 
 ### Phase 1 — MVP (Month 1-2)

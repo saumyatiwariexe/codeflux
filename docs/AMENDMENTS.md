@@ -142,3 +142,71 @@ Bottom tab bar locked at 6 tabs for visual balance. Additional features accessed
 - Modules affected: Navigation (_layout.tsx), Profile tab, Pulse tab
 - Files to update: None — already implemented
 - Breaking changes: No
+
+---
+
+## AMD-006 — Hackathon Scope Cut: 4 Flagship Modules, QuestZone Merged Into CampusVerse Map
+**Date:** 2026-09-11 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+1. **Hackathon build/demo scope narrowed to 4 flagship modules.** Only these are polished, wired to real data, and demoed live:
+   - **CampusVerse** (map) — flagship, now the app's spine
+   - **SquadUp** (swipe matching)
+   - **LostPulse** (lost & found) — items shown as map pins, not just a list
+   - **EventHub** — map is now the primary discovery surface; list/calendar view is secondary
+2. **QuestZone is no longer a standalone tab/module.** Its Pokémon GO-style quest mechanic is merged directly into CampusVerse: quest markers, XP nodes, and badges spawn on the map based on GPS proximity (invisible until the player is near them, like Pokémon GO spawns) rather than living in a separate quest list screen. Module 3 in PRD.md is retitled "CampusVerse Discovery Layer" and folded under Module 1.
+3. **CampusVerse (Module 1) is upgraded beyond fog-of-war-only:**
+   - Fog-of-war reveal stays (GTA5-style, permanent per-user map reveal on physical visit)
+   - **NEW — Proximity Spawns (Pokémon GO mechanic):** quests, XP nodes, lost-item pins, and event pins are hidden until the student is within GPS radius, then animate onto the map ("spawn")
+   - **NEW — GTA5-style world state:** Zone Territories (already spec'd in 1.3) now persist discovery/ownership state per player (e.g., "% explored" per territory) and show live activity blips (nearby SquadUp matches, active events) the way GTA5 shows other players/mission markers on the minimap
+   - SquadUp integration: nearby matches appear as blips on the map (new — connects Module 1 and Module 2)
+4. **Deprioritized for hackathon demo (kept in code/schema, not polished or pitched):** ClubVerse, EduRev Connect, PulseChat, Social Layer/Feed. These remain as stack screens per AMD-005 but are explicitly "demo if time" at the bottom of build priority.
+5. **Rule confirmed, not re-created:** the existing Amendment Protocol (`.agents/rules/AGENTS.md` §2) already requires any system/architecture change to be logged here and reflected in source docs — this entry follows that existing rule rather than introducing a new one.
+
+### Overrides
+- PRD.md:MODULE 1 (CampusVerse) — "Fog-of-war + event pins" -> "Fog-of-war + Pokémon-GO-style proximity spawns + GTA5-style persistent zone/blip state"
+- PRD.md:MODULE 3 (QuestZone) — "Standalone module/tab" -> "Merged into CampusVerse as the Discovery Layer; no separate QuestZone screen"
+- AGENTS.md:§8 Module Priority — reordered to reflect the 4-module hackathon scope (see updated table)
+
+### Rationale
+Round 1 eval feedback: 8 parallel modules diluted the demo and gave no single memorable moment; "AI" and backend were mock-only with no flagship technical depth anywhere. Consolidating Quests into the map turns CampusVerse into a genuinely more technically complex, demo-able centerpiece (real proximity/geofence logic, persistent state) instead of adding an 9th shallow screen — directly answers the judge question "which of these are you actually submitting."
+
+### Impact
+- Modules affected: CampusVerse (major expansion), QuestZone (removed as standalone, merged), SquadUp (map integration), LostPulse (map pins), EventHub (map-first), ClubVerse/EduRev/PulseChat/Social (deprioritized only, not removed)
+- Files to update: PRD.md (Module 1, Module 3, Navigation Architecture, Phased Rollout), AGENTS.md (§3 differentiators, §8 build priority)
+- Breaking changes: `questzone.tsx` route and `quest/index.tsx` screen become secondary/removable from nav; their logic (quest list, XP) should be surfaced as map overlays instead. Not a data-model breaking change — `quests`/`quest_progress` tables are reused, just rendered differently.
+
+---
+
+## AMD-007 — Restore EduRev Connect as Flagship Module, Wired to Quest System
+**Date:** 2026-09-11 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+EduRev Connect is restored to flagship/must-demo status (it had been deprioritized in AMD-006). Web research confirmed EduRevolution is a real, currently-active official LPU academic policy (in effect since Spring Term 2024-25), not a fictional hook — key components:
+- **Course Equivalence & Attendance Relaxation** — students can request attendance/course relaxation for a term in lieu of NPTEL/MOOC courses or certifications completed
+- **Grade Revision and Overall Welfare (GROW)**
+- **10% attendance waiver** for pre-final/final year students; up to 10% attendance shortage condonable based on prior-term record; 5% relaxation for medical/genuine exigencies
+
+This is a real, high-stakes, grade/attendance-affecting policy — making it a genuine "must-have" hook rather than a convenience feature, and it directly strengthens the Problem-Solution Fit weakness flagged in the Round 1 eval.
+
+**Integration with the quest system (per user request):** EduRev Connect is now explicitly wired to CampusVerse's Discovery Layer (quests, merged in AMD-006), not a disconnected dashboard:
+- Quest completions that map to real EduRev-eligible activity (e.g., "Get a certification on NPTEL/SWAYAM," "Attend 3 workshops," "Win a competition" — PRD.md §3.1) auto-generate EduRev submission evidence instead of requiring manual form-fill (this was already spec'd in PRD.md Module 6.4 "Quest Integration" — it was just deprioritized in AMD-006; AMD-007 restores it to priority)
+- The EduRev Benefit Calculator (Module 6.2) reads directly from a student's quest/XP history rather than a separate manual achievement log, so CampusVerse exploration and EduRev progress are the same underlying data
+- CampusVerse map can surface an EduRev-eligible quest distinctly (e.g., a "counts toward EduRev" badge on relevant quest spawns) so students see the real-world stake while exploring
+
+### Overrides
+- AGENTS.md:§3 differentiators — "SquadUp, LostPulse, CampusVerse discovery" -> "SquadUp, LostPulse, CampusVerse discovery, **EduRev Connect**" (4 differentiators, restored)
+- AGENTS.md:§8 Module Priority — EduRev Connect moved from priority 6 ("demo if time") to priority 2 (must-demo, right after CampusVerse)
+- PRD.md:MODULE 6 — "EduRev Connect (dashboard)" -> "EduRev Connect, data-fed by CampusVerse quest completions (Module 6.4 Quest Integration promoted from optional to core)"
+
+### Rationale
+User confirmed EduRev is a real, current LPU program students genuinely care about (grades/attendance are non-negotiable stakes, unlike clubs/events which have easy WhatsApp-group workarounds per the Round 1 eval's alternative-analysis). Tying it directly to the quest/map system also gives CampusVerse's Discovery Layer a real-world payoff beyond cosmetic XP, which strengthens both Technical Complexity (real data pipeline: quest completion -> EduRev evidence) and Problem-Solution Fit scores from the Round 1 evaluation.
+
+### Impact
+- Modules affected: EduRev Connect (priority restored), CampusVerse (quest spawns now carry EduRev-eligibility metadata), Module 6.4 (promoted from optional to core requirement)
+- Files to update: PRD.md (Module 6, Module 1 discovery layer note), AGENTS.md (§3, §8)
+- Breaking changes: None — `edurev_achievements` table already exists in schema (per earlier Explore report); this connects existing quest data to it rather than requiring new tables.
