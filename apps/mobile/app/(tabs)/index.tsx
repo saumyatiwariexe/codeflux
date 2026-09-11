@@ -71,11 +71,18 @@ export default function HomeScreen() {
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity 
-            style={[styles.questBtn, { backgroundColor: theme.primaryContainer, marginRight: 8 }]}
+            style={[styles.questBtn, { backgroundColor: theme.primaryContainer, marginRight: 6 }]}
             onPress={() => router.push('/questzone')}
           >
             <Ionicons name="map" size={16} color={theme.primary} />
             <Text variant="label-sm" style={{ color: theme.primary, marginLeft: 4 }}>Quests</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={[styles.questBtn, { backgroundColor: theme.errorContainer, marginRight: 8 }]}
+            onPress={() => router.push('/lostfound')}
+          >
+            <Ionicons name="search" size={16} color={theme.error} />
+            <Text variant="label-sm" style={{ color: theme.error, marginLeft: 4 }}>Lost</Text>
           </TouchableOpacity>
           {/* Chat Button */}
           <TouchableOpacity 

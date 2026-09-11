@@ -4,6 +4,8 @@ import {
   TextInput, Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Text } from '../../components/ui/Text';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -13,9 +15,20 @@ import { useThemeStore } from '../../stores/useThemeStore';
 
 type LFTab = 'lost' | 'found' | 'myItems';
 
+const CATEGORY_ICONS: Record<string, string> = {
+  electronics: 'phone-portrait',
+  bag: 'bag',
+  wallet: 'wallet',
+  id_card: 'card',
+  keys: 'key',
+  clothing: 'shirt',
+  books: 'book',
+  other: 'help-circle',
+};
+
 const MOCK_LOST = [
   {
-    id: 'l1', category: 'electronics', emoji: '',
+    id: 'l1', category: 'electronics',
     title: 'Black OnePlus 12R',
     description: 'Lost near cafeteria around 1 PM. Cracked screen protector.',
     location: 'Main Cafeteria Block',
@@ -23,7 +36,7 @@ const MOCK_LOST = [
     aiMatch: { score: 82, foundTitle: 'Found Android phone near Block 34' },
   },
   {
-    id: 'l2', category: 'id_card', emoji: '',
+    id: 'l2', category: 'id_card',
     title: 'LPU Student ID Card — Priya Krishnan',
     description: 'Needed for hostel access. Please contact if found.',
     location: 'Library 2nd Floor',
@@ -31,7 +44,7 @@ const MOCK_LOST = [
     aiMatch: null,
   },
   {
-    id: 'l3', category: 'wallet', emoji: '',
+    id: 'l3', category: 'wallet',
     title: 'Brown leather wallet',
     description: 'Lost during evening sports session. Had ₹200 and ID inside.',
     location: 'Sports Complex',
@@ -42,14 +55,14 @@ const MOCK_LOST = [
 
 const MOCK_FOUND = [
   {
-    id: 'f1', category: 'electronics', emoji: '',
+    id: 'f1', category: 'electronics',
     title: 'Android phone — black, cracked back',
     description: 'Found on bench outside Block 34. Still has battery.',
     location: 'Block 34 entrance bench',
     time: '1h ago', reporterName: 'Neha S.',
   },
   {
-    id: 'f2', category: 'keys', emoji: '',
+    id: 'f2', category: 'keys',
     title: 'Key ring with 3 keys + Scooty remote',
     description: 'Found near parking lot A, Block 16 area.',
     location: 'Parking Lot A, Block 16',
@@ -58,14 +71,14 @@ const MOCK_FOUND = [
 ];
 
 const CATEGORY_OPTIONS = [
-  { key: 'electronics', label: 'Electronics', emoji: '' },
-  { key: 'bag', label: 'Bag', emoji: '' },
-  { key: 'wallet', label: 'Wallet', emoji: '' },
-  { key: 'id_card', label: 'ID Card', emoji: '' },
-  { key: 'keys', label: 'Keys', emoji: '' },
-  { key: 'clothing', label: 'Clothing', emoji: '' },
-  { key: 'books', label: 'Books', emoji: '' },
-  { key: 'other', label: 'Other', emoji: '' },
+  { key: 'electronics', label: 'Electronics' },
+  { key: 'bag', label: 'Bag' },
+  { key: 'wallet', label: 'Wallet' },
+  { key: 'id_card', label: 'ID Card' },
+  { key: 'keys', label: 'Keys' },
+  { key: 'clothing', label: 'Clothing' },
+  { key: 'books', label: 'Books' },
+  { key: 'other', label: 'Other' },
 ];
 
 export default function LostPulseScreen() {
@@ -88,9 +101,12 @@ export default function LostPulseScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.surfaceSpaceDeep }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text variant="headline-md">LostPulse </Text>
-          <Text variant="body-sm" color="onSurfaceVariant">AI-powered lost & found</Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12, padding: 4 }}>
+          <Ionicons name="arrow-back" size={22} color={theme.onSurface} />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text variant="headline-md">LostPulse</Text>
+          <Text variant="body-sm" color="onSurfaceVariant">AI-powered lost &amp; found</Text>
         </View>
         <View style={styles.headerBtns}>
           <TouchableOpacity
@@ -130,7 +146,7 @@ export default function LostPulseScreen() {
             <Card key={item.id} variant="default" style={styles.itemCard}>
               <View style={styles.itemTop}>
                 <View style={[styles.itemIcon, { backgroundColor: theme.errorContainer }]}>
-                  <Text style={{ fontSize: 24 }}>{item.emoji}</Text>
+                  <Ionicons name={(CATEGORY_ICONS[item.category] ?? 'help-circle') as any} size={22} color={theme.error} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text variant="headline-sm">{item.title}</Text>
@@ -145,7 +161,7 @@ export default function LostPulseScreen() {
               {/* AI Match Banner */}
               {item.aiMatch && (
                 <View style={[styles.aiMatchBanner, { backgroundColor: theme.neonEmerald + '18', borderColor: theme.neonEmerald + '44' }]}>
-                  <Text style={{ fontSize: 16 }}></Text>
+                  <Ionicons name="flash" size={18} color={theme.neonEmerald} />
                   <View style={{ flex: 1, marginLeft: 10 }}>
                     <Text variant="label-sm" style={{ color: theme.neonEmerald }}>
                       {item.aiMatch.score}% match found!
@@ -177,7 +193,7 @@ export default function LostPulseScreen() {
             <Card key={item.id} variant="default" style={styles.itemCard}>
               <View style={styles.itemTop}>
                 <View style={[styles.itemIcon, { backgroundColor: theme.tertiaryContainer }]}>
-                  <Text style={{ fontSize: 24 }}>{item.emoji}</Text>
+                  <Ionicons name={(CATEGORY_ICONS[item.category] ?? 'help-circle') as any} size={22} color={theme.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text variant="headline-sm">{item.title}</Text>
@@ -200,7 +216,7 @@ export default function LostPulseScreen() {
       {/* ---- My Items Tab ---- */}
       {activeTab === 'myItems' && (
         <View style={[styles.content, { flex: 1, alignItems: 'center', justifyContent: 'center' }]}>
-          <Text style={{ fontSize: 40 }}></Text>
+          <Ionicons name="search" size={48} color={theme.onSurfaceVariant} style={{ opacity: 0.4 }} />
           <Text variant="headline-sm" style={{ marginTop: 12 }}>Your Reports</Text>
           <Text variant="body-sm" color="onSurfaceVariant" style={{ marginTop: 6, textAlign: 'center', paddingHorizontal: 40 }}>
             Items you've reported as lost or found appear here.
@@ -230,7 +246,7 @@ export default function LostPulseScreen() {
                     style={[styles.catChip, { backgroundColor: selectedCategory === c.key ? theme.primary : theme.surfaceContainerLow }]}
                     onPress={() => setSelectedCategory(c.key)}
                   >
-                    <Text style={{ fontSize: 16 }}>{c.emoji}</Text>
+                    <Ionicons name={(CATEGORY_ICONS[c.key] ?? 'help-circle') as any} size={16} color={selectedCategory === c.key ? theme.onPrimary : theme.onSurface} />
                     <Text variant="label-xs" style={{ color: selectedCategory === c.key ? theme.onPrimary : theme.onSurface, marginLeft: 4 }}>
                       {c.label}
                     </Text>

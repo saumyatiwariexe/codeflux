@@ -12,6 +12,7 @@ import { XPBar } from '../../components/ui/XPBar';
 import { AchievementBadge } from '../../components/profile/AchievementBadge';
 import { SkillTag } from '../../components/profile/SkillTag';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { Ionicons } from '@expo/vector-icons';
 
 const MOCK_PROFILE = {
   displayName: 'Paladeium User',
@@ -51,10 +52,10 @@ export default function ProfileScreen() {
   const xpPercent = p.campusXp / p.xpToNextLevel;
 
   const STAT_ITEMS = [
-    { label: 'Events', value: p.stats.events, emoji: '' },
-    { label: 'Squads', value: p.stats.squads, emoji: '' },
-    { label: 'Quests', value: p.stats.quests, emoji: '' },
-    { label: 'EduRev', value: p.stats.achievements, emoji: '' },
+    { label: 'Events', value: p.stats.events, icon: 'calendar' },
+    { label: 'Squads', value: p.stats.squads, icon: 'people' },
+    { label: 'Quests', value: p.stats.quests, icon: 'map' },
+    { label: 'EduRev', value: p.stats.achievements, icon: 'ribbon' },
   ];
 
   return (
@@ -97,7 +98,7 @@ export default function ProfileScreen() {
         <View style={styles.statsRow}>
           {STAT_ITEMS.map((s) => (
             <View key={s.label} style={[styles.statBox, { backgroundColor: theme.surfaceContainerLow }]}>
-              <Text style={{ fontSize: 20 }}>{s.emoji}</Text>
+              <Ionicons name={s.icon as any} size={20} color={theme.primary} />
               <Text variant="headline-sm">{s.value}</Text>
               <Text variant="label-xs" color="onSurfaceVariant">{s.label}</Text>
             </View>
@@ -140,14 +141,16 @@ export default function ProfileScreen() {
         <TouchableOpacity onPress={() => router.push('/edurev')}>
           <Card variant="default" style={styles.edurevCard}>
             <View style={styles.edurevRow}>
-              <Text style={{ fontSize: 28 }}></Text>
+              <View style={[styles.edurevIcon, { backgroundColor: theme.primaryContainer }]}>
+                <Ionicons name="ribbon" size={24} color={theme.primary} />
+              </View>
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text variant="headline-sm">EduRevolution</Text>
                 <Text variant="body-sm" color="onSurfaceVariant">
                   3 achievements · 13% attendance relaxation earned
                 </Text>
               </View>
-              <Text variant="label-sm" color="primary">View →</Text>
+              <Ionicons name="chevron-forward" size={18} color={theme.primary} />
             </View>
           </Card>
         </TouchableOpacity>
@@ -227,6 +230,7 @@ const styles = StyleSheet.create({
   badgesRow: { flexDirection: 'row', gap: 16, paddingVertical: 4 },
   edurevCard: { padding: 16 },
   edurevRow: { flexDirection: 'row', alignItems: 'center' },
+  edurevIcon: { width: 48, height: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   settingsCard: { padding: 20 },
   settingRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   verifyRow: {

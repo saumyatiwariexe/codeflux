@@ -4,30 +4,41 @@ import {
   TextInput, Modal, ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Text } from '../../components/ui/Text';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
-import { Button } from '../../components/ui/Button';
 import { useThemeStore } from '../../stores/useThemeStore';
 import { edurevApi } from '../../services/api';
+
+const CATEGORY_ICONS: Record<string, string> = {
+  CERTIFICATION: 'ribbon',
+  COMPETITION_WIN: 'trophy',
+  RESEARCH_PAPER: 'document-text',
+  PATENT: 'bulb',
+  INTERNSHIP: 'briefcase',
+  STARTUP: 'rocket',
+  MOOC: 'school',
+};
 
 const MOCK_ACHIEVEMENTS = [
   {
     id: 'a1', category: 'CERTIFICATION', title: 'AWS Cloud Practitioner',
     description: 'Passed with 90% score.', status: 'approved',
     attendanceRelaxation: 5, gradeBenefit: 'Grade improvement in Cloud Computing',
-    xpAwarded: 200, submittedAt: '2026-08-26', emoji: '',
+    xpAwarded: 200, submittedAt: '2026-08-26',
   },
   {
     id: 'a2', category: 'COMPETITION_WIN', title: '2nd Place — VIT National Hackathon',
     description: 'Built AI campus safety system. Team of 4. Won ₹50,000.',
     status: 'approved', attendanceRelaxation: 8, xpAwarded: 500,
-    submittedAt: '2026-07-11', emoji: '',
+    submittedAt: '2026-07-11',
   },
   {
     id: 'a3', category: 'RESEARCH_PAPER', title: 'Paper: Efficient Transformers for Edge Devices',
     description: 'Accepted at IEEE ICISC 2026.',
-    status: 'pending', submittedAt: '2026-09-05', emoji: '',
+    status: 'pending', submittedAt: '2026-09-05',
   },
 ];
 
@@ -79,15 +90,19 @@ export default function EduRevScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: theme.surfaceSpaceDeep }]} edges={['top']}>
       {/* Header */}
       <View style={styles.header}>
-        <View>
-          <Text variant="headline-md">EduRevolution </Text>
+        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 12, padding: 4 }}>
+          <Ionicons name="arrow-back" size={22} color={theme.onSurface} />
+        </TouchableOpacity>
+        <View style={{ flex: 1 }}>
+          <Text variant="headline-md">EduRevolution</Text>
           <Text variant="body-sm" color="onSurfaceVariant">LPU achievement tracker</Text>
         </View>
         <TouchableOpacity
           style={[styles.logBtn, { backgroundColor: theme.primary }]}
           onPress={() => setShowLogModal(true)}
         >
-          <Text variant="label-sm" style={{ color: theme.onPrimary }}>+ Log</Text>
+          <Ionicons name="add" size={16} color={theme.onPrimary} />
+          <Text variant="label-sm" style={{ color: theme.onPrimary, marginLeft: 4 }}>Log</Text>
         </TouchableOpacity>
       </View>
 
@@ -115,9 +130,10 @@ export default function EduRevScreen() {
 
           {/* Warning if near cap */}
           {totalRelaxation >= 20 && (
-            <View style={[styles.capWarning, { backgroundColor: theme.accentGold + '22' }]}>
-              <Text variant="label-sm" style={{ color: theme.accentGold }}>
-                 You're near the LPU 25% relaxation cap ({totalRelaxation}% used)
+            <View style={[styles.capWarning, { backgroundColor: theme.accentGold + '22', flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+              <Ionicons name="warning" size={16} color={theme.accentGold} />
+              <Text variant="label-sm" style={{ color: theme.accentGold, flex: 1 }}>
+                You're near the LPU 25% relaxation cap ({totalRelaxation}% used)
               </Text>
             </View>
           )}
@@ -130,7 +146,7 @@ export default function EduRevScreen() {
           <Card key={ach.id} variant="default" style={styles.achCard}>
             <View style={styles.achTop}>
               <View style={[styles.achIcon, { backgroundColor: theme.primaryContainer }]}>
-                <Text style={{ fontSize: 24 }}>{ach.emoji}</Text>
+                <Ionicons name={(CATEGORY_ICONS[ach.category] ?? 'star') as any} size={22} color={theme.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <View style={styles.achHeader}>
@@ -200,9 +216,10 @@ export default function EduRevScreen() {
             />
 
             {aiResult && (
-              <View style={[styles.aiResult, { backgroundColor: theme.primaryContainer }]}>
+              <View style={[styles.aiResult, { backgroundColor: theme.primaryContainer, flexDirection: 'row', alignItems: 'center', gap: 8 }]}>
+                <Ionicons name="sparkles" size={16} color={theme.primary} />
                 <Text variant="label-sm" style={{ color: theme.primary }}>
-                   AI classified as: <Text variant="label-md" style={{ color: theme.primary }}>{aiResult}</Text>
+                  AI classified as: <Text variant="label-md" style={{ color: theme.primary }}>{aiResult}</Text>
                 </Text>
               </View>
             )}
@@ -221,7 +238,7 @@ export default function EduRevScreen() {
               >
                 {isSubmitting
                   ? <ActivityIndicator color={theme.onPrimary} />
-                  : <Text variant="label-sm" style={{ color: theme.onPrimary }}>{aiResult ? '✓ Submit for Review' : ' AI Classify →'}</Text>
+                  : <Text variant="label-sm" style={{ color: theme.onPrimary }}>{aiResult ? 'Submit for Review' : 'AI Classify'}</Text>
                 }
               </TouchableOpacity>
             </View>
