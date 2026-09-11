@@ -3,22 +3,15 @@
   "version": "1.0.0",
   "main": "expo-router/entry",
   "dependencies": {
-<<<<<<< Updated upstream
-    "@clerk/expo": "^4.6.6",
-=======
     "@clerk/expo": "^2.19.0",
->>>>>>> Stashed changes
     "@expo-google-fonts/inter": "^0.2.3",
     "@expo-google-fonts/outfit": "^0.2.3",
     "@expo/vector-icons": "^15.1.1",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@rnmapbox/maps": "^10.3.5",
-<<<<<<< Updated upstream
-    "@supabase/supabase-js": "^2.116.0",
-=======
     "@supabase/supabase-js": "^2.47.0",
->>>>>>> Stashed changes
     "expo": "~57.0.21",
+    "expo-auth-session": "~57.0.12",
     "expo-build-properties": "~57.0.17",
     "expo-constants": "~57.0.17",
     "expo-font": "~57.0.3",
@@ -28,7 +21,7 @@
     "expo-router": "~57.0.20",
     "expo-secure-store": "~14.2.0",
     "expo-status-bar": "~57.0.1",
-    "expo-web-browser": "~14.1.0",
+    "expo-web-browser": "~57.0.3",
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-gesture-handler": "~2.32.0",
