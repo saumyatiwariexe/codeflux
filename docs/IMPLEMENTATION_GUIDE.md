@@ -1,6 +1,6 @@
 #  Agent Rules & Implementation Guide
 ## Paladeium — Development Playbook
-**Document Version:** 1.0 | **Date:** September 2026
+**Document Version:** 2.0 | **Date:** September 2026 | **See AMENDMENTS.md for all overrides**
 
 ---
 
@@ -14,7 +14,7 @@ Every line of code must trace back to a validated pain point in the Problem Vali
 ### Rule 2: Mobile-First, Always
 This is a campus app used on the go, in hallways, between classes.
 - Design for thumb-reach zones on a 6" screen
-- Every key action must be reachable in ≤ 3 taps
+- Every key action must be reachable in 3 taps or fewer
 - Offline-first: All critical features (map navigation, QR tickets) must work without internet
 - Optimize for 100MB total app size — students on limited data plans
 
@@ -29,7 +29,7 @@ Students will share personal information (skill level, hostel block, availabilit
 Points and badges must connect to real outcomes.
 - Every XP milestone must unlock a real benefit (not just a virtual trophy)
 - EduRevolution sync ensures quests have academic weight
-- Avoid "dark patterns" — no manipulative streak penalties
+- Avoid dark patterns — no manipulative streak penalties
 
 ### Rule 5: The Map is Sacred
 The CampusVerse map is the flagship feature. It must be:
@@ -43,52 +43,83 @@ The CampusVerse map is the flagship feature. It must be:
 - Color-blind safe palette (tested with Deuteranopia and Protanopia filters)
 - Screen reader accessible (WCAG 2.1 AA)
 - International student mode (simplified navigation terminology)
-- Light / Dark Theme toggle accessible from Profile -> Settings for visual preference and accessibility.
+- Light / Dark Theme toggle accessible from Profile -> Settings
 
 ---
 
-## Part 2 — Technology Stack (Final Decisions + Rationale)
+## Part 2 — Technology Stack (Current Locked Decisions)
 
-### Frontend — React Native (Expo)
-**Why:** Single codebase for iOS and Android. Expo Router for file-based navigation. Fast iteration for hackathon.
+> [!IMPORTANT]
+> This section reflects the **actual installed and working stack** as of AMD-004.
+> See AMENDMENTS.md for rationale on any deviation from the original PRD stack.
 
-**Key Libraries:**
-| Library | Purpose |
+### Frontend — React Native (Expo Bare Workflow)
+
+**Build Method:** Android Studio Gradle native build via `expo run:android`.
+**NOT using Expo Go** — the app requires native modules (Mapbox) that are incompatible with Expo Go.
+
+**Installed & Working Libraries:**
+
+| Library | Version | Purpose |
+|---|---|---|
+| `expo` | ~57.0.21 | Core Expo SDK |
+| `expo-router` | ~57.0.20 | File-based navigation |
+| `@rnmapbox/maps` | ^10.3.5 | CampusVerse map (Mapbox GL) |
+| `react-native-gesture-handler` | ~2.32.0 | Touch routing (NOT used for swipe animation) |
+| `react-native-screens` | ~4.26.0 | Native screen optimization |
+| `react-native-safe-area-context` | ~5.7.0 | Safe area insets |
+| `zustand` | ^5.0.15 | Global client state management |
+| `@expo/vector-icons` | ^15.1.1 | All app iconography (Ionicons) |
+| `@expo-google-fonts/inter` | ^0.2.3 | Body font |
+| `@expo-google-fonts/outfit` | ^0.2.3 | Heading font |
+| `@react-native-async-storage/async-storage` | 2.2.0 | Persistent local storage (auth session) |
+| `expo-constants` | ~57.0.17 | App config, env access |
+| `expo-haptics` | ~57.0.2 | Tap haptic feedback |
+| `expo-font` | ~57.0.3 | Font loading |
+
+**Removed Libraries (AMD-004):**
+
+| Library | Reason Removed |
 |---|---|
-| `expo-router` | File-based navigation |
-| `react-native-maps` + Mapbox | CampusVerse map |
-| `react-native-gesture-handler` | Swipe gestures for SquadUp |
-| `react-native-reanimated` | Fog-of-war animations, card physics |
-| `react-native-vision-camera` | QR scanner for event check-in |
-| `react-native-barcode-builder` | QR ticket generation |
-| `expo-location` | GPS for quest verification |
-| `expo-notifications` | Push notifications |
-| `react-query` / `tanstack-query` | API state management |
-| `zustand` | Global client state |
-| `react-native-mmkv` | Fast local storage |
-| `socket.io-client` | Real-time chat |
+| `react-native-reanimated` | C++/ABI native build failure on Windows with NDK 26. Use React Native `Animated` API instead. |
 
-### Backend — Node.js + TypeScript
-**Why:** JavaScript ecosystem consistency, strong typing, fast to build
+**Not Yet Installed (Planned):**
 
-**Architecture:** Monorepo with microservices-ready structure
+| Library | Purpose | When |
+|---|---|---|
+| `@tanstack/react-query` | Server state / API cache | When backend API is wired |
+| `expo-location` | GPS for quest verification | When QuestZone goes live |
+| `expo-notifications` | Push notifications | Phase 2 |
+| `expo-camera` | QR scanner for event check-in | Phase 2 |
+| `socket.io-client` | Real-time PulseChat | Phase 2 |
 
-**Key Packages:**
+### Backend — Node.js + TypeScript (Fastify)
+
+**Status:** Scaffolded in `packages/api/`. Not yet connected to the mobile app.
+The mobile app currently runs entirely on local mock data.
+
 | Package | Purpose |
 |---|---|
 | `fastify` | High-performance HTTP server |
-| `prisma` | ORM for PostgreSQL |
-| `mongodb` | Social feed, chat messages |
-| `redis` | Caching, pub/sub for real-time |
-| `socket.io` | WebSocket server for chat |
-| `bullmq` | Background job queues |
-| `firebase-admin` | Auth + push notifications |
+| `prisma` | ORM for PostgreSQL (schema drafted) |
+| `firebase-admin` | Auth token verification + push notifications |
+| `@anthropic-ai/sdk` | AI matching & EduRev classification |
 | `sharp` | Image processing for Lost & Found |
 | `nodemailer` | Automated event emails |
-| `qrcode` | QR code generation |
-| `@anthropic-ai/sdk` | AI-powered matching & quest suggestions |
+| `qrcode` | QR ticket generation |
 
-### Database Strategy
+### Build Toolchain (Locked by AMD-004)
+
+| Tool | Version | Notes |
+|---|---|---|
+| JDK | 17 (Temurin) | **HARD LOCK** — JDK 25 breaks CMake |
+| Android NDK | 26.1.10909125 | **HARD LOCK** — NDK 27 breaks CMake |
+| Android SDK | 35 | Target SDK |
+| Gradle | 9.3.1 | Managed by Expo |
+| CMake | 3.22.1 | For native modules |
+
+### Database Strategy (Planned — Not Yet Connected)
+
 ```
 PostgreSQL (Supabase hosted)
 ├── Users & Authentication
@@ -114,117 +145,125 @@ Redis (Upstash)
 └── Session tokens
 ```
 
-### Maps — Mapbox + Custom Tiles
-**Why Mapbox over Google Maps:** Custom vector tile styling to achieve the GTA 5 aesthetic. Full control over fog-of-war rendering. Offline tile caching. Campus-accurate custom GeoJSON layers.
+### Maps — Mapbox
 
-**Custom Data:**
+**Status:** Token configured in `android/app/src/main/res/values/strings.xml`. Map renders on device.
+
+**Token location:** `strings.xml` → `<string name="mapbox_access_token">YOUR_TOKEN</string>`
+
+**Planned Custom Data:**
 - LPU campus boundary: GeoJSON polygon
-- Building footprints: GeoJSON features per block
+- Building footprints: GeoJSON per block
 - Zone territories: Colored polygon overlays
-- Points of interest: GeoJSON point features with metadata
+- Points of interest: GeoJSON with metadata
 
-### AI/ML Stack
-| Component | Technology |
+### Device Connection Workflow (AMD-004)
+
+```
+Each dev session — run in order:
+1.  Connect phone via USB cable
+2.  adb reverse tcp:8081 tcp:8081   ← tunnels Metro to phone
+3.  Start Metro:  npx expo start --port 8081
+4.  Build+push:   expo run:android
+    OR push existing APK:
+    adb install --no-verify app-debug.apk
+```
+
+### Hosting & DevOps
+
+| Service | Hackathon Use |
 |---|---|
-| Skill matching | Vector embeddings (OpenAI text-embedding-3-small) + cosine similarity |
-| Lost & Found vision | CLIP (OpenAI) image similarity + object detection |
-| Feed ranking | Weighted scoring algorithm (engagement rate, recency, relevance) |
-| Quest personalization | Multi-armed bandit (ε-greedy) for quest recommendation |
-| EduRev auto-categorization | LLM-assisted achievement classification |
-
-### Hosting & DevOps (Hackathon Setup)
-- **Frontend:** Expo Go for demo, EAS Build for production APK
-- **Backend:** Railway.app (free tier for hackathon)
-- **Database:** Supabase (free) + MongoDB Atlas (free) + Upstash Redis (free)
-- **Storage:** Cloudflare R2 (image uploads, affordable)
-- **CI/CD:** GitHub Actions
+| Android Studio | Local Gradle build for custom dev client APK |
+| `adb install --no-verify` | Sideload APK to physical phone |
+| Railway.app | Backend API (when ready) |
+| Supabase | PostgreSQL (free tier) |
+| MongoDB Atlas | Social/chat data (free tier) |
+| Upstash | Redis (free tier) |
+| GitHub Actions | CI/CD pipeline |
 
 ---
 
-## Part 3 — Codebase Architecture
+## Part 3 — Actual Codebase Structure (Current State)
 
 ```
-campus-pulse/
+codeflux/
 ├── apps/
-│   ├── mobile/                    # React Native Expo app
-│   │   ├── app/                   # Expo Router pages
-│   │   │   ├── (auth)/            # Onboarding & login
-│   │   │   ├── (tabs)/            # Bottom tab screens
-│   │   │   │   ├── home/          # Feed, stories
-│   │   │   │   ├── map/           # CampusVerse
-│   │   │   │   ├── squad/         # SquadUp swipe
-│   │   │   │   ├── clubs/         # ClubVerse
-│   │   │   │   └── me/            # Profile
-│   │   │   ├── event/[id]/        # Event detail
-│   │   │   ├── club/[id]/         # Club detail
-│   │   │   ├── profile/[id]/      # Public profile
-│   │   │   ├── chat/[roomId]/     # Chat screen
-│   │   │   ├── quest/             # Quest board
-│   │   │   └── edurev/            # EduRevolution
-│   │   ├── components/
-│   │   │   ├── map/               # MapCanvas, ZonePins, EventPins
-│   │   │   ├── squad/             # SwipeCard, MatchCard
-│   │   │   ├── event/             # EventCard, TicketPass
-│   │   │   ├── club/              # ClubCard, RecruitCard
-│   │   │   ├── quest/             # QuestCard, XPBar
-│   │   │   ├── profile/           # AchievementBadge, SkillTag
-│   │   │   ├── chat/              # MessageBubble, RoomList
-│   │   │   └── ui/                # Design system components
-│   │   ├── hooks/
-│   │   ├── stores/                # Zustand stores
-│   │   ├── services/              # API service layer
-│   │   ├── utils/
-│   │   └── constants/
-│   │
-│   └── web-admin/                 # Next.js admin dashboards
-│       ├── club-dashboard/        # Club analytics
-│       ├── event-dashboard/       # QR verification
-│       ├── edurev-dashboard/      # Achievement approvals
-│       └── lost-found-admin/      # Item moderation
+│   └── mobile/                          # React Native Expo app (ACTIVE)
+│       ├── app/                         # Expo Router file-based pages
+│       │   ├── _layout.tsx              # Root layout + auth guard
+│       │   ├── (auth)/                  # Auth stack screens
+│       │   │   ├── welcome.tsx          # Landing / onboarding
+│       │   │   ├── login.tsx            # Email + OTP login
+│       │   │   └── signup.tsx           # New user registration
+│       │   ├── (tabs)/                  # 6-tab bottom navigation
+│       │   │   ├── _layout.tsx          # Tab bar config (Ionicons, no emojis)
+│       │   │   ├── index.tsx            # Pulse — home feed + stories
+│       │   │   ├── campusverse.tsx      # CampusVerse — Mapbox map
+│       │   │   ├── squadup.tsx          # SquadUp — swipe deck
+│       │   │   ├── eventhub.tsx         # EventHub — event listings
+│       │   │   ├── clubverse.tsx        # ClubVerse — club directory
+│       │   │   └── profile.tsx          # Profile — user stats + settings
+│       │   ├── questzone.tsx            # QuestZone (stack screen from Pulse)
+│       │   ├── edurev/                  # EduRev Connect (stack from Profile)
+│       │   ├── lostfound/               # LostPulse (stack from Pulse)
+│       │   ├── event/                   # Event detail screen
+│       │   ├── quest/                   # Quest detail screen
+│       │   └── pulsechat/               # PulseChat (UI only)
+│       ├── components/
+│       │   ├── ui/                      # Design system primitives
+│       │   │   ├── Text.tsx             # Typography with variants
+│       │   │   ├── Card.tsx             # Glassmorphic card
+│       │   │   ├── Button.tsx           # Primary/secondary buttons
+│       │   │   ├── Badge.tsx            # Status/XP/squad badges
+│       │   │   ├── Avatar.tsx           # User avatar with online dot
+│       │   │   └── XPBar.tsx            # XP progress bar
+│       │   ├── map/
+│       │   │   ├── MapCanvas.tsx        # Mapbox wrapper
+│       │   │   └── EventPins.tsx        # Event location markers
+│       │   ├── squad/
+│       │   │   ├── SwipeCard.tsx        # Hinge-style profile card
+│       │   │   └── SwipeDeck.tsx        # PanResponder swipe engine
+│       │   └── profile/
+│       │       ├── SkillTag.tsx         # Skill chip component
+│       │       └── AchievementBadge.tsx # Badge display component
+│       ├── stores/
+│       │   ├── useAuthStore.ts          # Auth state (Zustand + AsyncStorage)
+│       │   └── useThemeStore.ts         # Dark/light theme toggle
+│       ├── services/
+│       │   └── api.ts                   # API service layer (stub — not wired)
+│       ├── constants/
+│       │   └── theme.ts                 # Design tokens (colors, spacing)
+│       └── android/                     # Android native project
+│           └── app/src/main/res/values/
+│               └── strings.xml          # Mapbox token lives here
 │
 ├── packages/
-│   ├── api/                       # Fastify backend
-│   │   ├── routes/
-│   │   │   ├── auth/
-│   │   │   ├── users/
-│   │   │   ├── map/
-│   │   │   ├── squad/             # Matching engine
-│   │   │   ├── events/
-│   │   │   ├── clubs/
-│   │   │   ├── quests/
-│   │   │   ├── edurev/
-│   │   │   ├── lostfound/
-│   │   │   └── chat/
-│   │   ├── services/              # Business logic
-│   │   ├── models/                # Prisma + Mongoose
-│   │   ├── jobs/                  # BullMQ workers
-│   │   └── ai/                    # ML pipeline
-│   │
-│   ├── shared/                    # Shared types/utils
-│   │   ├── types/                 # TypeScript interfaces
-│   │   ├── schemas/               # Zod validation schemas
-│   │   └── constants/
-│   │
-│   └── map-tiles/                 # GeoJSON data for LPU campus
-│       ├── campus-boundary.geojson
-│       ├── buildings.geojson
-│       ├── zones.geojson
-│       ├── poi.geojson             # Points of interest
-│       └── quest-locations.geojson
+│   └── api/                             # Fastify backend (scaffolded, not connected)
+│       ├── src/
+│       │   ├── routes/                  # API route handlers
+│       │   ├── services/                # Business logic
+│       │   └── models/                  # Prisma + Mongoose models
+│       └── .env.example                 # Required env vars
 │
-└── infra/
-    ├── docker-compose.yml
-    ├── railway.toml
-    └── .github/workflows/
+├── docs/
+│   ├── PROBLEM_VALIDATION.md            # Why we build what we build
+│   ├── PRD.md                           # What we build
+│   ├── IMPLEMENTATION_GUIDE.md          # This file — How we build it
+│   └── AMENDMENTS.md                    # Latest decisions (ALWAYS read last)
+│
+└── .agents/
+    ├── rules/AGENTS.md                  # Agent behavioral rules
+    └── skills/amend-plan/SKILL.md       # Amendment protocol skill
 ```
 
 ---
 
 ## Part 4 — Database Schema (Core Tables)
 
+> These schemas are planned for Supabase PostgreSQL. Not yet applied to a live database.
+
 ### Users & Profiles
 ```sql
--- Users (authentication layer)
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   lpu_email TEXT UNIQUE NOT NULL,
@@ -233,88 +272,68 @@ CREATE TABLE users (
   is_id_verified BOOLEAN DEFAULT false,
   is_phone_verified BOOLEAN DEFAULT false,
   is_active BOOLEAN DEFAULT true,
-  deactivation_date TIMESTAMP,    -- 29-day grace period
   created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Profiles (public-facing)
 CREATE TABLE profiles (
   id UUID PRIMARY KEY REFERENCES users(id),
-  handle TEXT UNIQUE NOT NULL,    -- @username
+  handle TEXT UNIQUE NOT NULL,
   display_name TEXT NOT NULL,
   avatar_url TEXT,
   bio TEXT,
-  department TEXT,                -- CSE, ECE, MBA...
-  year INTEGER,                   -- 1, 2, 3, 4
-  degree_level TEXT,              -- UG, PG, PhD
-  stream TEXT,
-  pronouns TEXT,
+  department TEXT,
+  year INTEGER,
+  degree_level TEXT,
   hostel_block TEXT,
   is_day_scholar BOOLEAN DEFAULT false,
   campus_xp INTEGER DEFAULT 0,
   level INTEGER DEFAULT 1,
-  squad_visibility TEXT DEFAULT 'all',  -- all | dept | off
+  squad_visibility TEXT DEFAULT 'all',
   onboarding_complete BOOLEAN DEFAULT false
 );
 
--- Skills
 CREATE TABLE skills (
   id UUID PRIMARY KEY,
-  name TEXT UNIQUE NOT NULL,      -- "Machine Learning", "React"
-  category TEXT,                  -- "Tech", "Design", "Business"
+  name TEXT UNIQUE NOT NULL,
+  category TEXT,
   icon TEXT
 );
 
 CREATE TABLE profile_skills (
   profile_id UUID REFERENCES profiles(id),
   skill_id UUID REFERENCES skills(id),
-  proficiency TEXT DEFAULT 'intermediate',  -- beginner|intermediate|expert
+  proficiency TEXT DEFAULT 'intermediate',
   PRIMARY KEY (profile_id, skill_id)
 );
 ```
 
 ### SquadUp Engine
 ```sql
--- Swipe actions (drives the matching algorithm)
 CREATE TABLE squad_swipes (
   id UUID PRIMARY KEY,
   swiper_id UUID REFERENCES profiles(id),
   swiped_id UUID REFERENCES profiles(id),
-  action TEXT NOT NULL,           -- 'like' | 'pass' | 'super'
-  context TEXT,                   -- 'hackathon' | 'project' | 'general'
+  action TEXT NOT NULL,           -- 'like' | 'pass'
   created_at TIMESTAMP DEFAULT NOW(),
   UNIQUE(swiper_id, swiped_id)
 );
 
--- Matches (mutual likes)
 CREATE TABLE squad_matches (
   id UUID PRIMARY KEY,
   user_a UUID REFERENCES profiles(id),
   user_b UUID REFERENCES profiles(id),
   matched_at TIMESTAMP DEFAULT NOW(),
-  team_id UUID REFERENCES teams(id),  -- NULL until they form a team
-  status TEXT DEFAULT 'matched'        -- matched | teamed | archived
+  status TEXT DEFAULT 'matched'
 );
 
--- Teams
 CREATE TABLE teams (
   id UUID PRIMARY KEY,
   name TEXT NOT NULL,
-  description TEXT,
-  goal TEXT,                      -- "HackLPU 2026", "Startup project"
-  competition_id UUID REFERENCES events(id),
+  goal TEXT,
   creator_id UUID REFERENCES profiles(id),
   max_members INTEGER DEFAULT 5,
-  status TEXT DEFAULT 'forming',  -- forming | complete | competing | archived
+  status TEXT DEFAULT 'forming',
   created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE team_members (
-  team_id UUID REFERENCES teams(id),
-  profile_id UUID REFERENCES profiles(id),
-  role TEXT,                      -- "Backend Dev", "UI Designer"
-  joined_at TIMESTAMP DEFAULT NOW(),
-  PRIMARY KEY (team_id, profile_id)
 );
 ```
 
@@ -323,46 +342,26 @@ CREATE TABLE team_members (
 CREATE TABLE events (
   id UUID PRIMARY KEY,
   title TEXT NOT NULL,
-  description TEXT,
-  organizer_id UUID,              -- club_id or user_id
-  organizer_type TEXT,            -- 'club' | 'user' | 'admin'
+  organizer_id UUID,
+  organizer_type TEXT,
   location_name TEXT,
-  location_coords JSONB,          -- {lat, lng}
-  block_reference TEXT,           -- "Block G, Room 201"
+  location_coords JSONB,
   start_time TIMESTAMP NOT NULL,
   end_time TIMESTAMP NOT NULL,
-  category TEXT,                  -- hackathon | workshop | cultural | sports
+  category TEXT,
   max_attendees INTEGER,
-  registration_deadline TIMESTAMP,
   poster_url TEXT,
-  status TEXT DEFAULT 'upcoming', -- upcoming | active | completed | cancelled
-  is_team_event BOOLEAN DEFAULT false,
-  min_team_size INTEGER,
-  max_team_size INTEGER,
+  status TEXT DEFAULT 'upcoming',
   created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE TABLE ticket_tiers (
-  id UUID PRIMARY KEY,
-  event_id UUID REFERENCES events(id),
-  name TEXT NOT NULL,             -- "General" | "Silver" | "VIP"
-  price DECIMAL(10,2) DEFAULT 0,
-  quantity INTEGER,
-  perks JSONB,                    -- ["Front row", "Backstage pass"]
-  sold_count INTEGER DEFAULT 0
 );
 
 CREATE TABLE tickets (
   id UUID PRIMARY KEY,
-  tier_id UUID REFERENCES ticket_tiers(id),
   event_id UUID REFERENCES events(id),
   holder_id UUID REFERENCES profiles(id),
-  team_id UUID REFERENCES teams(id),
-  qr_code TEXT UNIQUE NOT NULL,   -- cryptographically signed token
-  booking_id TEXT UNIQUE NOT NULL,
-  status TEXT DEFAULT 'active',   -- active | redeemed | refunded | expired
-  purchased_at TIMESTAMP DEFAULT NOW(),
-  redeemed_at TIMESTAMP
+  qr_code TEXT UNIQUE NOT NULL,
+  status TEXT DEFAULT 'active',
+  purchased_at TIMESTAMP DEFAULT NOW()
 );
 ```
 
@@ -372,14 +371,11 @@ CREATE TABLE quests (
   id UUID PRIMARY KEY,
   title TEXT NOT NULL,
   description TEXT,
-  type TEXT,                      -- explorer | academic | social | daily | weekly
+  type TEXT,
   xp_reward INTEGER NOT NULL,
-  badge_id UUID,
-  edurev_linkage BOOLEAN DEFAULT false,
   location_required BOOLEAN DEFAULT false,
-  target_location JSONB,          -- {lat, lng, radius_meters}
-  completion_criteria JSONB,      -- {"action": "visit", "count": 1}
-  expires_at TIMESTAMP,
+  target_location JSONB,
+  completion_criteria JSONB,
   is_active BOOLEAN DEFAULT true
 );
 
@@ -387,153 +383,17 @@ CREATE TABLE quest_progress (
   id UUID PRIMARY KEY,
   profile_id UUID REFERENCES profiles(id),
   quest_id UUID REFERENCES quests(id),
-  status TEXT DEFAULT 'in_progress', -- in_progress | completed | expired
-  progress_data JSONB,            -- {"visited_zones": ["tech_district"]}
+  status TEXT DEFAULT 'in_progress',
+  progress_data JSONB,
   completed_at TIMESTAMP,
   xp_awarded INTEGER,
   UNIQUE(profile_id, quest_id)
 );
-
-CREATE TABLE badges (
-  id UUID PRIMARY KEY,
-  name TEXT NOT NULL,
-  description TEXT,
-  image_url TEXT,
-  rarity TEXT,                    -- common | rare | epic | legendary
-  criteria TEXT
-);
-
-CREATE TABLE profile_badges (
-  profile_id UUID REFERENCES profiles(id),
-  badge_id UUID REFERENCES badges(id),
-  awarded_at TIMESTAMP DEFAULT NOW(),
-  PRIMARY KEY (profile_id, badge_id)
-);
 ```
 
 ---
 
-## Part 5 — AI/ML Implementation Blueprints
-
-### 5.1 SquadUp Matching Algorithm
-
-```typescript
-// Compatibility Score Calculation (0-100)
-interface MatchScore {
-  skillComplement: number;  // 0-40 pts — how well skills complement each other
-  goalAlignment: number;    // 0-25 pts — similar competition goals
-  availability: number;     // 0-20 pts — overlapping free time
-  achievementLevel: number; // 0-10 pts — similar EduRev/XP tier
-  socialGraph: number;      // 0-5 pts  — mutual club members (warm intro signal)
-}
-
-function calculateMatchScore(userA: Profile, userB: Profile): number {
-  // 1. Skill Complement (want different skills, not same)
-  const sharedSkills = intersection(userA.skills, userB.skills);
-  const uniqueSkillsB = difference(userB.skills, userA.skills);
-  const skillScore = (uniqueSkillsB.length / MAX_SKILLS) * 40;
-
-  // 2. Goal Alignment
-  const goalScore = userA.currentGoal === userB.currentGoal ? 25 : 12;
-
-  // 3. Availability Overlap
-  const availabilityScore = calculateAvailabilityOverlap(userA, userB) * 20;
-
-  // 4. Achievement Level (prevent skill cliff — don't match legend with newbie)
-  const levelDiff = Math.abs(userA.level - userB.level);
-  const achieveScore = levelDiff <= 2 ? 10 : Math.max(0, 10 - levelDiff * 2);
-
-  // 5. Social Graph Warmth
-  const mutualClubs = intersection(userA.clubs, userB.clubs).length;
-  const socialScore = Math.min(5, mutualClubs * 2);
-
-  return skillScore + goalScore + availabilityScore + achieveScore + socialScore;
-}
-```
-
-### 5.2 Lost & Found AI Matching
-
-```typescript
-// When a new "Found Item" is posted:
-async function matchFoundItem(foundItem: FoundItem) {
-  // 1. Extract features from image (if provided)
-  const imageEmbedding = foundItem.image 
-    ? await getCLIPEmbedding(foundItem.image) 
-    : null;
-  
-  // 2. Extract text features
-  const textEmbedding = await getTextEmbedding(
-    `${foundItem.category} ${foundItem.description}`
-  );
-  
-  // 3. Find candidate lost items (same category, within 7 days, nearby location)
-  const candidates = await db.query(`
-    SELECT * FROM lost_items 
-    WHERE category = $1 
-    AND reported_at > NOW() - INTERVAL '7 days'
-    AND ST_DWithin(last_seen_location, $2, 500)  -- within 500m
-    AND status = 'open'
-  `, [foundItem.category, foundItem.location]);
-  
-  // 4. Score each candidate
-  const scored = await Promise.all(candidates.map(async (lost) => {
-    const lostTextEmb = await getTextEmbedding(lost.description);
-    const textSim = cosineSimilarity(textEmbedding, lostTextEmb);
-    
-    let imageSim = 0;
-    if (imageEmbedding && lost.image_embedding) {
-      imageSim = cosineSimilarity(imageEmbedding, lost.image_embedding);
-    }
-    
-    const finalScore = (textSim * 0.4) + (imageSim * 0.6);
-    return { lost, score: finalScore };
-  }));
-  
-  // 5. Notify top matches (score > 0.7 threshold)
-  const matches = scored.filter(s => s.score > 0.7).sort((a,b) => b.score - a.score);
-  for (const match of matches.slice(0, 3)) {
-    await sendNotification(match.lost.reporter_id, {
-      title: "Possible match found for your lost item!",
-      body: `Someone found a ${foundItem.category} near ${foundItem.location_name}`,
-      data: { foundItemId: foundItem.id, matchScore: match.score }
-    });
-  }
-}
-```
-
-### 5.3 EduRevolution Auto-Classification
-
-```typescript
-// When student describes an achievement in free text:
-async function classifyAchievement(description: string): Promise<EduRevCategory> {
-  const response = await anthropic.messages.create({
-    model: "claude-opus-4-5",
-    max_tokens: 500,
-    system: `You are an LPU EduRevolution advisor. 
-    Classify student achievements into categories:
-    - RESEARCH_PAPER (journal, conference, preprint)
-    - COMPETITION_WIN (hackathon, sports, cultural contest)
-    - CERTIFICATION (NPTEL, AWS, Google, Coursera, etc.)
-    - PATENT (filed or published)
-    - INTERNSHIP (paid, stipend mentioned)
-    - STARTUP (registered company or prototype)
-    - MOOC (online course completion)
-    
-    Also estimate: attendance_relaxation (%), grade_benefit (description)
-    Return JSON only.`,
-    messages: [{
-      role: "user",
-      content: `Classify this achievement: "${description}"`
-    }]
-  });
-  
-  return JSON.parse(response.content[0].text);
-}
-```
-
----
-
-## Part 6 — API Contract (Key Endpoints)
+## Part 5 — API Contract (Key Endpoints)
 
 ### Authentication
 ```
@@ -546,32 +406,25 @@ DELETE /api/v1/auth/logout       → Invalidate token
 ### SquadUp
 ```
 GET  /api/v1/squad/deck          → Get paginated swipe deck (AI-ranked)
-POST /api/v1/squad/swipe         → Record swipe action {targetId, action}
+POST /api/v1/squad/swipe         → Record swipe {targetId, action}
 GET  /api/v1/squad/matches       → Get all mutual matches
 POST /api/v1/squad/team          → Create team from matches
-GET  /api/v1/squad/teams         → Get user's teams
-POST /api/v1/squad/recruit       → Post recruitment card (clubs)
-GET  /api/v1/squad/recruits      → Browse recruitment postings
 ```
 
 ### Events
 ```
-GET  /api/v1/events              → List events (filter: lat/lng/radius, category, date)
+GET  /api/v1/events              → List events (filter: lat/lng, category, date)
 POST /api/v1/events              → Create event (club_admin only)
 GET  /api/v1/events/:id          → Event detail
-POST /api/v1/events/:id/rsvp     → RSVP (free events)
-POST /api/v1/events/:id/ticket   → Purchase ticket
-GET  /api/v1/events/:id/qr       → Get QR code for ticket
+POST /api/v1/events/:id/rsvp     → RSVP
 POST /api/v1/events/:id/checkin  → Verify QR (organizer)
-GET  /api/v1/events/:id/stats    → Analytics (organizer)
 ```
 
 ### Quests
 ```
 GET  /api/v1/quests              → Active quests for user
-POST /api/v1/quests/:id/verify   → Submit location proof for quest completion
+POST /api/v1/quests/:id/verify   → Submit location proof
 GET  /api/v1/quests/leaderboard  → Campus XP leaderboard
-GET  /api/v1/profile/badges      → User's earned badges
 ```
 
 ### EduRevolution
@@ -580,8 +433,6 @@ POST /api/v1/edurev/achievement  → Log new achievement (AI-classifies)
 GET  /api/v1/edurev/benefits     → Calculate eligible benefits
 POST /api/v1/edurev/submit       → Submit to official portal
 GET  /api/v1/edurev/history      → All submissions + status
-GET  /api/v1/edurev/admin/queue  → Admin: pending approvals
-PATCH /api/v1/edurev/admin/:id   → Admin: approve/reject
 ```
 
 ### Lost & Found
@@ -594,46 +445,36 @@ POST /api/v1/lostfound/:id/claim → Claim a found item
 
 ---
 
-## Part 7 — Hackathon Execution Checklist
+## Part 6 — Current Build Status (Updated September 2026)
 
-### Day 1 — Foundation (Hours 0-8)
-- [ ] Set up monorepo with turborepo
-- [ ] Initialize React Native Expo app with routing
-- [ ] Set up Supabase project + run initial migrations
-- [ ] Configure Firebase auth (OTP via LPU email)
-- [ ] Set up Mapbox account + ingest LPU campus GeoJSON
-- [ ] Build design system: colors, typography, components
-- [ ] Build onboarding flow (3 screens)
+### Feature Completion
 
-### Day 1 — Core Screens (Hours 8-16)
-- [ ] CampusVerse map screen (basic Mapbox integration)
-- [ ] SquadUp swipe deck (gesture handler + card stack)
-- [ ] Profile screen with skill tags
-- [ ] Event listing screen with map pins
-- [ ] Bottom navigation shell
+| Module | UI Status | Backend | Notes |
+|---|---|---|---|
+| Auth Flow | Complete (screens built) | Stub only | Firebase OTP not wired |
+| CampusVerse Map | Rendering | N/A | Mapbox token active, no live pins yet |
+| SquadUp | 100% complete | Stub only | PanResponder swipe deck, match modal |
+| Profile + Skills | 100% complete | Stub only | Mock data |
+| EventHub | 100% complete | Stub only | Ionicons, no emojis |
+| ClubVerse | 100% complete | Stub only | Ionicons, no emojis |
+| QuestZone | 100% complete | Stub only | XP bar, active/completed quests |
+| EduRev Connect | Scaffolded | Stub only | Directory exists at `/edurev` |
+| LostPulse | Scaffolded | Stub only | Directory exists at `/lostfound` |
+| PulseChat | UI stub only | Not started | Lowest priority |
 
-### Day 2 — Polish & AI (Hours 16-28)
-- [ ] Fog-of-war overlay on map (Mapbox fill-opacity layer)
-- [ ] Event pin animations
-- [ ] Swipe card animation physics (spring, rotation, fade)
-- [ ] QR ticket generation + camera scanner
-- [ ] EduRevolution dashboard screen
-- [ ] Quest board screen with XP progress bar
-- [ ] Club directory screen
+### Immediate Next Steps (Priority Order)
 
-### Demo Prep (Hours 28-36)
-- [ ] Seed database with 50 fake profiles, 10 events, 5 clubs
-- [ ] Record demo video walkthrough
-- [ ] Prepare pitch deck with Problem Validation data
-- [ ] Deploy backend to Railway
-- [ ] Generate shareable APK
+1. **EduRev Connect + LostPulse UI** — Build the actual screens in `/edurev` and `/lostfound` directories
+2. **Firebase Auth wiring** — Connect `useAuthStore` to real Firebase OTP flow
+3. **Supabase backend connection** — Wire TanStack Query to Fastify API for real data
+4. **Fog-of-war map layer** — Add Mapbox fill layer for campus discovery mechanic
 
 ---
 
-## Part 8 — Security & Privacy Rules
+## Part 7 — Security & Privacy Rules
 
 ### Data Minimization
-- Collect only what's needed (no "optional but we want it" fields)
+- Collect only what's needed — no optional-but-desired fields
 - Location: Only collected during quest verification, never stored persistently
 - Student ID photos: Deleted after verification
 
@@ -644,28 +485,21 @@ POST /api/v1/lostfound/:id/claim → Claim a found item
 
 ### Content Moderation
 - Report button on every post, profile, and chat message
-- AI pre-screening for toxic content in public posts (LLM-based moderation)
 - Strike system: 3 reports → temporary suspension → admin review
 
-### Data Retention
-- Account deactivation: 29-day recovery window (Macbease parity)
-- After 29 days: soft delete (data anonymized, not deleted, for abuse prevention)
-- Chat messages: User-deletable, auto-expire after 1 year
-
 ---
 
-## Part 9 — Definition of Done (Per Feature)
+## Part 8 — Definition of Done (Per Feature)
 
 A feature is "Done" when:
-1.  Core user flow works end-to-end on both iOS and Android
-2.  Error states handled (network error, empty state, loading state)
-3.  Accessibility: keyboard navigable, screen reader labeled
-4.  Performance: < 200ms response for user actions
-5.  Test coverage: ≥ 70% for service-layer logic
-6.  Reviewed for data privacy compliance
-7.  Offline behavior defined and implemented or explicitly deferred
+1. Core user flow works end-to-end on Android
+2. Error states handled (network error, empty state, loading state)
+3. No raw Unicode emojis — all icons use Ionicons via `@expo/vector-icons`
+4. Accessibility: labels added for screen readers
+5. TypeScript strict mode — no untyped `any` without comment
 
 ---
 
-*Document prepared for: Hackathon Submission — Campus Life & Student Experience Track*
+*Document Version 2.0 — Updated by AMD-004 and AMD-005*
 *Team: Paladeium | University: Lovely Professional University*
+*Last updated: 2026-09-11 23:00 IST*

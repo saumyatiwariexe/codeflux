@@ -90,3 +90,55 @@ Requested by the team to rebrand the application to Paladeium and maintain a pro
 - Modules affected: All UI, All Documentation
 - Files to update: Globally across the entire project
 - Breaking changes: No
+
+---
+
+## AMD-004 — Android Studio Build Pipeline, react-native-reanimated Removal, Swipe Gesture Overhaul
+**Date:** 2026-09-11 04:00 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+1. **Build system shifted to Android Studio / Gradle native build.** The project no longer uses Expo Go for running on device. All development now uses `expo run:android` (custom dev client) compiled via Gradle. The APK is sideloaded using `adb install --no-verify`.
+2. **react-native-reanimated removed entirely.** v3 and v4 both cause C++/ABI native build failures on Windows with the current NDK version. All animations now use React Native's built-in `Animated` API.
+3. **SquadUp gesture system rebuilt with PanResponder.** The `SwipeDeck` component uses `PanResponder` + `Animated.ValueXY` — no reanimated dependency.
+4. **JDK pinned to 17, NDK pinned to 26.1.10909125.** JDK 25 and NDK 27 cause CMake failures. This is a hard lock.
+5. **USB ADB workflow established.** Phone connected via USB. `adb reverse tcp:8081 tcp:8081` must be run before each session to tunnel Metro through USB.
+6. **Emoji policy enforced across all UI.** Zero raw Unicode emoji characters in app UI. All iconography uses `@expo/vector-icons` Ionicons.
+
+### Overrides
+- IMPLEMENTATION_GUIDE.md:Part 2 (Frontend Libraries) — `react-native-reanimated` REMOVED
+- IMPLEMENTATION_GUIDE.md:Part 2 (Hosting) — "Expo Go for demo" -> "Android Studio custom dev client + adb sideload"
+
+### Rationale
+Windows-specific build toolchain constraints forced removal of reanimated. PanResponder-based SwipeDeck delivers equivalent swipe physics without the native dependency issue.
+
+### Impact
+- Modules affected: SquadUp (SwipeDeck), All UI (emoji policy), Build pipeline
+- Files to update: IMPLEMENTATION_GUIDE.md (Parts 2, 3, 7)
+- Breaking changes: Any new library with a peer dependency on react-native-reanimated CANNOT be added without resolving the NDK issue first.
+
+---
+
+## AMD-005 — Navigation Architecture: Stack Screens for EduRev, LostPulse, QuestZone
+**Date:** 2026-09-11 23:00 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+EduRev Connect and LostPulse are implemented as **stack screens** (not tabs) to keep the 6-tab bottom bar clean:
+- **EduRev Connect** (`/edurev`) — accessed via CTA button on the Profile tab.
+- **LostPulse** (`/lostfound`) — accessed via button in the Pulse feed header.
+- **QuestZone** (`/questzone`) — accessed via "Quests" button in Pulse header and XP card CTA.
+
+### Overrides
+- PRD.md:MODULE 6 — "EduRev Connect navigation" -> "Stack screen from Profile tab"
+- PRD.md:MODULE 7 — "LostPulse navigation" -> "Stack screen from Pulse feed header"
+
+### Rationale
+Bottom tab bar locked at 6 tabs for visual balance. Additional features accessed contextually from the most relevant existing tab.
+
+### Impact
+- Modules affected: Navigation (_layout.tsx), Profile tab, Pulse tab
+- Files to update: None — already implemented
+- Breaking changes: No
