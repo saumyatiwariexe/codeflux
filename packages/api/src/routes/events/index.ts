@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { ApiResponse, Event } from '../../../shared/src/types';
+import { ApiResponse, Event } from '../../../../shared/src/types';
 
 /** Mock events for demo */
 const MOCK_EVENTS: Event[] = [

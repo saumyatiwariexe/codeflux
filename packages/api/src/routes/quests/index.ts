@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { ApiResponse, Quest, QuestProgress } from '../../../shared/src/types';
+import { ApiResponse, Quest, QuestProgress } from '../../../../shared/src/types';
 
 const MOCK_QUESTS: Quest[] = [
   {

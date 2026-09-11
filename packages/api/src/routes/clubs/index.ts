@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { ApiResponse, Club } from '../../../shared/src/types';
+import { ApiResponse, Club } from '../../../../shared/src/types';
 
 const MOCK_CLUBS: Club[] = [
   {

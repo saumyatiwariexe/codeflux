@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { ApiResponse, LostItem, FoundItem } from '../../../shared/src/types';
+import { ApiResponse, LostItem, FoundItem } from '../../../../shared/src/types';
 
 const MOCK_LOST: LostItem[] = [
   {

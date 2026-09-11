@@ -47,7 +47,7 @@ export default function QuestZoneScreen() {
               <Text variant="headline-sm">Level 5</Text>
               <Text variant="label-sm" color="onSurfaceVariant">Aarav Sharma</Text>
               <View style={{ marginTop: 8 }}>
-                <XPBar progress={0.6} />
+                <XPBar current={8400} total={10000} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
                   <Text variant="label-xs" color="onSurfaceVariant">8,400 XP</Text>
                   <Text variant="label-xs" color="onSurfaceVariant">10,000 XP</Text>
@@ -62,11 +62,11 @@ export default function QuestZoneScreen() {
         {ACTIVE_QUESTS.map((q) => (
           <Card key={q.id} variant="default" style={styles.questCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-              <View style={[styles.iconBox, { backgroundColor: q.type === 'explorer' ? theme.accentNeon + '20' : q.type === 'academic' ? theme.primaryContainer : theme.accentGold + '20' }]}>
+              <View style={[styles.iconBox, { backgroundColor: q.type === 'explorer' ? theme.neonEmerald + '20' : q.type === 'academic' ? theme.primaryContainer : theme.accentGold + '20' }]}>
                 <Ionicons 
                   name={q.type === 'explorer' ? 'map' : q.type === 'academic' ? 'library' : 'people'} 
                   size={20} 
-                  color={q.type === 'explorer' ? theme.accentNeon : q.type === 'academic' ? theme.primary : theme.accentGold} 
+                  color={q.type === 'explorer' ? theme.neonEmerald : q.type === 'academic' ? theme.primary : theme.accentGold} 
                 />
               </View>
               <View style={{ flex: 1 }}>

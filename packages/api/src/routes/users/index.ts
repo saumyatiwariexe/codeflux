@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { ApiResponse } from '../../../shared/src/types';
+import { ApiResponse } from '../../../../shared/src/types';
 
 const userRoutes: FastifyPluginAsync = async (fastify) => {
   const requireAuth = async (request: any, reply: any) => {

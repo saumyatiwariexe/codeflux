@@ -3,13 +3,13 @@ export const LPU_CENTER = [75.7051, 31.2560];
 
 // A large polygon covering the general area to act as the "Fog of War"
 export const FOG_BOUNDARY_GEOJSON = {
-  type: 'FeatureCollection',
+  type: 'FeatureCollection' as const,
   features: [
     {
-      type: 'Feature',
+      type: 'Feature' as const,
       properties: {},
       geometry: {
-        type: 'Polygon',
+        type: 'Polygon' as const,
         coordinates: [[
           [75.6900, 31.2700],
           [75.7200, 31.2700],
@@ -40,22 +40,22 @@ const createCirclePolygon = (center: [number, number], radius = 0.002) => {
 };
 
 export const DISCOVERED_ZONES_GEOJSON = {
-  type: 'FeatureCollection',
+  type: 'FeatureCollection' as const,
   features: [
     {
-      type: 'Feature',
+      type: 'Feature' as const,
       properties: { id: 'tech', label: 'Tech District' },
-      geometry: { type: 'Polygon', coordinates: createCirclePolygon([75.7030, 31.2580], 0.003) },
+      geometry: { type: 'Polygon' as const, coordinates: createCirclePolygon([75.7030, 31.2580], 0.003) },
     },
     {
-      type: 'Feature',
+      type: 'Feature' as const,
       properties: { id: 'food', label: 'Food Court' },
-      geometry: { type: 'Polygon', coordinates: createCirclePolygon([75.7070, 31.2540], 0.002) },
+      geometry: { type: 'Polygon' as const, coordinates: createCirclePolygon([75.7070, 31.2540], 0.002) },
     },
     {
-      type: 'Feature',
+      type: 'Feature' as const,
       properties: { id: 'sports', label: 'Sports Complex' },
-      geometry: { type: 'Polygon', coordinates: createCirclePolygon([75.7010, 31.2530], 0.0025) },
+      geometry: { type: 'Polygon' as const, coordinates: createCirclePolygon([75.7010, 31.2530], 0.0025) },
     },
   ],
 };

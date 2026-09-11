@@ -3,8 +3,8 @@ import { Text as RNText, TextProps as RNTextProps, StyleSheet, TextStyle } from 
 import { useThemeStore } from '../../stores/useThemeStore';
 
 interface TextProps extends RNTextProps {
-  variant?: 'display-hero' | 'headline-lg' | 'headline-md' | 'headline-sm' | 'body-lg' | 'body-md' | 'body-sm' | 'label-md' | 'label-sm' | 'label-xs' | 'code-sm';
-  color?: 'onSurface' | 'onSurfaceVariant' | 'primary' | 'secondary' | 'error' | 'neonEmerald' | 'accentGold';
+  variant?: 'display-hero' | 'headline-lg' | 'headline-md' | 'headline-sm' | 'body-lg' | 'body-md' | 'body-sm' | 'label-lg' | 'label-md' | 'label-sm' | 'label-xs' | 'code-sm';
+  color?: 'onSurface' | 'onSurfaceVariant' | 'primary' | 'secondary' | 'error' | 'neonEmerald' | 'accentGold' | 'onPrimary';
 }
 
 export const Text: React.FC<TextProps> = ({ 
@@ -71,6 +71,12 @@ const typography: Record<string, TextStyle> = {
     fontSize: 12,
     fontWeight: '400',
     lineHeight: 16,
+  },
+  'label-lg': {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 15,
+    fontWeight: '600',
+    lineHeight: 20,
   },
   'label-md': {
     fontFamily: 'Inter_600SemiBold',

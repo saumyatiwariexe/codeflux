@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { ApiResponse, SwipeDeckCard, SquadMatch, SwipeAction } from '../../../shared/src/types';
+import { ApiResponse, SwipeDeckCard, SquadMatch, SwipeAction } from '../../../../shared/src/types';
 import { MOCK_PROFILES } from '../users/mock-data';
 import { calculateMatchScore } from '../../services/matching';
 

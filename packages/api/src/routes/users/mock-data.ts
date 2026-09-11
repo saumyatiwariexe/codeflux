@@ -1,4 +1,4 @@
-import { Profile } from '../../../shared/src/types';
+import { Profile } from '../../../../shared/src/types';
 
 /**
  * 50 mock LPU student profiles for hackathon demo and database seeding.

@@ -1,5 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
-import { ApiResponse, EduRevAchievement, EduRevCategory } from '../../../shared/src/types';
+import { ApiResponse, EduRevAchievement, EduRevCategory } from '../../../../shared/src/types';
 
 const MOCK_ACHIEVEMENTS: EduRevAchievement[] = [
   {

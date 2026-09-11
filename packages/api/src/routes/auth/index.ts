@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { ApiResponse } from '../../../shared/src/types';
+import { ApiResponse } from '../../../../shared/src/types';
 
 // ---- Mock data for hackathon demo ----
 const MOCK_OTP_STORE = new Map<string, { otp: string; expires: number }>();
