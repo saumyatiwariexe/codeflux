@@ -19,16 +19,34 @@ interface SwipeDeckProps {
 export function SwipeDeck({ data, onSwipeLeft, onSwipeRight, onDeckEmpty }: SwipeDeckProps) {
   const [index, setIndex] = useState(0);
   const position = useRef(new Animated.ValueXY()).current;
+  const scale = useRef(new Animated.Value(1)).current;
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((s) => s.getColors(systemColorScheme));
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
+      onStartShouldSetPanResponder: () => false,
+      onMoveShouldSetPanResponder: (event, gesture) => {
+        // Only claim the pan responder if horizontal drag is significantly greater than vertical drag
+        return Math.abs(gesture.dx) > Math.abs(gesture.dy) * 1.5;
+      },
+      onPanResponderGrant: () => {
+        Animated.spring(scale, {
+          toValue: 0.96,
+          friction: 5,
+          useNativeDriver: false
+        }).start();
+      },
       onPanResponderMove: (event, gesture) => {
         position.setValue({ x: gesture.dx, y: gesture.dy });
       },
       onPanResponderRelease: (event, gesture) => {
+        Animated.spring(scale, {
+          toValue: 1,
+          friction: 5,
+          useNativeDriver: false
+        }).start();
+
         if (gesture.dx > SWIPE_THRESHOLD) {
           forceSwipe('right');
         } else if (gesture.dx < -SWIPE_THRESHOLD) {
@@ -53,6 +71,7 @@ export function SwipeDeck({ data, onSwipeLeft, onSwipeRight, onDeckEmpty }: Swip
     const item = data[index];
     direction === 'right' ? onSwipeRight(item) : onSwipeLeft(item);
     position.setValue({ x: 0, y: 0 });
+    scale.setValue(1);
     setIndex(index + 1);
     if (index + 1 >= data.length) {
       onDeckEmpty();
@@ -75,7 +94,7 @@ export function SwipeDeck({ data, onSwipeLeft, onSwipeRight, onDeckEmpty }: Swip
 
     return {
       ...position.getLayout(),
-      transform: [{ rotate }]
+      transform: [{ rotate }, { scale }]
     };
   };
 
@@ -116,7 +135,7 @@ export function SwipeDeck({ data, onSwipeLeft, onSwipeRight, onDeckEmpty }: Swip
 
       // Next card rendered underneath without pan handlers
       return (
-        <Animated.View key={item.id} style={[styles.cardStyle, { top: 10 * (i - index), zIndex: -i }]}>
+        <Animated.View key={item.id} style={[styles.cardStyle, { top: 10 * (i - index), zIndex: -i, transform: [{ scale: 0.95 }] }]}>
           <SwipeCard data={item} />
         </Animated.View>
       );
@@ -148,3 +167,4 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 4, borderRadius: 10
   }
 });
+

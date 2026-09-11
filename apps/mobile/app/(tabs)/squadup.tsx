@@ -20,6 +20,7 @@ const MOCK_DECK: SwipeCardData[] = [
   {
     id: 'profile_1',
     displayName: 'Aarav Sharma',
+    avatarUrl: require('../../assets/images/profiles/profile_1.jpg'),
     handle: 'aarav_sharma',
     department: 'CSE',
     year: 3,
@@ -39,6 +40,7 @@ const MOCK_DECK: SwipeCardData[] = [
   {
     id: 'profile_2',
     displayName: 'Priya Krishnan',
+    avatarUrl: require('../../assets/images/profiles/profile_3.jpg'),
     handle: 'priya_design',
     department: 'Design',
     year: 2,
@@ -58,6 +60,7 @@ const MOCK_DECK: SwipeCardData[] = [
   {
     id: 'profile_3',
     displayName: 'Karan Ahluwalia',
+    avatarUrl: require('../../assets/images/profiles/profile_2.jpg'),
     handle: 'karan_pitch',
     department: 'MBA',
     year: 1,

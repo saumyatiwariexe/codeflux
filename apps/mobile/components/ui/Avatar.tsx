@@ -1,11 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, useColorScheme } from 'react-native';
+import { View, StyleSheet, useColorScheme, Image } from 'react-native';
 import { Text } from '../ui/Text';
 import { useThemeStore } from '../../stores/useThemeStore';
 
 interface AvatarProps {
   displayName: string;
-  avatarUrl?: string;
+  avatarUrl?: any;
   size?: number;
   isOnline?: boolean;
   showOnlineDot?: boolean;
@@ -52,12 +52,17 @@ export function Avatar({ displayName, avatarUrl, size = 48, isOnline, showOnline
             backgroundColor: bg,
             borderWidth: 2,
             borderColor: theme.surfaceSpaceDeep,
+            overflow: 'hidden'
           },
         ]}
       >
-        <Text style={[styles.initials, { fontSize, color: '#FFFFFF', fontFamily: 'Outfit' }]}>
-          {initials}
-        </Text>
+        {avatarUrl ? (
+          <Image source={typeof avatarUrl === 'string' ? { uri: avatarUrl } : avatarUrl} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
+        ) : (
+          <Text style={[styles.initials, { fontSize, color: '#FFFFFF', fontFamily: 'Outfit' }]}>
+            {initials}
+          </Text>
+        )}
       </View>
       {showOnlineDot && (
         <View
