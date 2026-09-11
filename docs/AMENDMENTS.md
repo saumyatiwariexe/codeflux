@@ -210,3 +210,31 @@ User confirmed EduRev is a real, current LPU program students genuinely care abo
 - Modules affected: EduRev Connect (priority restored), CampusVerse (quest spawns now carry EduRev-eligibility metadata), Module 6.4 (promoted from optional to core requirement)
 - Files to update: PRD.md (Module 6, Module 1 discovery layer note), AGENTS.md (§3, §8)
 - Breaking changes: None — `edurev_achievements` table already exists in schema (per earlier Explore report); this connects existing quest data to it rather than requiring new tables.
+
+---
+
+## AMD-008 — Auth Provider Swap: Firebase Auth → Clerk (Google OAuth + Email/Password)
+**Date:** 2026-09-12 00:10 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+Firebase Auth is removed entirely. Clerk replaces it as the sole authentication provider, supporting:
+- **Google OAuth** (one-tap sign-in)
+- **Email/Password** (standard Clerk flow)
+- No LPU-email restriction — any email is now allowed
+
+The app no longer restricts login to `@lpu.in` addresses.
+
+### Overrides
+- AGENTS.md:§4 Tech Stack — "Auth: Firebase Auth (OTP via LPU email)" → "Auth: Clerk (Google OAuth + Email/Password)"
+- IMPLEMENTATION_GUIDE.md:Part 2 (Auth) — "Firebase Admin SDK" → "Clerk JWKS verification via @clerk/backend"
+- packages/api/.env.example — Firebase env vars removed, Clerk env vars added
+
+### Rationale
+Clerk provides a vastly simpler developer experience: prebuilt React Native auth flows, Google OAuth with one-tap, and JWT JWKS verification without maintaining a Firebase project and service account. Removing the LPU-email restriction opens the app to broader testing during the hackathon.
+
+### Impact
+- Modules affected: Auth flow, API auth middleware (lib/auth.ts), mobile useAuthStore
+- Files to update: packages/api/src/lib/auth.ts, packages/api/.env.example, apps/mobile package.json, apps/mobile/stores/useAuthStore.ts
+- Breaking changes: firebase-admin removed from API; mobile apps no longer need Firebase SDK

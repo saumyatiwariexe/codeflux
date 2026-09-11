@@ -4,6 +4,8 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { useClerk, useUser } from '@clerk/expo';
+import { Ionicons } from '@expo/vector-icons';
 import { Text } from '../../components/ui/Text';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
@@ -12,6 +14,7 @@ import { XPBar } from '../../components/ui/XPBar';
 import { AchievementBadge } from '../../components/profile/AchievementBadge';
 import { SkillTag } from '../../components/profile/SkillTag';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { useAuthStore } from '../../stores/useAuthStore';
 
 const MOCK_PROFILE = {
   displayName: 'Paladeium User',
@@ -46,8 +49,16 @@ export default function ProfileScreen() {
   const themeMode = useThemeStore((state) => state.themeMode);
   const setThemeMode = useThemeStore((state) => state.setThemeMode);
   const [squadVisible, setSquadVisible] = useState(true);
+  const { signOut } = useClerk();
+  const { user: clerkUser } = useUser();
+  const signOutStore = useAuthStore((s) => s.signOut);
 
   const p = MOCK_PROFILE;
+  // Override with real Clerk user data where available
+  const displayName = clerkUser?.fullName ?? clerkUser?.username ?? p.displayName;
+  const email = clerkUser?.primaryEmailAddress?.emailAddress ?? '';
+  const handle = clerkUser?.username ?? p.handle;
+  const isEmailVerified = clerkUser?.primaryEmailAddress?.verification?.status === 'verified';
   const xpPercent = p.campusXp / p.xpToNextLevel;
 
   const STAT_ITEMS = [
@@ -63,10 +74,10 @@ export default function ProfileScreen() {
 
         {/* ---- Hero Header ---- */}
         <View style={styles.hero}>
-          <Avatar displayName={p.displayName} size={80} showOnlineDot isOnline />
+          <Avatar displayName={displayName} size={80} showOnlineDot isOnline />
           <View style={styles.heroInfo}>
-            <Text variant="headline-md">{p.displayName}</Text>
-            <Text variant="body-sm" color="onSurfaceVariant">@{p.handle}</Text>
+            <Text variant="headline-md">{displayName}</Text>
+            <Text variant="body-sm" color="onSurfaceVariant">@{handle}</Text>
             <Text variant="label-sm" color="onSurfaceVariant">{p.department} · Year {p.year} · {p.hostelBlock}</Text>
             <View style={styles.levelRow}>
               <View style={[styles.levelBadge, { backgroundColor: theme.primaryContainer }]}>
@@ -185,17 +196,30 @@ export default function ProfileScreen() {
             />
           </View>
 
-          {/* Verification */}
+          {/* Email Verification */}
           <View style={[styles.verifyRow, { borderTopColor: theme.glassBorder }]}>
-            <Text variant="body-sm"> LPU Email Verified</Text>
-            <View style={[styles.verifiedBadge, { backgroundColor: theme.neonEmerald + '22' }]}>
-              <Text variant="label-xs" style={{ color: theme.neonEmerald }}>✓ Verified</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Ionicons name="mail" size={14} color={theme.onSurfaceVariant} />
+              <Text variant="body-sm">{email || 'Email not set'}</Text>
+            </View>
+            <View style={[styles.verifiedBadge, { backgroundColor: isEmailVerified ? theme.neonEmerald + '22' : theme.errorContainer }]}>
+              <Text variant="label-xs" style={{ color: isEmailVerified ? theme.neonEmerald : theme.error }}>
+                {isEmailVerified ? 'Verified' : 'Unverified'}
+              </Text>
             </View>
           </View>
         </Card>
 
         {/* Sign out */}
-        <TouchableOpacity style={[styles.signOutBtn, { borderColor: theme.error + '44' }]}>
+        <TouchableOpacity
+          style={[styles.signOutBtn, { borderColor: theme.error + '44' }]}
+          onPress={async () => {
+            await signOutStore();
+            await signOut();
+            router.replace('/(auth)/welcome');
+          }}
+        >
+          <Ionicons name="log-out-outline" size={18} color={theme.error} style={{ marginRight: 8 }} />
           <Text variant="label-md" style={{ color: theme.error }}>Sign Out</Text>
         </TouchableOpacity>
 
@@ -236,6 +260,6 @@ const styles = StyleSheet.create({
   verifiedBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 12 },
   signOutBtn: {
     height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center',
-    borderWidth: 1,
+    borderWidth: 1, flexDirection: 'row',
   },
 });
