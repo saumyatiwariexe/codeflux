@@ -62,6 +62,16 @@ export const DISCOVERED_ZONES_GEOJSON = {
 
 // Mock Events for Pins
 export const LIVE_EVENTS = [
+  { id: 'new_e0', title: 'WEB-A-THON 2.0 | LPU’s Next Big Hackathon', coordinates: [75.70418188756499, 31.25780198350727], type: 'event' },
+  { id: 'new_e1', title: 'Code Heist Hackathon', coordinates: [75.70403943144836, 31.25752908810706], type: 'event' },
+  { id: 'new_e2', title: 'Code2Career AI Hackathon', coordinates: [75.70520968892794, 31.257884891805208], type: 'event' },
+  { id: 'new_e3', title: 'Anime Night 2.0', coordinates: [75.702, 31.259], type: 'event' },
+  { id: 'new_e4', title: 'GOAL RUSH', coordinates: [75.708, 31.252], type: 'event' },
+  { id: 'new_e5', title: 'Paper Mache workshop', coordinates: [75.70351660899865, 31.25691006152371], type: 'event' },
+  { id: 'new_w0', title: 'PYTHON Workshop', coordinates: [75.706, 31.257], type: 'workshop' },
+  { id: 'new_w1', title: 'EXCEL Workshop', coordinates: [75.703, 31.254], type: 'workshop' },
+  { id: 'new_w2', title: 'FREE FIRE Workshop', coordinates: [75.709, 31.258], type: 'workshop' },
+
   {
     id: 'e1',
     title: 'HackLPU Registration',

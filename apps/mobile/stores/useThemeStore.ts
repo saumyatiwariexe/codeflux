@@ -18,11 +18,8 @@ export const useThemeStore = create<ThemeState>()(
       themeMode: 'system',
       setThemeMode: (mode) => set({ themeMode: mode }),
       getColors: (systemColorScheme) => {
-        const mode = get().themeMode;
-        if (mode === 'system') {
-          return systemColorScheme === 'light' ? lightTheme : darkTheme;
-        }
-        return mode === 'dark' ? darkTheme : lightTheme;
+        // Forced to light theme per user request
+        return lightTheme;
       },
     }),
     {

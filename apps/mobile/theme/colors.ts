@@ -58,10 +58,10 @@ export const lightTheme = {
   outline: '#9CA3AF',
   outlineVariant: '#D1D5DB',
   surfaceTint: '#6C63FF',
-  primary: '#6C63FF', // Stronger violet for light mode
+  primary: '#000000', // Black complement requested by user
   onPrimary: '#FFFFFF',
-  primaryContainer: '#E0E7FF',
-  onPrimaryContainer: '#3730A3',
+  primaryContainer: '#F3F4F6',
+  onPrimaryContainer: '#000000',
   inversePrimary: '#c4c0ff',
   secondary: '#FF6584',
   onSecondary: '#FFFFFF',

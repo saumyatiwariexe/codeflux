@@ -142,3 +142,26 @@ Bottom tab bar locked at 6 tabs for visual balance. Additional features accessed
 - Modules affected: Navigation (_layout.tsx), Profile tab, Pulse tab
 - Files to update: None — already implemented
 - Breaking changes: No
+
+---
+
+## AMD-006 — Hinge-Style SquadUp Feed Replacement
+**Date:** 2026-09-12 15:45 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+The SquadUp feature's core interaction model is changing. The Tinder-style swipe deck (left/right swiping on whole cards) is being completely removed. It is being replaced with a "Hinge-style" vertical scrolling feed where users interact (like/comment) with specific individual prompts, photos, or bio elements on a user's profile.
+
+### Overrides
+- PRD.md:MODULE 2 — "Tinder-style swipe deck" -> "Hinge-style vertical scroll feed with specific prompt interactions"
+- IMPLEMENTATION_GUIDE.md:Part 2 — "SwipeDeck component with PanResponder" -> "SquadFeed component with vertical ScrollView"
+
+### Rationale
+Requested by the team to allow more intentional, content-driven teammate matching (Hinge style) rather than superficial quick-swiping (Tinder style), which is better suited for finding project/hackathon partners.
+
+### Impact
+- Modules affected: SquadUp (MODULE 2)
+- Files to update: PRD.md, IMPLEMENTATION_GUIDE.md, app/(tabs)/squadup.tsx
+- Breaking changes: Yes — SwipeDeck component will be removed and replaced.
+

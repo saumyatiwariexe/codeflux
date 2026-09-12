@@ -108,28 +108,28 @@ The result is a single app where every friction point of LPU student life is sol
 
 ---
 
+<!-- Updated by AMD-006 -->
 ### MODULE 2:  SquadUp — Hinge-Style Teammate Matching
 
-**Overview:** The heart of Paladeium. A swipe-based team-finding feature that matches students based on skills, interests, availability, and goals. Like Hinge, but for building your hackathon dream team.
+**Overview:** The heart of Paladeium. A vertical-scroll, content-driven team-finding feature that matches students based on skills, interests, availability, and goals. Like Hinge, but for building your hackathon dream team. Instead of swiping superficially, users scroll through rich profiles and "like" specific prompts or portfolio items.
 
 **Core Features:**
 
-#### 2.1 Smart Profile Card
-Each student's card shows:
-- Profile photo + animated campus avatar
-- Name, Branch, Year, Hostel/Day Scholar
+#### 2.1 Smart Profile Feed
+Each student's profile is rendered as a vertical stack of interactive blocks:
+- **Hero Block:** Profile photo, Name, Branch, Year, Hostel/Day Scholar
 - **Skill Tags:** Frontend, ML, UI/UX, Backend, Blockchain, Video Editing, Marketing...
 - **Current Goal:** "Looking for hackathon team", "Open to projects", "Startup co-founder"
+- **Interactive Prompts:** "I geek out on...", "My biggest flex..." (Users can like/comment specifically on these)
 - **Achievement Badges:** EduRevolution level, competition wins, club roles
 - **Availability:** This weekend / Next month / Always
-- **GitHub/LinkedIn quick-link** (verified)
 - **Portfolio highlights:** 3 pinned projects with tech stack
 
-#### 2.2 Swipe Mechanics
--  **Swipe Right / Heart** → Interested in teaming up
--  **Swipe Left / Pass** → Not a fit
--  **Super Connect** → Priority outreach (limited per day, earn more via quests)
--  **Message First** → Send a note before swiping (like Hinge's "comment on prompt")
+#### 2.2 Interaction Mechanics
+-  **Vertical Scroll** → Scroll through the feed of curated profiles
+-  **Like a Specific Block** → Tap the heart on a specific prompt, skill, or photo to show interest
+-  **Message First** → Attach a note to your like (e.g. replying to their prompt)
+-  **Pass** → Tap the 'X' to move to the next profile without interacting
 
 #### 2.3 AI Recommendation Engine
 - **Complementary Skill Matching:** If you're a backend dev, prioritize frontend/ML people

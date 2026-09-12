@@ -9,6 +9,7 @@ interface AvatarProps {
   size?: number;
   isOnline?: boolean;
   showOnlineDot?: boolean;
+  variant?: 'circle' | 'rounded' | 'square';
 }
 
 /** Gets initials from a display name */
@@ -32,13 +33,15 @@ function getAvatarColor(name: string): string {
 /**
  * Avatar component with initials fallback, online dot, and consistent color generation.
  */
-export function Avatar({ displayName, avatarUrl, size = 48, isOnline, showOnlineDot = false }: AvatarProps) {
+export function Avatar({ displayName, avatarUrl, size = 48, isOnline, showOnlineDot = false, variant = 'circle' }: AvatarProps) {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((s) => s.getColors(systemColorScheme));
   const bg = getAvatarColor(displayName);
   const initials = getInitials(displayName);
   const fontSize = size * 0.35;
   const dotSize = size * 0.28;
+  
+  const borderRadius = variant === 'circle' ? size / 2 : variant === 'rounded' ? size * 0.2 : 0;
 
   return (
     <View style={{ width: size, height: size }}>
@@ -48,7 +51,7 @@ export function Avatar({ displayName, avatarUrl, size = 48, isOnline, showOnline
           {
             width: size,
             height: size,
-            borderRadius: size / 2,
+            borderRadius: borderRadius,
             backgroundColor: bg,
             borderWidth: 2,
             borderColor: theme.surfaceSpaceDeep,

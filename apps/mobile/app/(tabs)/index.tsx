@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Animated,
+  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Animated, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -25,10 +25,11 @@ const MOCK_STORIES = [
 const MOCK_FEED = [
   {
     id: 'f1', type: 'event_live',
-    title: 'HackLPU 2026 Opening Ceremony — LIVE',
-    body: 'Keynote kickoff with 842 students. Mentor matchmaking now open.',
-    badge: 'LIVE NOW', badgeVariant: 'notification' as const, attendees: 842,
-    time: '2m ago',
+    title: 'WEB-A-THON 2.0 — Registrations Open!',
+    body: 'LPU’s Next Big Hackathon by Metaverse. Register now for ₹169.',
+    badge: 'NEW', badgeVariant: 'notification' as const,
+    time: '5m ago',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/public/club/event/poster/web-a-thon-20--lpus-next-big-hackathon-6aa2c8e7f28decc1178eb634-1789162899017.png'
   },
   {
     id: 'f2', type: 'squad_match',
@@ -38,18 +39,19 @@ const MOCK_FEED = [
     time: '15m ago',
   },
   {
-    id: 'f3', type: 'quest',
+    id: 'f3', type: 'club',
+    title: ' Code Heist Hackathon',
+    body: 'Thryve is hosting a new Hackathon on Sep 18! Build something amazing.',
+    badge: 'Register', badgeVariant: 'squad' as const,
+    time: '2h ago',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTk4NjdlYjdmMTA4MzUwN2ZiOGRjZjkvMTc4ODUyODAxMzE3Ml82NjYyNDE0ZjcwOWU4NGZjMTI5YWFhZTVmZWU2MGI1MC5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19'
+  },
+  {
+    id: 'f4', type: 'quest',
     title: ' Daily Quest Available',
     body: 'Morning Mover: Check in at the Sports Complex before 9 AM for +50 XP.',
     badge: '+50 XP', badgeVariant: 'xp' as const,
-    time: '1h ago',
-  },
-  {
-    id: 'f4', type: 'club',
-    title: ' GDSC LPU: New Session',
-    body: 'Flutter & Firebase workshop this Friday at Block 32. 48 seats left.',
-    badge: 'Register', badgeVariant: 'squad' as const,
-    time: '2h ago',
+    time: '3h ago',
   },
 ];
 
@@ -63,11 +65,9 @@ export default function HomeScreen() {
       {/* Header */}
       <View style={[styles.header, { backgroundColor: theme.surfaceSpaceDeep + 'F0' }]}>
         <View style={styles.headerLeft}>
-          <Text variant="headline-sm" style={{ letterSpacing: -0.5 }}>Paladeium</Text>
-          <View style={styles.liveRow}>
-            <View style={[styles.liveDot, { backgroundColor: theme.neonEmerald }]} />
-            <Text variant="label-sm" color="onSurfaceVariant">LPU Active</Text>
-          </View>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
+            <Avatar displayName="You" size={36} showOnlineDot isOnline />
+          </TouchableOpacity>
         </View>
         <View style={styles.headerRight}>
           <TouchableOpacity 
@@ -102,10 +102,6 @@ export default function HomeScreen() {
                 <Text style={[styles.notifCount, { color: theme.onSecondary }]}>{notifCount}</Text>
               </View>
             )}
-          </TouchableOpacity>
-          {/* Profile avatar */}
-          <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
-            <Avatar displayName="You" size={36} showOnlineDot isOnline />
           </TouchableOpacity>
         </View>
       </View>
@@ -177,22 +173,30 @@ export default function HomeScreen() {
         </View>
 
         {MOCK_FEED.map((item) => (
-          <Card key={item.id} variant="default" style={styles.feedCard}>
-            <View style={styles.feedMeta}>
-              <Badge label={item.badge} variant={item.badgeVariant} />
-              <Text variant="label-xs" color="onSurfaceVariant">{item.time}</Text>
+          <Card key={item.id} variant="default" style={[styles.feedCard, { padding: 0, overflow: 'hidden' }]}>
+            {item.posterUrl && (
+              <Image source={{ uri: item.posterUrl }} style={{ width: '100%', height: 160, resizeMode: 'cover' }} />
+            )}
+            <View style={{ padding: 16 }}>
+              <View style={styles.feedMeta}>
+                <Badge label={item.badge} variant={item.badgeVariant} />
+                <Text variant="label-xs" color="onSurfaceVariant">{item.time}</Text>
+              </View>
+              <Text variant="headline-sm" style={{ marginTop: 8 }}>{item.title}</Text>
+              <Text variant="body-sm" color="onSurfaceVariant" style={{ marginTop: 4 }}>{item.body}</Text>
+              {item.type === 'squad_match' && (
+                <Button title=" Start Chat" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push('/pulsechat')} />
+              )}
+              {item.type === 'event_live' && (
+                <Button title="View Details →" variant="primary" style={{ marginTop: 12, height: 40 }} />
+              )}
+              {item.type === 'quest' && (
+                <Button title="View Quest Zone →" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push('/questzone')} />
+              )}
+              {item.type === 'club' && (
+                <Button title="Register Now" variant="primary" style={{ marginTop: 12, height: 40 }} />
+              )}
             </View>
-            <Text variant="headline-sm" style={{ marginTop: 8 }}>{item.title}</Text>
-            <Text variant="body-sm" color="onSurfaceVariant" style={{ marginTop: 4 }}>{item.body}</Text>
-            {item.type === 'squad_match' && (
-              <Button title=" Start Chat" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push('/pulsechat')} />
-            )}
-            {item.type === 'event_live' && (
-              <Button title="Join Stream →" variant="primary" style={{ marginTop: 12, height: 40 }} />
-            )}
-            {item.type === 'quest' && (
-              <Button title="View Quest Zone →" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push('/questzone')} />
-            )}
           </Card>
         ))}
 

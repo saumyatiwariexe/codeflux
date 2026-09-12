@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, useColorScheme } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Text } from '../ui/Text';
 import { useThemeStore } from '../../stores/useThemeStore';
 
@@ -7,6 +8,7 @@ type Proficiency = 'beginner' | 'intermediate' | 'expert';
 
 interface SkillTagProps {
   name: string;
+  icon?: string;
   proficiency?: Proficiency;
   showProficiency?: boolean;
 }
@@ -26,7 +28,7 @@ const PROFICIENCY_DOTS: Record<Proficiency, number> = {
 /**
  * Skill tag pill with optional proficiency dots (green=expert, blue=intermediate, grey=beginner).
  */
-export function SkillTag({ name, proficiency = 'intermediate', showProficiency = true }: SkillTagProps) {
+export function SkillTag({ name, icon, proficiency = 'intermediate', showProficiency = true }: SkillTagProps) {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((s) => s.getColors(systemColorScheme));
   const dotColor = PROFICIENCY_COLORS[proficiency];
@@ -42,6 +44,7 @@ export function SkillTag({ name, proficiency = 'intermediate', showProficiency =
         },
       ]}
     >
+      {icon && <MaterialCommunityIcons name={icon as any} size={16} color={theme.onSurface} />}
       <Text variant="label-sm" style={{ color: theme.onSurface }}>{name}</Text>
       {showProficiency && (
         <View style={styles.dots}>

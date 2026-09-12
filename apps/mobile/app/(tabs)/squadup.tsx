@@ -8,8 +8,7 @@ import { Text } from '../../components/ui/Text';
 import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { Avatar } from '../../components/ui/Avatar';
-import { SwipeDeck } from '../../components/squad/SwipeDeck';
-import { SwipeCardData } from '../../components/squad/SwipeCard';
+import { HingeFeed, SwipeCardData } from '../../components/squad/HingeFeed';
 import { useThemeStore } from '../../stores/useThemeStore';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -17,6 +16,175 @@ const { width: SCREEN_W } = Dimensions.get('window');
 type Tab = 'discover' | 'matches' | 'teams';
 
 const MOCK_DECK: SwipeCardData[] = [
+  {
+      id: 'new_p0',
+      displayName: 'Aanya',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=800&auto=format&fit=crop&q=80' },
+      handle: 'aanya_0',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p1',
+      displayName: 'Elena',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80' },
+      handle: 'elena_1',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p2',
+      displayName: 'Chloe',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&auto=format&fit=crop&q=80' },
+      handle: 'chloe_2',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p3',
+      displayName: 'Maya',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=800&auto=format&fit=crop&q=80' },
+      handle: 'maya_3',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p4',
+      displayName: 'Sara',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=800&auto=format&fit=crop&q=80' },
+      handle: 'sara_4',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p5',
+      displayName: 'Nia',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=800&auto=format&fit=crop&q=80' },
+      handle: 'nia_5',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p6',
+      displayName: 'Rohan',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80' },
+      handle: 'rohan_6',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p7',
+      displayName: 'Marcus',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&auto=format&fit=crop&q=80' },
+      handle: 'marcus_7',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p8',
+      displayName: 'Dev',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=800&auto=format&fit=crop&q=80' },
+      handle: 'dev_8',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p9',
+      displayName: 'Liam',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&auto=format&fit=crop&q=80' },
+      handle: 'liam_9',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p10',
+      displayName: 'Kabir',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=800&auto=format&fit=crop&q=80' },
+      handle: 'kabir_10',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+  {
+      id: 'new_p11',
+      displayName: 'Alex',
+      avatarUrl: { uri: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=800&auto=format&fit=crop&q=80' },
+      handle: 'alex_11',
+      department: 'General',
+      year: 1,
+      bio: 'Ready to build awesome things!',
+      matchScore: Math.floor(Math.random() * 20) + 75,
+      campusXp: Math.floor(Math.random() * 5000) + 1000,
+      level: 1,
+      skills: [],
+      prompts: []
+    },
+
   {
     id: 'profile_1',
     displayName: 'Aarav Sharma',
@@ -257,16 +425,17 @@ export default function SquadUpScreen() {
   const matchModalScale = useRef(new Animated.Value(0)).current;
 
 
-  const handleSwipeLeft = () => {
-    // Pass logic
-  };
-
-  const handleSwipeRight = (card: SwipeCardData) => {
-    // Like logic - 30% chance of a match for demo purposes
+  const handleLike = (cardId: string, itemType: string, content: string, card: SwipeCardData) => {
+    setDeck(prev => prev.filter(c => c.id !== cardId));
     if (Math.random() > 0.7) {
       setLastMatch(card);
       setShowMatchModal(true);
+      Animated.spring(matchModalScale, { toValue: 1, useNativeDriver: true }).start();
     }
+  };
+
+  const handlePass = (cardId: string) => {
+    setDeck(prev => prev.filter(c => c.id !== cardId));
   };
 
   const dismissMatch = () => {
@@ -299,11 +468,11 @@ export default function SquadUpScreen() {
       {/* ---- Discover Tab ---- */}
       {activeTab === 'discover' && (
         <View style={styles.deckContainer}>
-          <SwipeDeck 
+          <HingeFeed 
             data={deck} 
-            onSwipeLeft={handleSwipeLeft} 
-            onSwipeRight={handleSwipeRight} 
-            onDeckEmpty={() => setDeck([])} 
+            onLikeInteraction={handleLike} 
+            onPass={handlePass} 
+            onFeedEmpty={() => setDeck([])} 
           />
         </View>
       )}

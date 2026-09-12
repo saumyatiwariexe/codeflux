@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity,
+  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -24,61 +24,95 @@ const CATEGORIES: { key: Category; label: string }[] = [
 
 const MOCK_EVENTS = [
   {
-    id: 'evt_hacklpu',
+    id: 'evt_webathon',
     category: 'hackathon',
-    title: 'HackLPU 2026: National Innovation Odyssey',
-    organizer: 'School of CS & DSW',
-    deadline: '2 Days Left',
+    title: 'WEB-A-THON 2.0 | LPU’s Next Big Hackathon',
+    organizer: 'Metaverse',
+    deadline: 'Sep 25',
     teamSize: '2–4',
-    prize: '₹15,00,000',
-    fee: 'Free',
-    attendees: 842,
+    prize: '₹1,00,000',
+    fee: '₹169',
+    attendees: 412,
     status: 'upcoming',
-    tags: ['AI/ML', 'Web3', 'IoT', 'SaaS'],
+    tags: ['Web3', 'Hackathon'],
     isSpotlight: true,
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/public/club/event/poster/web-a-thon-20--lpus-next-big-hackathon-6aa2c8e7f28decc1178eb634-1789162899017.png'
   },
   {
-    id: 'evt_roboquest',
-    category: 'academic',
-    title: 'RoboQuest: Autonomous Navigation Challenge',
-    organizer: 'Robotics Club LPU',
-    deadline: '5 Days Left',
-    teamSize: '2–3',
-    prize: '₹75,000',
-    fee: 'Free',
-    attendees: 67,
-    status: 'upcoming',
-    tags: ['ROS', 'Hardware', 'EduRev Tier 1'],
-    isSpotlight: false,
-  },
-  {
-    id: 'evt_designthon',
+    id: 'evt_codeheist',
     category: 'hackathon',
-    title: 'DesignThon: AI UI/UX Sprint',
-    organizer: 'HCI Society',
-    deadline: '7 Days Left',
+    title: 'Code Heist Hackathon',
+    organizer: 'Thryve',
+    deadline: 'Sep 18',
     teamSize: '1–3',
     prize: '₹50,000',
-    fee: 'Free',
-    attendees: 54,
+    fee: '₹179',
+    attendees: 320,
     status: 'upcoming',
-    tags: ['Figma', 'AI Design', 'Internship Offers'],
+    tags: ['AI', 'Security'],
     isSpotlight: false,
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTk4NjdlYjdmMTA4MzUwN2ZiOGRjZjkvMTc4ODUyODAxMzE3Ml82NjYyNDE0ZjcwOWU4NGZjMTI5YWFhZTVmZWU2MGI1MC5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19'
   },
   {
-    id: 'evt_diwali',
+    id: 'evt_code2career',
+    category: 'hackathon',
+    title: 'Code2Career AI Hackathon',
+    organizer: 'Coding Ninjas LPU',
+    deadline: 'Sep 18',
+    teamSize: '1–4',
+    prize: '₹75,000',
+    fee: '₹199',
+    attendees: 540,
+    status: 'upcoming',
+    tags: ['AI/ML', 'Career'],
+    isSpotlight: false,
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9jbHViL2V2ZW50L2NvZGUyY2FyZWVyLWFpLWhhY2thdGhvbi0xNzg4NzgzODY5ODQ4LmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJmaXQiOiJjb3ZlciIsIndpZHRoIjo4MDB9fX0='
+  },
+  {
+    id: 'evt_anime',
     category: 'cultural',
-    title: 'Diwali Dhamaka: Campus Cultural Night',
-    organizer: 'LPU Administration',
-    deadline: '10 Days Left',
+    title: 'Anime Night 2.0',
+    organizer: 'Play2Unite',
+    deadline: 'Sep 17',
     teamSize: 'Solo',
     prize: undefined,
-    fee: 'Free',
-    attendees: 1240,
+    fee: '₹99',
+    attendees: 800,
     status: 'upcoming',
-    tags: ['Music', 'Dance', 'Food', 'All Welcome'],
+    tags: ['Anime', 'Screening'],
     isSpotlight: false,
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTlmZWJhY2ZlN2VlYThhYzZhMDU1ZWEvMTc4OTExMDY4MDMxN18wNjAzNWRiYzk2OTA0NDEyNmQzYjI3ZTk5OWVlOTUyZS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19'
   },
+  {
+    id: 'evt_goalrush',
+    category: 'sports',
+    title: 'GOAL RUSH',
+    organizer: 'Gamers Guild',
+    deadline: 'Sep 11',
+    teamSize: '5v5',
+    prize: '₹20,000',
+    fee: '₹499',
+    attendees: 120,
+    status: 'upcoming',
+    tags: ['Esports', 'FIFA'],
+    isSpotlight: false,
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9jbHViL2V2ZW50L2dvbGQtcnVzaC0xNzg3OTk1MzE1OTA1LmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJmaXQiOiJjb3ZlciIsIndpZHRoIjo4MDB9fX0='
+  },
+  {
+    id: 'evt_paper',
+    category: 'workshop',
+    title: 'Paper Mache workshop',
+    organizer: 'RENOVA',
+    deadline: 'Sep 15',
+    teamSize: 'Solo',
+    prize: undefined,
+    fee: '₹249',
+    attendees: 45,
+    status: 'upcoming',
+    tags: ['Art', 'DIY'],
+    isSpotlight: false,
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/public/club/event/poster/paper-mache-workshop-6a9fb8135d8f22c034998d3a-1789050928527.jpg'
+  }
 ];
 
 export default function EventHubScreen() {
@@ -133,10 +167,16 @@ export default function EventHubScreen() {
             <TouchableOpacity onPress={() => router.push(`/event/${spotlight.id}`)}>
               <Card variant="elevated" style={styles.spotlightCard}>
                 <View style={[styles.banner, { backgroundColor: theme.primaryContainer }]}>
-                  <Ionicons name="trophy" size={48} color={theme.primary} />
-                  <Text variant="headline-lg" style={{ color: theme.primary, marginTop: 8 }}>
-                    HackLPU 2026
-                  </Text>
+                  {spotlight.posterUrl ? (
+                    <Image source={{ uri: spotlight.posterUrl }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
+                  ) : (
+                    <>
+                      <Ionicons name="trophy" size={48} color={theme.primary} />
+                      <Text variant="headline-lg" style={{ color: theme.primary, marginTop: 8 }}>
+                        {spotlight.title}
+                      </Text>
+                    </>
+                  )}
                 </View>
                 <View style={styles.spotlightBody}>
                   <Text variant="label-sm" color="onSurfaceVariant">{spotlight.organizer}</Text>
@@ -197,13 +237,17 @@ export default function EventHubScreen() {
           <TouchableOpacity key={ev.id} onPress={() => router.push(`/event/${ev.id}`)}>
             <Card variant="default" style={styles.eventCard}>
               <View style={styles.eventCardInner}>
-                <View style={[styles.eventIcon, { backgroundColor: theme.primaryContainer }]}>
-                  <Ionicons
-                    name={ev.category === 'hackathon' ? 'code-slash' : ev.category === 'cultural' ? 'musical-notes' : ev.category === 'academic' ? 'school' : ev.category === 'sports' ? 'football' : 'calendar'}
-                    size={22}
-                    color={theme.primary}
-                  />
-                </View>
+                {ev.posterUrl ? (
+                  <Image source={{ uri: ev.posterUrl }} style={styles.eventIcon} />
+                ) : (
+                  <View style={[styles.eventIcon, { backgroundColor: theme.primaryContainer }]}>
+                    <Ionicons
+                      name={ev.category === 'hackathon' ? 'code-slash' : ev.category === 'cultural' ? 'musical-notes' : ev.category === 'academic' ? 'school' : ev.category === 'sports' ? 'football' : 'calendar'}
+                      size={22}
+                      color={theme.primary}
+                    />
+                  </View>
+                )}
                 <View style={{ flex: 1 }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
                     {ev.tags.slice(0, 2).map((t) => (
