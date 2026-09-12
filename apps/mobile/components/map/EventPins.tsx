@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, Animated } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import Mapbox from '@rnmapbox/maps';
 import { LIVE_EVENTS } from '../../constants/mapData';
 import { useThemeStore } from '../../stores/useThemeStore';
@@ -10,6 +10,7 @@ import { Text } from '../ui/Text';
 export const EventPins = () => {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((state) => state.getColors(systemColorScheme));
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
 
   return (
     <>
@@ -18,17 +19,21 @@ export const EventPins = () => {
           key={event.id}
           id={event.id}
           coordinate={event.coordinates as [number, number]}
+          onSelected={() => setSelectedEventId(event.id)}
+          onDeselected={() => setSelectedEventId(null)}
         >
           <View style={styles.pinContainer}>
-            <View style={[styles.pulsRing, { borderColor: theme.error }]} />
-            <View style={[styles.pinBubble, { backgroundColor: theme.error }]}>
-               <Ionicons name="flame" size={12} color="#fff" style={{ marginRight: 4 }} />
-               <Text style={{ fontSize: 10, fontFamily: 'Outfit', fontWeight: '700', color: '#fff' }}>
-                 {event.title}
-               </Text>
-            </View>
-            <View style={[styles.pinStem, { backgroundColor: theme.error }]} />
+            <Ionicons name="location-sharp" size={32} color={theme.error} />
           </View>
+          {selectedEventId === event.id && (
+            <Mapbox.Callout title={event.title}>
+              <View style={[styles.calloutContainer, { backgroundColor: theme.card }]}>
+                <Text style={{ fontSize: 14, fontFamily: 'Outfit', fontWeight: '700', color: theme.text }}>
+                  {event.title}
+                </Text>
+              </View>
+            </Mapbox.Callout>
+          )}
         </Mapbox.PointAnnotation>
       ))}
     </>
@@ -36,15 +41,17 @@ export const EventPins = () => {
 };
 
 const styles = StyleSheet.create({
-  pinContainer: { alignItems: 'center' },
-  pulsRing: {
-    position: 'absolute', width: 44, height: 44, borderRadius: 22,
-    borderWidth: 2, top: -8, opacity: 0.5
+  pinContainer: { alignItems: 'center', justifyContent: 'center' },
+  calloutContainer: {
+    padding: 12,
+    borderRadius: 8,
+    minWidth: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  pinBubble: {
-    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10,
-    flexDirection: 'row', alignItems: 'center',
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.3, shadowRadius: 3,
-  },
-  pinStem: { width: 2, height: 8, marginTop: 2 },
 });

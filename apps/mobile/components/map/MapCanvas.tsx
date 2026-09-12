@@ -4,8 +4,9 @@ import Mapbox from '@rnmapbox/maps';
 import { useColorScheme } from 'react-native';
 import { useThemeStore } from '../../stores/useThemeStore';
 
-import { FogOfWar } from './FogOfWar';
 import { EventPins } from './EventPins';
+import { QuestPins } from './QuestPins';
+
 
 // Initialize Mapbox with public key
 Mapbox.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_KEY || '');
@@ -37,15 +38,16 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({ activeLayer }) => {
           zoomLevel={15.5}
           centerCoordinate={LPU_COORDINATES}
           pitch={45}
-          animationMode="flyTo"
-          animationDuration={2000}
         />
-        
-        <FogOfWar />
         
         {activeLayer === 'all' || activeLayer === 'events' ? (
           <EventPins />
         ) : null}
+
+        {activeLayer === 'all' || activeLayer === 'quests' ? (
+          <QuestPins />
+        ) : null}
+
 
       </Mapbox.MapView>
     </View>

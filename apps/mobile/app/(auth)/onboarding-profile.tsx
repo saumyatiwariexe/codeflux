@@ -154,7 +154,55 @@ export default function OnboardingProfileScreen() {
         {/* Continue CTA */}
         <TouchableOpacity
           style={[styles.btn, { backgroundColor: canContinue ? theme.primary : theme.surfaceContainerHigh }]}
-          onPress={() => canContinue && router.push('/(auth)/onboarding-skills')}
+          onPress={async () => {
+            if (!canContinue) return;
+            try {
+              const { useAuthStore } = require('../../stores/useAuthStore');
+              const user = useAuthStore.getState().user;
+              if (user && user.isNewUser) {
+                const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL;
+                const supabaseKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+                
+                // Insert User
+                await fetch(`${supabaseUrl}/rest/v1/users`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                  },
+                  body: JSON.stringify({
+                    id: user.userId,
+                    lpu_email: user.email,
+                    firebase_uid: user.userId,
+                  })
+                });
+
+                // Insert Profile
+                await fetch(`${supabaseUrl}/rest/v1/profiles`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': supabaseKey,
+                    'Authorization': `Bearer ${supabaseKey}`,
+                  },
+                  body: JSON.stringify({
+                    id: user.userId,
+                    handle: handle,
+                    display_name: displayName,
+                    department: department,
+                    year: year,
+                    degree_level: degree,
+                    hostel_block: hostelBlock || null,
+                    is_day_scholar: isDayScholar,
+                  })
+                });
+              }
+            } catch (err) {
+              console.error('Failed to create profile in DB:', err);
+            }
+            router.push('/(auth)/onboarding-skills');
+          }}
           disabled={!canContinue}
         >
           <Text variant="label-lg" style={{ color: canContinue ? theme.onPrimary : theme.onSurfaceVariant }}>

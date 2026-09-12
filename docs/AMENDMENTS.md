@@ -165,3 +165,69 @@ Requested by the team to allow more intentional, content-driven teammate matchin
 - Files to update: PRD.md, IMPLEMENTATION_GUIDE.md, app/(tabs)/squadup.tsx
 - Breaking changes: Yes — SwipeDeck component will be removed and replaced.
 
+---
+
+
+## AMD-007 — Remove GTA5-Style Fog of War Effect
+**Date:** 2026-09-12 16:40 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+Removed the `FogOfWar` component from the `MapCanvas` rendering. The map now loads fully visible by default, removing the initial obscured state.
+
+### Overrides
+- PRD.md:MODULE 1 — "GTA5 fog-of-war style" -> "Fully visible map area"
+- AGENTS.md:Section 3 — "our differentiators" -> "Removed GTA5 fog-of-war"
+
+### Rationale
+Requested by the team to allow users to see the full campus map immediately without restrictions, as the fog effect was confusing or visually distracting.
+
+### Impact
+- Modules affected: CampusVerse Map (MODULE 1)
+- Files to update: PRD.md, AGENTS.md
+- Breaking changes: No
+
+---
+
+## AMD-008 — Remove Active Quest UI from Map
+**Date:** 2026-09-12 16:45 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+Removed the "Active Quest" display card from the bottom drawer in the CampusVerse map screen.
+
+### Overrides
+- PRD.md:MODULE 1 — "Quest drawer UI" -> "Removed Active Quest section"
+- AGENTS.md:Section 3 — "our differentiators" -> "Removed quest exploration from map view"
+
+### Rationale
+Requested by the team to simplify the map UI.
+
+### Impact
+- Modules affected: CampusVerse Map (MODULE 1)
+- Files to update: PRD.md, AGENTS.md
+- Breaking changes: No
+
+---
+
+## AMD-009 — Swap Anthropic SDK with Gemini API
+**Date:** 2026-09-12 16:55 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+Swapping the AI model provider for the SquadUp recommendation engine from Anthropic (Claude) to Google Gemini (`@google/genai`).
+
+### Overrides
+- IMPLEMENTATION_GUIDE.md:Part 2 (Backend) — "`@anthropic-ai/sdk` | AI matching & EduRev classification" -> "`@google/genai` | AI matching & EduRev classification"
+
+### Rationale
+Requested by the user to use Gemini as the AI model instead of Anthropic.
+
+### Impact
+- Modules affected: SquadUp Recommendation Engine
+- Files to update: IMPLEMENTATION_GUIDE.md
+- Breaking changes: No
+

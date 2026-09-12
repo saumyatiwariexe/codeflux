@@ -103,7 +103,8 @@ The mobile app currently runs entirely on local mock data.
 | `fastify` | High-performance HTTP server |
 | `prisma` | ORM for PostgreSQL (schema drafted) |
 | `firebase-admin` | Auth token verification + push notifications |
-| `@anthropic-ai/sdk` | AI matching & EduRev classification |
+<!-- Updated by AMD-009 -->
+| `@google/genai` | AI matching & EduRev classification |
 | `sharp` | Image processing for Lost & Found |
 | `nodemailer` | Automated event emails |
 | `qrcode` | QR ticket generation |

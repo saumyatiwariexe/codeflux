@@ -10,12 +10,36 @@ import { Badge } from '../../components/ui/Badge';
 import { Avatar } from '../../components/ui/Avatar';
 import { HingeFeed, SwipeCardData } from '../../components/squad/HingeFeed';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { useAuthStore } from '../../stores/useAuthStore';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
 type Tab = 'discover' | 'matches' | 'teams';
 
 const MOCK_DECK: SwipeCardData[] = [
+  {
+    id: 'profile_saumya',
+    displayName: 'Saumya Tiwari',
+    avatarUrl: { uri: 'https://saumyatiwari.vercel.app/images/hero/hero-portrait.png' },
+    handle: 'saumyatiwari',
+    department: 'BCA',
+    year: 1,
+    bio: 'Full Stack Dev, AR/VR builder & AI enthusiast. Founder of Elevecrafts. 1st Runner-Up at HackDiwas 3.0.',
+    matchScore: 98,
+    campusXp: 9500,
+    level: 6,
+    skills: [
+      { skill: { name: 'Next.js' }, proficiency: 'expert' },
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Python', icon: 'language-python' }, proficiency: 'expert' },
+      { skill: { name: 'WebXR' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' }
+    ],
+    prompts: [
+      { question: 'A random fact I love is', answer: 'If a concept sounds impossible, it probably just needs more debugging.' },
+      { question: 'I spend most of my money on', answer: 'Bad sleep, good music, and endless curiosity.' }
+    ]
+  },
   {
       id: 'new_p0',
       displayName: 'Aanya',
@@ -27,7 +51,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -41,7 +69,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -55,7 +87,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -69,7 +105,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -83,7 +123,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -97,7 +141,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -111,7 +159,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -125,7 +177,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -139,7 +195,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -153,7 +213,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -167,7 +231,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
   {
@@ -181,7 +249,11 @@ const MOCK_DECK: SwipeCardData[] = [
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
-      skills: [],
+      skills: [
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' },
+      { skill: { name: 'MongoDB', icon: 'database' }, proficiency: 'beginner' }
+    ],
       prompts: []
     },
 
@@ -197,8 +269,10 @@ const MOCK_DECK: SwipeCardData[] = [
     campusXp: 8400,
     level: 5,
     skills: [
-      { skill: { name: 'React' }, proficiency: 'expert' },
-      { skill: { name: 'PyTorch' }, proficiency: 'intermediate' },
+      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
+      { skill: { name: 'PyTorch', icon: 'brain' }, proficiency: 'intermediate' },
+      { skill: { name: 'Python', icon: 'language-python' }, proficiency: 'expert' },
+      { skill: { name: 'Docker', icon: 'docker' }, proficiency: 'expert' },
     ],
     prompts: [
       { question: 'A shower thought I recently had', answer: 'If AI takes our jobs, who will buy the products the AI makes?' },
@@ -217,7 +291,8 @@ const MOCK_DECK: SwipeCardData[] = [
     campusXp: 5200,
     level: 4,
     skills: [
-      { skill: { name: 'Figma' }, proficiency: 'expert' },
+      { skill: { name: 'Figma', icon: 'vector-curve' }, proficiency: 'expert' },
+      { skill: { name: 'TailwindCSS', icon: 'tailwind' }, proficiency: 'expert' },
       { skill: { name: 'Motion Design' }, proficiency: 'intermediate' },
     ],
     prompts: [
@@ -293,8 +368,9 @@ const MOCK_DECK: SwipeCardData[] = [
     campusXp: 6100,
     level: 5,
     skills: [
-      { skill: { name: 'Cybersecurity' }, proficiency: 'expert' },
-      { skill: { name: 'Linux' }, proficiency: 'expert' },
+      { skill: { name: 'Cybersecurity', icon: 'shield-lock' }, proficiency: 'expert' },
+      { skill: { name: 'Linux', icon: 'linux' }, proficiency: 'expert' },
+      { skill: { name: 'Bash', icon: 'bash' }, proficiency: 'expert' },
     ],
     prompts: [
       { question: 'Don\'t hate me if I', answer: 'Explain why your password is terrible.' },
@@ -311,8 +387,10 @@ const MOCK_DECK: SwipeCardData[] = [
     campusXp: 5800,
     level: 4,
     skills: [
-      { skill: { name: 'AWS' }, proficiency: 'expert' },
-      { skill: { name: 'Docker' }, proficiency: 'intermediate' },
+      { skill: { name: 'AWS', icon: 'aws' }, proficiency: 'expert' },
+      { skill: { name: 'Kubernetes', icon: 'kubernetes' }, proficiency: 'expert' },
+      { skill: { name: 'Docker', icon: 'docker' }, proficiency: 'intermediate' },
+      { skill: { name: 'Github', icon: 'github' }, proficiency: 'expert' },
     ],
     prompts: [
       { question: 'My biggest flex', answer: 'Setting up a Kubernetes cluster without crying.' },
@@ -347,8 +425,9 @@ const MOCK_DECK: SwipeCardData[] = [
     campusXp: 7700,
     level: 5,
     skills: [
-      { skill: { name: 'Python' }, proficiency: 'expert' },
-      { skill: { name: 'Machine Learning' }, proficiency: 'expert' },
+      { skill: { name: 'Python', icon: 'language-python' }, proficiency: 'expert' },
+      { skill: { name: 'Machine Learning', icon: 'robot-outline' }, proficiency: 'expert' },
+      { skill: { name: 'SQL', icon: 'database' }, proficiency: 'expert' },
     ],
     prompts: [
       { question: 'My love language is', answer: 'Clean datasets with no missing values.' },
@@ -383,8 +462,9 @@ const MOCK_DECK: SwipeCardData[] = [
     campusXp: 4900,
     level: 4,
     skills: [
-      { skill: { name: 'Unity' }, proficiency: 'expert' },
-      { skill: { name: 'C#' }, proficiency: 'expert' },
+      { skill: { name: 'Unity', icon: 'unity' }, proficiency: 'expert' },
+      { skill: { name: 'C#', icon: 'language-csharp' }, proficiency: 'expert' },
+      { skill: { name: 'Unreal Engine', icon: 'unreal' }, proficiency: 'intermediate' },
     ],
     prompts: [
       { question: 'A random fact I love is', answer: 'That Mario hits the block with his fist, not his head.' },
@@ -418,8 +498,26 @@ const MOCK_MATCHES = [
 export default function SquadUpScreen() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((state) => state.getColors(systemColorScheme));
+  const user = useAuthStore((state) => state.user);
+  
   const [activeTab, setActiveTab] = useState<Tab>('discover');
-  const [deck, setDeck] = useState(MOCK_DECK);
+  
+  const [deck, setDeck] = useState(() => {
+    if (user?.email?.toLowerCase().includes('sameersingh')) {
+      return MOCK_DECK.filter(p => p.id !== 'profile_saumya');
+    }
+    return MOCK_DECK;
+  });
+
+  // Force sync on fast refresh
+  React.useEffect(() => {
+    if (user?.email?.toLowerCase().includes('sameersingh')) {
+      setDeck(MOCK_DECK.filter(p => p.id !== 'profile_saumya'));
+    } else {
+      setDeck(MOCK_DECK);
+    }
+  }, [MOCK_DECK, user?.email]);
+
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [lastMatch, setLastMatch] = useState<SwipeCardData | null>(null);
   const matchModalScale = useRef(new Animated.Value(0)).current;

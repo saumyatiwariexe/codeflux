@@ -12,6 +12,7 @@ import { XPBar } from '../../components/ui/XPBar';
 import { AchievementBadge } from '../../components/profile/AchievementBadge';
 import { SkillTag } from '../../components/profile/SkillTag';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { useAuthStore } from '../../stores/useAuthStore';
 import { Ionicons } from '@expo/vector-icons';
 
 const MOCK_PROFILE = {
@@ -41,14 +42,45 @@ const MOCK_PROFILE = {
   stats: { events: 4, squads: 2, quests: 8, achievements: 3 },
 };
 
+const SAMEER_PROFILE = {
+  displayName: 'Saumya Tiwari',
+  avatarUrl: 'https://saumyatiwari.vercel.app/images/hero/hero-portrait.png',
+  handle: 'saumyatiwari',
+  department: 'BCA',
+  year: 1,
+  degreeLevel: 'UG',
+  hostelBlock: 'Block 32',
+  bio: 'Full Stack Dev, AR/VR builder & AI enthusiast. Founder of Elevecrafts. 1st Runner-Up at HackDiwas 3.0.',
+  campusXp: 9500,
+  level: 6,
+  xpToNextLevel: 10000,
+  streakDays: 42,
+  skills: [
+    { name: 'Next.js', proficiency: 'expert' as const },
+    { name: 'React', proficiency: 'expert' as const },
+    { name: 'Python', proficiency: 'expert' as const },
+    { name: 'WebXR', proficiency: 'expert' as const },
+    { name: 'Node.js', proficiency: 'intermediate' as const },
+  ],
+  badges: [
+    { name: 'Hackathon Winner', emoji: '', rarity: 'epic' as const },
+    { name: 'AI Explorer', emoji: '', rarity: 'rare' as const },
+    { name: 'Squad Founder', emoji: '', rarity: 'rare' as const },
+  ],
+  stats: { events: 12, squads: 5, quests: 24, achievements: 8 },
+};
+
 export default function ProfileScreen() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((state) => state.getColors(systemColorScheme));
   const themeMode = useThemeStore((state) => state.themeMode);
   const setThemeMode = useThemeStore((state) => state.setThemeMode);
+  const signOut = useAuthStore((state) => state.signOut);
+  const user = useAuthStore((state) => state.user);
   const [squadVisible, setSquadVisible] = useState(true);
 
-  const p = MOCK_PROFILE;
+  const isSameer = user?.email?.toLowerCase().includes('sameersingh');
+  const p = isSameer ? SAMEER_PROFILE : MOCK_PROFILE;
   const xpPercent = p.campusXp / p.xpToNextLevel;
 
   const STAT_ITEMS = [
@@ -64,7 +96,7 @@ export default function ProfileScreen() {
 
         {/* ---- Hero Header ---- */}
         <View style={styles.hero}>
-          <Avatar displayName={p.displayName} size={80} showOnlineDot isOnline />
+          <Avatar displayName={p.displayName} avatarUrl={(p as any).avatarUrl} size={80} showOnlineDot isOnline />
           <View style={styles.heroInfo}>
             <Text variant="headline-md">{p.displayName}</Text>
             <Text variant="body-sm" color="onSurfaceVariant">@{p.handle}</Text>
@@ -198,7 +230,13 @@ export default function ProfileScreen() {
         </Card>
 
         {/* Sign out */}
-        <TouchableOpacity style={[styles.signOutBtn, { borderColor: theme.error + '44' }]}>
+        <TouchableOpacity 
+          style={[styles.signOutBtn, { borderColor: theme.error + '44' }]}
+          onPress={async () => {
+            await signOut();
+            router.replace('/(auth)/welcome');
+          }}
+        >
           <Text variant="label-md" style={{ color: theme.error }}>Sign Out</Text>
         </TouchableOpacity>
 

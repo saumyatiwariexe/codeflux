@@ -1,0 +1,254 @@
+export const STORIES_DATA = [
+  {
+    "id": 1,
+    "gender": "female",
+    "name": "Aanya Sharma",
+    "role": "Full-Stack Developer",
+    "experienceLevel": "Intermediate",
+    "hackathonsWon": 2,
+    "techStack": ["Next.js", "TypeScript", "Node.js", "PostgreSQL", "Tailwind CSS"],
+    "bio": "I ship clean code and drink excessive amounts of chai. Looking for a high-velocity team that wants to build something production-ready before the final buzzer.",
+    "prompts": [
+      {
+        "question": "My hackathon superpower",
+        "answer": "Whipping up an entire auth and responsive dashboard flow in under 4 hours."
+      },
+      {
+        "question": "Swipe right if",
+        "answer": "You care about clean UX just as much as resilient backend architecture."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 2,
+    "gender": "female",
+    "name": "Diya Patel",
+    "role": "AI / ML Engineer",
+    "experienceLevel": "Advanced",
+    "hackathonsWon": 3,
+    "techStack": ["Python", "PyTorch", "LangChain", "FastAPI", "Hugging Face"],
+    "bio": "Turning raw LLMs into practical, low-latency agent workflows. Here to build real intelligence, not just basic API wrappers.",
+    "prompts": [
+      {
+        "question": "Typical hackathon role",
+        "answer": "Prompt architect, fine-tuner, and whatever keeps our model inferences sub-second."
+      },
+      {
+        "question": "Looking for",
+        "answer": "A strong frontend dev who can turn my JSON outputs into an award-winning UI."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1589156280159-27698a70f29e?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 3,
+    "gender": "female",
+    "name": "Ananya Iyer",
+    "role": "UI/UX Designer & Frontend",
+    "experienceLevel": "Intermediate",
+    "hackathonsWon": 1,
+    "techStack": ["Figma", "React", "Tailwind CSS", "Framer Motion"],
+    "bio": "Judges rate on presentation and polish first. I make sure our project looks like a seed-funded startup before the 3-minute pitch.",
+    "prompts": [
+      {
+        "question": "The secret to winning pitches",
+        "answer": "Micro-interactions and a deck that tells a crisp, undeniable story."
+      },
+      {
+        "question": "Swipe right if",
+        "answer": "You won't break my layout 30 minutes before code freeze."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1617137984095-74e4e5e3613f?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 4,
+    "gender": "female",
+    "name": "Pooja Verma",
+    "role": "Cloud & DevOps Specialist",
+    "experienceLevel": "Intermediate",
+    "hackathonsWon": 1,
+    "techStack": ["Docker", "Kubernetes", "AWS", "Go", "Terraform"],
+    "bio": "Zero downtime, zero demo crashes. I build CI/CD pipelines, containerize microservices, and ensure our live demo never drops a 500 error.",
+    "prompts": [
+      {
+        "question": "My hackathon pet peeve",
+        "answer": "'It worked on my machine' right as the judges walk up to the table."
+      },
+      {
+        "question": "I'm the teammate who",
+        "answer": "Has the fallback staging environment running silently on a private cluster."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1567532939604-b6b5b0db2604?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 5,
+    "gender": "female",
+    "name": "Rhea Nair",
+    "role": "Data Analyst & Backend",
+    "experienceLevel": "Beginner-Friendly",
+    "hackathonsWon": 0,
+    "techStack": ["Python", "Pandas", "SQL", "Flask", "Tableau"],
+    "bio": "Data pipelines, metrics, and visualization. Excited to tackle tracks in EdTech, FinTech, or Social Impact with ambitious teammates.",
+    "prompts": [
+      {
+        "question": "What I bring to the table",
+        "answer": "Tireless data cleaning, clear metric proofs for our business pitch, and high energy."
+      },
+      {
+        "question": "Ideal team vibe",
+        "answer": "Collaborative, low-ego, and focused on learning just as much as competing."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 6,
+    "gender": "female",
+    "name": "Sneha Kulkarni",
+    "role": "Mobile App Developer",
+    "experienceLevel": "Advanced",
+    "hackathonsWon": 2,
+    "techStack": ["Flutter", "Dart", "Firebase", "GraphQL", "Swift"],
+    "bio": "Cross-platform mobile native experiences delivered in record time. Give me an API contract and I'll deliver buttery smooth iOS and Android builds.",
+    "prompts": [
+      {
+        "question": "My hackathon superpower",
+        "answer": "Offline-first sync architectures that never stutter during judging."
+      },
+      {
+        "question": "Swipe right if",
+        "answer": "You have a solid API schema ready before midnight on Day 1."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1607746882042-944635dfe10e?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 7,
+    "gender": "male",
+    "name": "Rohan Mehta",
+    "role": "Backend Architect",
+    "experienceLevel": "Advanced",
+    "hackathonsWon": 4,
+    "techStack": ["Go", "Node.js", "Redis", "Kafka", "PostgreSQL"],
+    "bio": "I write robust concurrent backends while everyone else is still picking a CSS library. Obsessed with high throughput and clean system architecture.",
+    "prompts": [
+      {
+        "question": "At 3:00 AM you will find me",
+        "answer": "Refactoring WebSocket handlers and optimizing our database indexes."
+      },
+      {
+        "question": "Looking for",
+        "answer": "A creative product thinker who knows how to pitch technical depth clearly."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 8,
+    "gender": "male",
+    "name": "Aditya Rao",
+    "role": "Smart Contracts & Web3",
+    "experienceLevel": "Intermediate",
+    "hackathonsWon": 1,
+    "techStack": ["Solidity", "Hardhat", "Ethers.js", "Rust", "Web3.js"],
+    "bio": "DeFi protocols, decentralized identity, and gas-efficient contracts. Looking to build actual verifiable utility on EVM chains.",
+    "prompts": [
+      {
+        "question": "My hackathon superpower",
+        "answer": "Writing airtight unit tests so our smart contracts don't drain during the evaluation demo."
+      },
+      {
+        "question": "Swipe right if",
+        "answer": "Your project concept solves an actual problem instead of slapping blockchain on things for hype."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 9,
+    "gender": "male",
+    "name": "Devansh Gupta",
+    "role": "Cybersecurity & Security Engineer",
+    "experienceLevel": "Intermediate",
+    "hackathonsWon": 2,
+    "techStack": ["Python", "C", "Linux", "OWASP", "Burp Suite", "Docker"],
+    "bio": "Red teamer by heart, builder by night. I ensure our hackathon app isn't leaking credentials, vulnerable to injection, or susceptible to auth bypass.",
+    "prompts": [
+      {
+        "question": "What I bring to the squad",
+        "answer": "Pentesting the product, hardening our endpoints, and nailing technical security questions from judges."
+      },
+      {
+        "question": "Swipe right if",
+        "answer": "You want your platform demo to stand up to ruthless judge scrutiny."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 10,
+    "gender": "male",
+    "name": "Arjun Singhania",
+    "role": "Frontend Specialist",
+    "experienceLevel": "Intermediate",
+    "hackathonsWon": 1,
+    "techStack": ["React", "Vue.js", "Three.js", "GSAP", "Tailwind CSS"],
+    "bio": "3D web graphics, immersive canvas animations, and reactive interfaces. If your demo needs an undeniable 'wow' factor, ping me.",
+    "prompts": [
+      {
+        "question": "My hackathon superpower",
+        "answer": "Implementing smooth WebGL / Three.js visuals that make judges stop scrolling."
+      },
+      {
+        "question": "Ideal teammate",
+        "answer": "A backend partner who provides crisp Swagger/REST docs with zero ambiguity."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 11,
+    "gender": "male",
+    "name": "Kabir Sen",
+    "role": "Embedded Systems & IoT",
+    "experienceLevel": "Advanced",
+    "hackathonsWon": 3,
+    "techStack": ["C++", "ESP32", "Raspberry Pi", "MQTT", "Python"],
+    "bio": "Bridging physical hardware with cloud backends. Hardware track veterans know that physical live demos win crowds when executed properly.",
+    "prompts": [
+      {
+        "question": "In my backpack right now",
+        "answer": "Soldering iron, 3 microcontroller boards, a multimeter, and backup breadboards."
+      },
+      {
+        "question": "Swipe right if",
+        "answer": "You want to build an IoT or hardware-integrated system that actually interacts with reality."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&auto=format&fit=crop&q=80"
+  },
+  {
+    "id": 12,
+    "gender": "male",
+    "name": "Varun Joshi",
+    "role": "Product Lead & Pitch Specialist",
+    "experienceLevel": "Intermediate",
+    "hackathonsWon": 2,
+    "techStack": ["Product Strategy", "Figma", "Python", "API Integration", "Pitch Decks"],
+    "bio": "Great code loses to average code with an incredible pitch every single time. I handle product vision, timing, judge psychology, and the final demo delivery.",
+    "prompts": [
+      {
+        "question": "The secret to winning pitches",
+        "answer": "Opening with a compelling real-world problem and delivering a live demo in under 90 seconds."
+      },
+      {
+        "question": "Swipe right if",
+        "answer": "You want to build the engine while I make sure everyone buys the car."
+      }
+    ],
+    "imageUrl": "https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=800&auto=format&fit=crop&q=80"
+  }
+];

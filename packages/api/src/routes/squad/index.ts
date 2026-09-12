@@ -1,8 +1,9 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { ApiResponse, SwipeDeckCard, SquadMatch, SwipeAction } from '../../../../shared/src/types';
-import { MOCK_PROFILES } from '../users/mock-data';
-import { calculateMatchScore } from '../../services/matching';
+import { ApiResponse, SwipeDeckCard, SquadMatch, Profile, ProfileSkill, Skill } from '../../../../shared/src/types';
+import { calculateMatchScore, getSkillComplementPercent } from '../../services/matching';
+import { supabase } from '../../lib/supabase';
+import { rankCandidatesWithAI, CandidateWithScore } from '../../services/ai';
 
 const swipeSchema = z.object({
   targetId: z.string(),
@@ -10,9 +11,10 @@ const swipeSchema = z.object({
   context: z.enum(['hackathon', 'project', 'general', 'internship']).default('general'),
 });
 
-// In-memory swipe storage for hackathon demo
-const swipeStore = new Map<string, { targetId: string; action: SwipeAction }[]>();
-const matchStore = new Map<string, SquadMatch[]>();
+const deckQuerySchema = z.object({
+  context: z.string().optional().default('general'),
+  limit: z.coerce.number().optional().default(10),
+});
 
 /**
  * SquadUp routes: swipe deck, swipe actions, matches, teams
@@ -32,24 +34,95 @@ const squadRoutes: FastifyPluginAsync = async (fastify) => {
    * Returns a paginated, AI-ranked swipe deck for the current user.
    * Excludes already-swiped profiles.
    */
-  fastify.get('/deck', { preHandler: requireAuth }, async (request: any, reply) => {
-    const { userId } = request.user as { userId: string };
-    const alreadySwiped = (swipeStore.get(userId) ?? []).map((s) => s.targetId);
+  fastify.get<{ Querystring: z.infer<typeof deckQuerySchema> }>('/deck', { preHandler: requireAuth }, async (request: any, reply) => {
+    const { userId } = request.user as { userId: string }; // This is firebase_uid inside the token 'sub'
+    const query = deckQuerySchema.parse(request.query);
 
-    const currentUser = MOCK_PROFILES.find((p) => p.id === userId) ?? MOCK_PROFILES[0];
-    
-    const deck: SwipeDeckCard[] = MOCK_PROFILES
-      .filter((p) => p.id !== userId && !alreadySwiped.includes(p.id))
-      .slice(0, 10)
-      .map((profile) => ({
-        ...profile,
-        matchScore: calculateMatchScore(currentUser, profile),
-        skillComplementScore: 80,
-        mutualClubs: ['ACM-LPU', 'ISTE'],
-      }))
-      .sort((a, b) => b.matchScore - a.matchScore);
+    // 1. Get the current user's profile ID
+    const { data: userRecord, error: userErr } = await supabase
+      .from('users')
+      .select('id')
+      .eq('firebase_uid', userId)
+      .single();
 
-    return reply.send({ success: true, data: deck, error: null } satisfies ApiResponse<SwipeDeckCard[]>);
+    if (userErr || !userRecord) {
+      return reply.status(404).send({ success: false, data: null, error: 'User not found' });
+    }
+
+    const currentProfileId = userRecord.id;
+
+    // 2. Fetch current user profile with skills
+    const { data: currentProfileData, error: profileErr } = await supabase
+      .from('profiles')
+      .select(`
+        *,
+        profile_skills (
+          proficiency,
+          skills (*)
+        )
+      `)
+      .eq('id', currentProfileId)
+      .single();
+
+    if (profileErr || !currentProfileData) {
+      return reply.status(404).send({ success: false, data: null, error: 'Profile not found' });
+    }
+
+    const currentUser: Profile = mapProfile(currentProfileData);
+
+    // 3. Fetch IDs of profiles we have already swiped on
+    const { data: swipes } = await supabase
+      .from('squad_swipes')
+      .select('swiped_id')
+      .eq('swiper_id', currentProfileId);
+
+    const swipedIds = (swipes || []).map(s => s.swiped_id);
+    swipedIds.push(currentProfileId); // exclude self
+
+    // 4. Fetch candidates from DB
+    // In production, you might want to paginate or filter by specific criteria first to avoid large payload
+    const { data: candidateData, error: candidatesErr } = await supabase
+      .from('profiles')
+      .select(`
+        *,
+        profile_skills (
+          proficiency,
+          skills (*)
+        )
+      `)
+      .not('id', 'in', `(${swipedIds.join(',')})`)
+      .eq('squad_visibility', 'all') // simple visibility filter
+      .limit(50); // Fetch up to 50 for heuristic scoring
+
+    if (candidatesErr || !candidateData) {
+      return reply.status(500).send({ success: false, data: null, error: 'Failed to fetch candidates' });
+    }
+
+    const candidates: Profile[] = candidateData.map(mapProfile);
+
+    // 5. Heuristic scoring (DB score)
+    const heuristicallyScored: CandidateWithScore[] = candidates.map(c => {
+      const dbScore = calculateMatchScore(currentUser, c);
+      return { ...c, dbScore };
+    });
+
+    // Take top 3 heuristically scored for AI ranking to strictly save Gemini tokens
+    heuristicallyScored.sort((a, b) => b.dbScore - a.dbScore);
+    const topCandidates = heuristicallyScored.slice(0, Math.min(3, query.limit));
+
+    // 6. AI Re-ranking
+    const aiRanked = await rankCandidatesWithAI(currentUser, topCandidates, query.context);
+
+    // Format for frontend response
+    const deck: SwipeDeckCard[] = aiRanked.slice(0, query.limit).map(c => ({
+      ...c,
+      matchScore: c.matchScore || c.dbScore,
+      skillComplementScore: getSkillComplementPercent(currentUser, c),
+      mutualClubs: [], // Placeholder, could join clubs in the future
+      matchReason: c.matchReason,
+    }));
+
+    return reply.send({ success: true, data: deck, error: null });
   });
 
   /**
@@ -65,32 +138,52 @@ const squadRoutes: FastifyPluginAsync = async (fastify) => {
     const { userId } = request.user as { userId: string };
     const { targetId, action, context } = body.data;
 
-    // Record the swipe
-    const userSwipes = swipeStore.get(userId) ?? [];
-    userSwipes.push({ targetId, action });
-    swipeStore.set(userId, userSwipes);
+    // Get DB profile ID
+    const { data: userRecord } = await supabase.from('users').select('id').eq('firebase_uid', userId).single();
+    if (!userRecord) return reply.status(404).send({ success: false, data: null, error: 'User not found' });
+    
+    const swiperId = userRecord.id;
 
-    // Check for mutual match (if action is 'like' or 'super')
+    // 1. Record the swipe
+    const { error: swipeErr } = await supabase
+      .from('squad_swipes')
+      .insert({
+        swiper_id: swiperId,
+        swiped_id: targetId,
+        action,
+        context
+      });
+
+    if (swipeErr) {
+      // Ignore conflict errors (already swiped)
+      if (swipeErr.code !== '23505') {
+        return reply.status(500).send({ success: false, data: null, error: 'Failed to record swipe' });
+      }
+    }
+
     let isMatch = false;
-    if (action !== 'pass') {
-      const targetSwipes = swipeStore.get(targetId) ?? [];
-      const theyLikedUs = targetSwipes.some(
-        (s) => s.targetId === userId && s.action !== 'pass'
-      );
 
-      if (theyLikedUs) {
+    // 2. Check for mutual match
+    if (action !== 'pass') {
+      const { data: reciprocalSwipe } = await supabase
+        .from('squad_swipes')
+        .select('id, action')
+        .eq('swiper_id', targetId)
+        .eq('swiped_id', swiperId)
+        .neq('action', 'pass')
+        .single();
+
+      if (reciprocalSwipe) {
         isMatch = true;
-        const matchId = `match_${[userId, targetId].sort().join('_')}`;
-        const match: SquadMatch = {
-          id: matchId,
-          userA: userId,
-          userB: targetId,
-          matchedAt: new Date().toISOString(),
-          status: 'matched',
-        };
-        const userMatches = matchStore.get(userId) ?? [];
-        userMatches.push(match);
-        matchStore.set(userId, userMatches);
+        
+        // Insert match
+        await supabase
+          .from('squad_matches')
+          .insert({
+            user_a: swiperId < targetId ? swiperId : targetId,
+            user_b: swiperId < targetId ? targetId : swiperId,
+            status: 'matched'
+          });
       }
     }
 
@@ -98,7 +191,7 @@ const squadRoutes: FastifyPluginAsync = async (fastify) => {
       success: true,
       data: { isMatch, action, targetId },
       error: null,
-    } satisfies ApiResponse<{ isMatch: boolean; action: string; targetId: string }>);
+    });
   });
 
   /**
@@ -107,66 +200,95 @@ const squadRoutes: FastifyPluginAsync = async (fastify) => {
    */
   fastify.get('/matches', { preHandler: requireAuth }, async (request: any, reply) => {
     const { userId } = request.user as { userId: string };
-    const matches = matchStore.get(userId) ?? MOCK_MATCHES;
+    
+    const { data: userRecord } = await supabase.from('users').select('id').eq('firebase_uid', userId).single();
+    if (!userRecord) return reply.status(404).send({ success: false, data: null, error: 'User not found' });
+    
+    const profileId = userRecord.id;
 
-    return reply.send({ success: true, data: matches, error: null } satisfies ApiResponse<SquadMatch[]>);
+    // Query matches where user is user_a OR user_b
+    const { data: matchesData, error: matchErr } = await supabase
+      .from('squad_matches')
+      .select(`
+        id, matched_at, status, team_id,
+        user_a, user_b
+      `)
+      .or(`user_a.eq.${profileId},user_b.eq.${profileId}`);
+
+    if (matchErr || !matchesData) {
+      return reply.status(500).send({ success: false, data: null, error: 'Failed to fetch matches' });
+    }
+
+    // Now fetch the other profiles
+    const otherProfileIds = matchesData.map(m => m.user_a === profileId ? m.user_b : m.user_a);
+    
+    let profilesMap = new Map<string, Profile>();
+    if (otherProfileIds.length > 0) {
+      const { data: otherProfilesData } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          profile_skills (
+            proficiency,
+            skills (*)
+          )
+        `)
+        .in('id', otherProfileIds);
+        
+      if (otherProfilesData) {
+        otherProfilesData.forEach(p => {
+          profilesMap.set(p.id, mapProfile(p));
+        });
+      }
+    }
+
+    const formattedMatches: SquadMatch[] = matchesData.map(m => {
+      const otherId = m.user_a === profileId ? m.user_b : m.user_a;
+      return {
+        id: m.id,
+        userA: m.user_a,
+        userB: m.user_b,
+        matchedAt: m.matched_at,
+        teamId: m.team_id,
+        status: m.status as any,
+        otherProfile: profilesMap.get(otherId)
+      };
+    });
+
+    return reply.send({ success: true, data: formattedMatches, error: null });
   });
 };
 
-// ---- Mock matches for demo ----
-const MOCK_MATCHES: SquadMatch[] = [
-  {
-    id: 'match_001',
-    userA: 'demo_user',
-    userB: 'profile_aarav',
-    matchedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    status: 'matched',
-    otherProfile: {
-      id: 'profile_aarav',
-      handle: 'aarav_sharma',
-      displayName: 'Aarav Sharma',
-      avatarUrl: undefined,
-      department: 'CSE',
-      year: 3,
-      degreeLevel: 'UG',
-      isDayScholar: true,
-      campusXp: 8400,
-      level: 5,
-      squadVisibility: 'all',
-      onboardingComplete: true,
-      bio: 'Next.js 14, PyTorch, Supabase & Tailwind. Building blazing-fast LLM wrappers.',
-      skills: [
-        { skillId: 's1', skill: { id: 's1', name: 'React', category: 'Tech' }, proficiency: 'expert' },
-        { skillId: 's2', skill: { id: 's2', name: 'Computer Vision', category: 'Tech' }, proficiency: 'intermediate' },
-      ],
-    },
-  },
-  {
-    id: 'match_002',
-    userA: 'demo_user',
-    userB: 'profile_priya',
-    matchedAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    status: 'matched',
-    otherProfile: {
-      id: 'profile_priya',
-      handle: 'priya_design',
-      displayName: 'Priya Krishnan',
-      avatarUrl: undefined,
-      department: 'Design',
-      year: 2,
-      degreeLevel: 'UG',
-      isDayScholar: false,
-      campusXp: 5200,
-      level: 4,
-      squadVisibility: 'all',
-      onboardingComplete: true,
-      bio: 'UI/UX designer. Figma wizard. Design systems enthusiast.',
-      skills: [
-        { skillId: 's3', skill: { id: 's3', name: 'Figma', category: 'Design' }, proficiency: 'expert' },
-        { skillId: 's4', skill: { id: 's4', name: 'Branding', category: 'Design' }, proficiency: 'expert' },
-      ],
-    },
-  },
-];
+// Helper function to map DB profile to frontend Profile type
+function mapProfile(data: any): Profile {
+  return {
+    id: data.id,
+    handle: data.handle,
+    displayName: data.display_name,
+    avatarUrl: data.avatar_url,
+    bio: data.bio,
+    department: data.department,
+    year: data.year,
+    degreeLevel: data.degree_level,
+    stream: data.stream,
+    pronouns: data.pronouns,
+    hostelBlock: data.hostel_block,
+    isDayScholar: data.is_day_scholar,
+    campusXp: data.campus_xp,
+    level: data.level,
+    squadVisibility: data.squad_visibility,
+    onboardingComplete: data.onboarding_complete,
+    skills: (data.profile_skills || []).map((ps: any) => ({
+      skillId: ps.skills.id,
+      proficiency: ps.proficiency,
+      skill: {
+        id: ps.skills.id,
+        name: ps.skills.name,
+        category: ps.skills.category,
+        icon: ps.skills.icon,
+      } as Skill
+    })),
+  };
+}
 
 export default squadRoutes;

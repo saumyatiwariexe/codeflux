@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, useColorScheme, Image } from 'react-native';
+import { View, StyleSheet, useColorScheme, Image, Animated } from 'react-native';
 import { Text } from '../ui/Text';
 import { useThemeStore } from '../../stores/useThemeStore';
 
@@ -36,11 +36,13 @@ function getAvatarColor(name: string): string {
 export function Avatar({ displayName, avatarUrl, size = 48, isOnline, showOnlineDot = false, variant = 'circle' }: AvatarProps) {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((s) => s.getColors(systemColorScheme));
-  const bg = getAvatarColor(displayName);
+  const bg = avatarUrl ? theme.surfaceContainerHigh : getAvatarColor(displayName);
   const initials = getInitials(displayName);
   const fontSize = size * 0.35;
   const dotSize = size * 0.28;
   
+  const opacityAnim = React.useRef(new Animated.Value(0)).current;
+
   const borderRadius = variant === 'circle' ? size / 2 : variant === 'rounded' ? size * 0.2 : 0;
 
   return (
@@ -60,7 +62,11 @@ export function Avatar({ displayName, avatarUrl, size = 48, isOnline, showOnline
         ]}
       >
         {avatarUrl ? (
-          <Image source={typeof avatarUrl === 'string' ? { uri: avatarUrl } : avatarUrl} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
+          <Animated.Image 
+            source={typeof avatarUrl === 'string' ? { uri: avatarUrl } : avatarUrl} 
+            style={{ width: '100%', height: '100%', resizeMode: 'cover', opacity: opacityAnim }} 
+            onLoad={() => Animated.timing(opacityAnim, { toValue: 1, duration: 200, useNativeDriver: true }).start()}
+          />
         ) : (
           <Text style={[styles.initials, { fontSize, color: '#FFFFFF', fontFamily: 'Outfit' }]}>
             {initials}

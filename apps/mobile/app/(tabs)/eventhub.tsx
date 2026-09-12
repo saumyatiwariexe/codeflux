@@ -112,6 +112,66 @@ const MOCK_EVENTS = [
     tags: ['Art', 'DIY'],
     isSpotlight: false,
     posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/public/club/event/poster/paper-mache-workshop-6a9fb8135d8f22c034998d3a-1789050928527.jpg'
+  },
+  {
+    id: 'evt_conference',
+    category: 'academic',
+    title: 'International coneference',
+    organizer: 'LPU',
+    deadline: 'Oct 29',
+    teamSize: 'Solo',
+    prize: undefined,
+    fee: '₹1999',
+    attendees: 200,
+    status: 'upcoming',
+    tags: ['Academic', 'Conference'],
+    isSpotlight: false,
+    posterUrl: 'https://onlytemptestingmacbease.s3.ap-south-1.amazonaws.com/public/event/6aa294ddf28decc1178e8c34/1789051516809_3fe46f88df53a3af1dbbf54ea9d469c4.png'
+  },
+  {
+    id: 'evt_flood',
+    category: 'cultural',
+    title: 'Nepal flood relief collection drive',
+    organizer: 'LPU',
+    deadline: 'Sep 15',
+    teamSize: 'Solo',
+    prize: undefined,
+    fee: 'Free',
+    attendees: 500,
+    status: 'upcoming',
+    tags: ['Charity', 'Social'],
+    isSpotlight: false,
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTk0MTU1MzdmMTA4MzUwN2ZiNzBmNzMvcG9zdGVyXzE3ODgwOTE0NjA3OTBfbmVwYWwtMTZfOS1jbGVhbi5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19'
+  },
+  {
+    id: 'evt_warzone',
+    category: 'sports',
+    title: 'Warzone3',
+    organizer: 'Electra',
+    deadline: 'Sep 24',
+    teamSize: 'Squad',
+    prize: '₹10,000',
+    fee: '₹169',
+    attendees: 150,
+    status: 'upcoming',
+    tags: ['Esports', 'Gaming'],
+    isSpotlight: false,
+    posterUrl: 'https://onlytemptestingmacbease.s3.ap-south-1.amazonaws.com/public/club/event/warzone3-1789137532269.jpg'
+  },
+  {
+    id: 'evt_lights',
+    category: 'cultural',
+    title: 'lights out',
+    organizer: 'Untangle',
+    deadline: 'Sep 15',
+    teamSize: 'Solo',
+    prize: undefined,
+    fee: '₹292',
+    attendees: 300,
+    status: 'upcoming',
+    tags: ['Cultural', 'Night'],
+    isSpotlight: false,
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/public/club/event/poster/lights-out-6a8a8b80ab033ae5a7011699-1788167034184.png'
   }
 ];
 

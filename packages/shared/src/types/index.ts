@@ -121,6 +121,7 @@ export interface SwipeDeckCard extends Profile {
   matchScore: number;
   skillComplementScore: number;
   mutualClubs: string[];
+  matchReason?: string;
 }
 
 // ---- Events ----

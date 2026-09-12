@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  View, StyleSheet, useColorScheme, TouchableOpacity, Animated, Dimensions, ScrollView,
+  View, StyleSheet, useColorScheme, TouchableOpacity, Animated, Dimensions, ScrollView, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '../../components/ui/Text';
@@ -8,6 +8,9 @@ import { Badge } from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
 import { useThemeStore } from '../../stores/useThemeStore';
 import { MapCanvas } from '../../components/map/MapCanvas';
+import { LIVE_EVENTS, MAP_QUESTS } from '../../constants/mapData';
+import { Ionicons } from '@expo/vector-icons';
+
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -90,7 +93,8 @@ export default function CampusVerseScreen() {
                   onPress={() => setActiveLayer(layer)}
                 >
                   <Text variant="label-sm" style={{ color: activeLayer === layer ? theme.onPrimary : theme.onSurfaceVariant }}>
-                    {layer === 'all' ? ' All' : layer === 'quests' ? ' Quests (3)' : layer === 'events' ? ' Events (2)' : ' Clubs'}
+                  {layer === 'all' ? 'All' : layer === 'quests' ? `Quests (${MAP_QUESTS.filter(q => !q.completed).length})` : layer === 'events' ? `Events (${LIVE_EVENTS.filter(e => e.type === 'event').length})` : 'Clubs'}
+
                   </Text>
                 </TouchableOpacity>
               ))}
@@ -114,34 +118,38 @@ export default function CampusVerseScreen() {
       >
         <View style={[styles.drawerHandle, { backgroundColor: theme.outlineVariant }]} />
 
-        {/* Active Quest */}
-        <Card variant="elevated" style={styles.activeQuestCard}>
-          <View style={styles.questCardHeader}>
-            <Badge label="ACTIVE QUEST" variant="xp" />
-            <Text variant="label-sm" color="secondary">12m left </Text>
-          </View>
-          <Text variant="headline-sm" style={{ marginTop: 8 }}>Locate Block 34 Mac Lab</Text>
-          <Text variant="body-sm" color="onSurfaceVariant" style={{ marginTop: 4 }}>
-            Navigate to the iOS development lab to claim your daily check-in XP.
-          </Text>
-          <View style={[styles.radarBox, { backgroundColor: theme.primaryContainer }]}>
-            <Text variant="headline-md" color="primary">84m away</Text>
-            <Text variant="label-sm" color="onSurfaceVariant"> Walk North-East</Text>
-          </View>
-        </Card>
+
+
+        {/* Active Quests preview */}
+        <Text variant="headline-sm" style={{ marginTop: 20, marginBottom: 12 }}>Active Quests</Text>
+        {MAP_QUESTS.filter(q => !q.completed).slice(0, 3).map((q) => {
+          const COLORS: Record<string, string> = { explorer: '#43E97B', academic: '#60A5FA', social: '#F59E0B', challenge: '#FF6584', daily: '#A78BFA' };
+          const color = COLORS[q.type] ?? theme.primary;
+          return (
+            <View key={q.id} style={[styles.nearbyRow, { marginBottom: 10, backgroundColor: theme.surfaceContainerLow + 'CC', borderRadius: 14, padding: 14 }]}>
+              <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: color + '60' }}>
+                <Ionicons name="flag" size={16} color={color} />
+              </View>
+              <View style={{ flex: 1, marginLeft: 12 }}>
+                <Text variant="headline-sm" numberOfLines={1}>{q.title}</Text>
+                <Text variant="label-xs" color="onSurfaceVariant">{q.xp} XP · {q.difficulty} · {q.timeLimit ?? 'No deadline'}</Text>
+              </View>
+            </View>
+          );
+        })}
 
         {/* Nearby Events */}
         <Text variant="headline-sm" style={{ marginTop: 20, marginBottom: 12 }}>Nearby Events</Text>
-        {[
-          { title: 'HackLPU Opening Ceremony', distance: '120m', emoji: '', time: 'Starting in 45m' },
-          { title: 'RoboQuest Demo Station', distance: '340m', emoji: '', time: 'Live Now' },
-        ].map((ev, i) => (
-          <Card key={i} variant="default" style={styles.nearbyCard}>
-            <View style={styles.nearbyRow}>
-              <Text style={{ fontSize: 28 }}>{ev.emoji}</Text>
+        {LIVE_EVENTS.slice(0, 3).map((ev, i) => (
+          <Card key={ev.id} variant="default" style={[styles.nearbyCard, { padding: 0, overflow: 'hidden' }]}>
+            {ev.posterUrl && (
+              <Image source={{ uri: ev.posterUrl }} style={{ width: '100%', height: 120, resizeMode: 'cover' }} />
+            )}
+            <View style={[styles.nearbyRow, { padding: 14 }]}>
+              <Ionicons name="location-sharp" size={28} color={theme.error} />
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text variant="headline-sm">{ev.title}</Text>
-                <Text variant="label-sm" color="onSurfaceVariant">{ev.time} · {ev.distance}</Text>
+                <Text variant="label-sm" color="onSurfaceVariant">Happening Now · {Math.floor(Math.random() * 500 + 50)}m away</Text>
               </View>
             </View>
           </Card>

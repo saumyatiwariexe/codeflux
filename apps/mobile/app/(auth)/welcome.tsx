@@ -92,8 +92,7 @@ export default function WelcomeScreen() {
 
         <Animated.View style={{ opacity: logoOpacity, marginTop: 24, alignItems: 'center' }}>
           <Text variant="display-hero" style={{ textAlign: 'center', letterSpacing: -1 }}>
-            Campus{'\n'}
-            <Text variant="display-hero" color="primary">Pulse</Text>
+            Paladeium
           </Text>
           <Text variant="body-md" color="onSurfaceVariant" style={{ marginTop: 8, textAlign: 'center' }}>
             Your Campus. Your Quests. Your People.
@@ -119,11 +118,11 @@ export default function WelcomeScreen() {
       >
         <TouchableOpacity
           style={[styles.primaryBtn, { backgroundColor: theme.primary }]}
-          onPress={() => router.push('/(auth)/lpu-verify')}
+          onPress={() => router.push('/(auth)/login')}
           activeOpacity={0.85}
         >
           <Text variant="label-lg" style={{ color: theme.onPrimary, textAlign: 'center' }}>
-            Get Started with LPU Email
+            Login / Sign Up
           </Text>
         </TouchableOpacity>
 

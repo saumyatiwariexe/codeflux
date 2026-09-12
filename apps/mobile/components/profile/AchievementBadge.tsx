@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet, useColorScheme } from 'react-native';
 import { Text } from '../ui/Text';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { PioneerBadgeIcon, SocialBadgeIcon, QuestExplorationIcon } from '../ui/Icons';
 
 type BadgeRarity = 'common' | 'rare' | 'epic' | 'legendary';
 
@@ -38,6 +39,22 @@ export function AchievementBadge({ name, emoji, rarity, size = 'md' }: Achieveme
 
   const containerSize = size === 'sm' ? 56 : size === 'lg' ? 88 : 72;
   const emojiSize = size === 'sm' ? 22 : size === 'lg' ? 36 : 28;
+  const svgSize = size === 'sm' ? 36 : size === 'lg' ? 60 : 48;
+
+  const renderIcon = () => {
+    const lowercaseName = name.toLowerCase();
+    if (lowercaseName.includes('pioneer') || lowercaseName.includes('first') || lowercaseName.includes('winner')) {
+      return <PioneerBadgeIcon size={svgSize} />;
+    }
+    if (lowercaseName.includes('squad') || lowercaseName.includes('social')) {
+      return <SocialBadgeIcon size={svgSize} />;
+    }
+    if (lowercaseName.includes('explorer') || lowercaseName.includes('map') || lowercaseName.includes('ai')) {
+      return <QuestExplorationIcon size={svgSize} />;
+    }
+    
+    return <Text style={{ fontSize: emojiSize }}>{displayEmoji || '🏆'}</Text>;
+  };
 
   return (
     <View style={[styles.wrapper, { alignItems: 'center', gap: 6 }]}>
@@ -60,7 +77,7 @@ export function AchievementBadge({ name, emoji, rarity, size = 'md' }: Achieveme
           },
         ]}
       >
-        <Text style={{ fontSize: emojiSize }}>{displayEmoji}</Text>
+        {renderIcon()}
       </View>
       {size !== 'sm' && (
         <Text

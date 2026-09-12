@@ -13,14 +13,8 @@ import { XPBar } from '../../components/ui/XPBar';
 import { useThemeStore } from '../../stores/useThemeStore';
 import { Ionicons } from '@expo/vector-icons';
 
-// Mock feed data
-const MOCK_STORIES = [
-  { id: '1', name: 'HackLPU', hasNew: true, emoji: '' },
-  { id: '2', name: 'Aarav', hasNew: true, emoji: null },
-  { id: '3', name: 'GDSC', hasNew: false, emoji: '' },
-  { id: '4', name: 'Priya', hasNew: true, emoji: null },
-  { id: '5', name: 'ACM', hasNew: false, emoji: '' },
-];
+import { STORIES_DATA } from '../../constants/stories';
+import { StoryViewer } from '../../components/ui/StoryViewer';
 
 const MOCK_FEED = [
   {
@@ -59,6 +53,13 @@ export default function HomeScreen() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((state) => state.getColors(systemColorScheme));
   const [notifCount] = useState(3);
+  const [storyVisible, setStoryVisible] = useState(false);
+  const [initialStoryIndex, setInitialStoryIndex] = useState(0);
+
+  const openStory = (index: number) => {
+    setInitialStoryIndex(index);
+    setStoryVisible(true);
+  };
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.surfaceSpaceDeep }]} edges={['top']}>
@@ -119,24 +120,22 @@ export default function HomeScreen() {
               <Text variant="label-xs" color="onSurfaceVariant" numberOfLines={1}>Your Pulse</Text>
             </TouchableOpacity>
             {/* Stories */}
-            {MOCK_STORIES.map((s) => (
-              <TouchableOpacity key={s.id} style={styles.storyItem}>
+            {STORIES_DATA.map((s, index) => (
+              <TouchableOpacity key={s.id} style={styles.storyItem} onPress={() => openStory(index)}>
                 <View
                   style={[
                     styles.storyCircle,
                     {
                       backgroundColor: theme.surfaceContainerHigh,
-                      borderWidth: s.hasNew ? 2 : 0,
-                      borderColor: s.hasNew ? theme.primary : 'transparent',
+                      borderWidth: 2,
+                      borderColor: theme.primary,
+                      padding: 2,
                     },
                   ]}
                 >
-                  {s.emoji
-                    ? <Text style={{ fontSize: 22 }}>{s.emoji}</Text>
-                    : <Avatar displayName={s.name} size={52} />
-                  }
+                  <Image source={{ uri: s.imageUrl }} style={{ width: 56, height: 56, borderRadius: 28 }} />
                 </View>
-                <Text variant="label-xs" numberOfLines={1}>{s.name}</Text>
+                <Text variant="label-xs" numberOfLines={1}>{s.name.split(' ')[0]}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -202,6 +201,13 @@ export default function HomeScreen() {
 
         <View style={{ height: 32 }} />
       </ScrollView>
+
+      <StoryViewer
+        visible={storyVisible}
+        stories={STORIES_DATA}
+        initialIndex={initialStoryIndex}
+        onClose={() => setStoryVisible(false)}
+      />
     </SafeAreaView>
   );
 }
