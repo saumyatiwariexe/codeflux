@@ -1,0 +1,26 @@
+[
+  {
+    "CLUBS": "CREST",
+    "WORKSHOP": "PYTHON",
+    "DATE": "2026-09-27",
+    "TIME": "15:00:00",
+    "LOCATION": "BLOCK 31",
+    "MONEY": "FREE"
+  },
+  {
+    "CLUBS": "CODING BLOCKS",
+    "WORKSHOP": "EXCEL",
+    "DATE": "2026-10-23",
+    "TIME": "12:00:00",
+    "LOCATION": "BLOCK 17",
+    "MONEY": "PAID"
+  },
+  {
+    "CLUBS": "Play2Unite",
+    "WORKSHOP": "FREE FIRE",
+    "DATE": "2026-09-21",
+    "TIME": "19:00:00",
+    "LOCATION": "BLOCK 21",
+    "MONEY": "PAID"
+  }
+]
