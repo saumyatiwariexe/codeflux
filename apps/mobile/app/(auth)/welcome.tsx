@@ -9,17 +9,19 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { Text } from '../../components/ui/Text';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { PaladeiumLogo } from '../../components/ui/PaladeiumLogo';
 
 const { width, height } = Dimensions.get('window');
 
 // Feature highlights shown in the animated tagline section
-const FEATURES = [
-  { emoji: '', label: 'Explore LPU like never before' },
-  { emoji: '', label: 'Find your perfect hackathon team' },
-  { emoji: '', label: 'Earn XP for being on campus' },
-  { emoji: '', label: 'Track your EduRev achievements' },
+const FEATURES: { icon: keyof typeof Ionicons.glyphMap; label: string }[] = [
+  { icon: 'map-outline',         label: 'Explore LPU like never before' },
+  { icon: 'people-outline',      label: 'Find your perfect hackathon team' },
+  { icon: 'trophy-outline',      label: 'Earn XP for being on campus' },
+  { icon: 'ribbon-outline',      label: 'Track your EduRev achievements' },
 ];
 
 export default function WelcomeScreen() {
@@ -33,16 +35,8 @@ export default function WelcomeScreen() {
   const taglineOpacity = useRef(new Animated.Value(0)).current;
   const ctaY = useRef(new Animated.Value(40)).current;
   const ctaOpacity = useRef(new Animated.Value(0)).current;
-  const glowScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    // Glow pulse (infinite)
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(glowScale, { toValue: 1.15, duration: 2000, useNativeDriver: true }),
-        Animated.timing(glowScale, { toValue: 1, duration: 2000, useNativeDriver: true }),
-      ])
-    ).start();
 
     // Entrance animation sequence
     Animated.sequence([
@@ -69,25 +63,14 @@ export default function WelcomeScreen() {
 
       {/* Logo section */}
       <View style={styles.logoSection}>
-        {/* Glow ring */}
+        {/* Logo — Paladeium tern SVG, no circle */}
         <Animated.View
-          style={[
-            styles.glowRing,
-            { borderColor: theme.primary + '44', transform: [{ scale: glowScale }] },
-          ]}
-        />
-        {/* Logo circle */}
-        <Animated.View
-          style={[
-            styles.logoCircle,
-            {
-              backgroundColor: theme.primaryContainer,
-              transform: [{ scale: logoScale }],
-              opacity: logoOpacity,
-            },
-          ]}
+          style={{
+            transform: [{ scale: logoScale }],
+            opacity: logoOpacity,
+          }}
         >
-          <Text style={styles.logoEmoji}></Text>
+          <PaladeiumLogo size={160} tint={theme.primary} />
         </Animated.View>
 
         <Animated.View style={{ opacity: logoOpacity, marginTop: 24, alignItems: 'center' }}>
@@ -106,7 +89,7 @@ export default function WelcomeScreen() {
       >
         {FEATURES.map((f, i) => (
           <View key={i} style={[styles.featureRow, { backgroundColor: theme.surfaceContainerLow + 'cc' }]}>
-            <Text style={styles.featureEmoji}>{f.emoji}</Text>
+            <Ionicons name={f.icon} size={22} color={theme.primary} />
             <Text variant="body-md" style={{ flex: 1 }}>{f.label}</Text>
           </View>
         ))}
@@ -126,9 +109,6 @@ export default function WelcomeScreen() {
           </Text>
         </TouchableOpacity>
 
-        <Text variant="label-sm" color="onSurfaceVariant" style={{ textAlign: 'center', marginTop: 16 }}>
-          LPU students only • @lpu.in email required
-        </Text>
       </Animated.View>
     </SafeAreaView>
   );
@@ -145,16 +125,7 @@ const styles = StyleSheet.create({
     width: 180, height: 180, borderRadius: 90,
   },
   logoSection: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 40 },
-  glowRing: {
-    position: 'absolute',
-    width: 160, height: 160, borderRadius: 80,
-    borderWidth: 2,
-  },
-  logoCircle: {
-    width: 120, height: 120, borderRadius: 60,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  logoEmoji: { fontSize: 52 },
+
   featuresSection: { paddingHorizontal: 24, gap: 12, marginBottom: 24 },
   featureRow: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
@@ -162,7 +133,6 @@ const styles = StyleSheet.create({
     borderRadius: 16, borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.07)',
   },
-  featureEmoji: { fontSize: 22 },
   ctaSection: { paddingHorizontal: 24, paddingBottom: 32 },
   primaryBtn: {
     height: 56, borderRadius: 28,

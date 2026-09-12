@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
   },
   // Modal / sheet
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: '#00000070',
   },
   sheet: {

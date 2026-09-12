@@ -1,74 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { ApiResponse, Quest, QuestProgress } from '../../../../shared/src/types';
-
-const MOCK_QUESTS: Quest[] = [
-  {
-    id: 'quest_explorer_1',
-    title: 'Discover the Hidden Courtyard',
-    description: 'Navigate to the serene courtyard behind Block 34 and check in to reveal this secret zone on your campus map.',
-    type: 'explorer',
-    xpReward: 150,
-    edurevLinkage: false,
-    locationRequired: true,
-    targetLocation: { lat: 31.2528, lng: 75.7045, radiusMeters: 50 },
-    isActive: true,
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'quest_daily_1',
-    title: 'Morning Mover',
-    description: 'Visit the campus gym or sports complex before 9 AM to earn your daily streak bonus.',
-    type: 'daily',
-    xpReward: 50,
-    edurevLinkage: false,
-    locationRequired: true,
-    targetLocation: { lat: 31.2545, lng: 75.7060, radiusMeters: 100 },
-    isActive: true,
-    expiresAt: new Date(new Date().setHours(23, 59, 59, 0)).toISOString(),
-  },
-  {
-    id: 'quest_social_1',
-    title: 'Squad Builder',
-    description: 'Form a team of at least 3 members on SquadUp and register for an upcoming event together.',
-    type: 'social',
-    xpReward: 300,
-    edurevLinkage: false,
-    locationRequired: false,
-    isActive: true,
-  },
-  {
-    id: 'quest_academic_1',
-    title: 'EduRev Pioneer',
-    description: 'Log your first achievement on EduRevolution — any certification, competition win, or research paper counts.',
-    type: 'academic',
-    xpReward: 200,
-    edurevLinkage: true,
-    locationRequired: false,
-    isActive: true,
-  },
-  {
-    id: 'quest_weekly_1',
-    title: 'Campus Cartographer',
-    description: 'Reveal 5 new zones on the CampusVerse map this week by physically visiting those locations.',
-    type: 'weekly',
-    xpReward: 500,
-    edurevLinkage: false,
-    locationRequired: true,
-    isActive: true,
-    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'quest_explorer_2',
-    title: 'Mac Lab Discovery',
-    description: 'Find and check in at the iOS development lab in Block 34 — home to the Xcode setups.',
-    type: 'explorer',
-    xpReward: 100,
-    edurevLinkage: false,
-    locationRequired: true,
-    targetLocation: { lat: 31.2531, lng: 75.7049, radiusMeters: 50 },
-    isActive: true,
-  },
-];
+import { supabase } from '../../lib/supabase';
 
 const questRoutes: FastifyPluginAsync = async (fastify) => {
   const requireAuth = async (request: any, reply: any) => {
@@ -76,19 +8,68 @@ const questRoutes: FastifyPluginAsync = async (fastify) => {
   };
 
   /** GET /api/v1/quests — active quests for user */
-  fastify.get('/', { preHandler: requireAuth }, async (_request, reply) => {
-    return reply.send({ success: true, data: MOCK_QUESTS, error: null } satisfies ApiResponse<Quest[]>);
+  fastify.get('/', { preHandler: requireAuth }, async (request: any, reply) => {
+    const { data: quests, error: questsError } = await supabase
+      .from('quests')
+      .select('*')
+      .eq('is_active', true);
+
+    if (questsError) return reply.status(500).send({ success: false, data: null, error: questsError.message });
+
+    const { data: progress, error: progressError } = await supabase
+      .from('quest_progress')
+      .select('*')
+      .eq('profile_id', request.user.userId);
+
+    if (progressError) return reply.status(500).send({ success: false, data: null, error: progressError.message });
+
+    const mappedQuests: any[] = (quests || []).map((q: any) => {
+      const userProgress = (progress || []).find((p: any) => p.quest_id === q.id);
+      return {
+        id: q.id,
+        title: q.title,
+        description: q.description,
+        type: q.type,
+        xpReward: q.xp_reward,
+        edurevLinkage: q.edurev_linkage,
+        locationRequired: q.location_required,
+        targetLocation: q.target_location ? {
+          lat: q.target_location.lat,
+          lng: q.target_location.lng,
+          radiusMeters: q.target_location.radius_meters
+        } : undefined,
+        isActive: q.is_active,
+        expiresAt: q.expires_at,
+        status: userProgress ? userProgress.status : 'available',
+        progress: userProgress ? 1 : 0,
+        total: 1,
+        icon: q.type === 'explorer' ? '🧭' : q.type === 'academic' ? '📚' : q.type === 'social' ? '🤝' : '⭐',
+        timeLeft: q.expires_at ? 'Ends soon' : undefined
+      };
+    });
+
+    return reply.send({ success: true, data: mappedQuests, error: null });
   });
 
   /** GET /api/v1/quests/leaderboard */
   fastify.get('/leaderboard', async (_request, reply) => {
-    const leaderboard = [
-      { rank: 1, handle: 'rohan_blockchain', displayName: 'Rohan Mehta', campusXp: 12000, level: 7, department: 'ECE' },
-      { rank: 2, handle: 'neha_devops', displayName: 'Neha Sharma', campusXp: 11200, level: 7, department: 'CSE' },
-      { rank: 3, handle: 'aarav_sharma', displayName: 'Aarav Sharma', campusXp: 8400, level: 5, department: 'CSE' },
-      { rank: 4, handle: 'ritika_research', displayName: 'Ritika Bhatia', campusXp: 7600, level: 5, department: 'BioTech' },
-      { rank: 5, handle: 'sahil_cybersec', displayName: 'Sahil Verma', campusXp: 6800, level: 5, department: 'CSE' },
-    ];
+    const { data: profiles, error } = await supabase
+      .from('profiles')
+      .select('id, handle, display_name, department, campus_xp, level')
+      .order('campus_xp', { ascending: false })
+      .limit(20);
+
+    if (error) return reply.status(500).send({ success: false, data: null, error: error.message });
+
+    const leaderboard = (profiles || []).map((p: any, index: number) => ({
+      rank: index + 1,
+      handle: p.handle,
+      displayName: p.display_name,
+      campusXp: p.campus_xp,
+      level: p.level,
+      department: p.department || 'Unknown'
+    }));
+
     return reply.send({ success: true, data: leaderboard, error: null });
   });
 
@@ -97,18 +78,58 @@ const questRoutes: FastifyPluginAsync = async (fastify) => {
     '/:id/verify',
     { preHandler: requireAuth },
     async (request: any, reply) => {
-      const quest = MOCK_QUESTS.find((q) => q.id === request.params.id);
-      if (!quest) return reply.status(404).send({ success: false, data: null, error: 'Quest not found' });
+      const { id: questId } = request.params;
+      const userId = request.user.userId;
 
-      // In prod: verify GPS coordinates against target_location with radius check
-      const progress: QuestProgress = {
-        id: `prog_${Date.now()}`,
-        profileId: request.user.userId,
-        questId: quest.id,
+      // 1. Fetch quest
+      const { data: questData, error: qError } = await supabase.from('quests').select('*').eq('id', questId).single();
+      if (qError || !questData) return reply.status(404).send({ success: false, data: null, error: 'Quest not found' });
+
+      // 2. Check existing progress
+      const { data: existingProgress } = await supabase
+        .from('quest_progress')
+        .select('*')
+        .eq('quest_id', questId)
+        .eq('profile_id', userId)
+        .single();
+        
+      if (existingProgress && existingProgress.status === 'completed') {
+        return reply.status(400).send({ success: false, data: null, error: 'Quest already completed' });
+      }
+
+      // 3. Mark completed and award XP
+      const xpToAward = questData.xp_reward;
+      const { data: progressData, error: pError } = await supabase.from('quest_progress').upsert({
+        id: existingProgress?.id || require('crypto').randomUUID(),
+        profile_id: userId,
+        quest_id: questId,
         status: 'completed',
-        completedAt: new Date().toISOString(),
-        xpAwarded: quest.xpReward,
-        quest,
+        xp_awarded: xpToAward,
+        completed_at: new Date().toISOString()
+      }).select().single();
+
+      if (pError) return reply.status(500).send({ success: false, data: null, error: pError.message });
+
+      // 4. Update user Profile XP
+      const { data: userProfile, error: profileErr } = await supabase
+        .from('profiles')
+        .select('campus_xp, level')
+        .eq('id', userId)
+        .single();
+
+      if (userProfile) {
+        const newXp = (userProfile.campus_xp || 0) + xpToAward;
+        const newLevel = Math.floor(newXp / 1000) + 1; // Simple level calc
+        await supabase.from('profiles').update({ campus_xp: newXp, level: newLevel }).eq('id', userId);
+      }
+
+      const progress: QuestProgress = {
+        id: progressData.id,
+        profileId: userId,
+        questId: questId,
+        status: 'completed',
+        completedAt: progressData.completed_at,
+        xpAwarded: progressData.xp_awarded,
       };
 
       return reply.send({ success: true, data: progress, error: null } satisfies ApiResponse<QuestProgress>);

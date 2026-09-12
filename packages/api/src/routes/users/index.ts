@@ -1,5 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { ApiResponse } from '../../../../shared/src/types';
+import { supabase } from '../../lib/supabase';
 
 const userRoutes: FastifyPluginAsync = async (fastify) => {
   const requireAuth = async (request: any, reply: any) => {
@@ -8,56 +9,98 @@ const userRoutes: FastifyPluginAsync = async (fastify) => {
 
   /** GET /api/v1/users/me */
   fastify.get('/me', { preHandler: requireAuth }, async (request: any, reply) => {
-    return reply.send({
-      success: true,
-      data: {
-        id: request.user.userId,
-        handle: 'campus_user',
-        displayName: 'Paladeium Demo User',
-        department: 'CSE',
-        year: 3,
-        degreeLevel: 'UG',
-        isDayScholar: false,
-        hostelBlock: 'Block 32',
-        campusXp: 3500,
-        level: 4,
-        squadVisibility: 'all',
-        onboardingComplete: true,
-        bio: 'Exploring LPU one quest at a time. 🚀',
-        skills: [
-          { skillId: 's_node', skill: { id: 's_node', name: 'Node.js', category: 'Tech' }, proficiency: 'intermediate' },
-          { skillId: 's_react', skill: { id: 's_react', name: 'React Native', category: 'Tech' }, proficiency: 'beginner' },
-        ],
-        badges: [],
-      },
-      error: null,
-    });
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', request.user.userId)
+      .single();
+
+    if (error || !profile) {
+      return reply.status(404).send({ success: false, data: null, error: 'Profile not found' });
+    }
+
+    const mappedProfile = {
+      id: profile.id,
+      handle: profile.handle,
+      displayName: profile.display_name,
+      avatarUrl: profile.avatar_url,
+      bio: profile.bio,
+      department: profile.department,
+      year: profile.year,
+      degreeLevel: profile.degree_level,
+      hostelBlock: profile.hostel_block,
+      isDayScholar: profile.is_day_scholar,
+      campusXp: profile.campus_xp || 0,
+      level: profile.level || 1,
+      squadVisibility: profile.squad_visibility,
+      onboardingComplete: profile.onboarding_complete,
+      skills: [], // We can fetch from profile_skills later if needed
+      badges: [], // We can fetch from profile_badges later if needed
+    };
+
+    return reply.send({ success: true, data: mappedProfile, error: null });
   });
 
   /** PATCH /api/v1/users/me — update profile */
   fastify.patch('/me', { preHandler: requireAuth }, async (request: any, reply) => {
-    return reply.send({ success: true, data: { updated: true, ...request.body }, error: null });
+    const updates = request.body as Record<string, any>;
+    
+    // Map camelCase to snake_case for DB
+    const dbUpdates: Record<string, any> = {};
+    if (updates.displayName !== undefined) dbUpdates.display_name = updates.displayName;
+    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+    if (updates.department !== undefined) dbUpdates.department = updates.department;
+    if (updates.year !== undefined) dbUpdates.year = updates.year;
+    if (updates.degreeLevel !== undefined) dbUpdates.degree_level = updates.degreeLevel;
+    if (updates.hostelBlock !== undefined) dbUpdates.hostel_block = updates.hostelBlock;
+    if (updates.isDayScholar !== undefined) dbUpdates.is_day_scholar = updates.isDayScholar;
+    if (updates.squadVisibility !== undefined) dbUpdates.squad_visibility = updates.squadVisibility;
+    if (updates.onboardingComplete !== undefined) dbUpdates.onboarding_complete = updates.onboardingComplete;
+    if (updates.avatarUrl !== undefined) dbUpdates.avatar_url = updates.avatarUrl;
+
+    const { data, error } = await supabase
+      .from('profiles')
+      .update(dbUpdates)
+      .eq('id', request.user.userId)
+      .select()
+      .single();
+
+    if (error) {
+      return reply.status(500).send({ success: false, data: null, error: error.message });
+    }
+
+    return reply.send({ success: true, data: { updated: true, ...data }, error: null });
   });
 
   /** GET /api/v1/users/:handle — public profile */
   fastify.get<{ Params: { handle: string } }>('/:handle', async (request, reply) => {
-    return reply.send({
-      success: true,
-      data: {
-        id: `profile_${request.params.handle}`,
-        handle: request.params.handle,
-        displayName: request.params.handle.replace(/_/g, ' '),
-        department: 'CSE',
-        year: 2,
-        degreeLevel: 'UG' as const,
-        isDayScholar: true,
-        campusXp: 2000,
-        level: 3,
-        squadVisibility: 'all' as const,
-        onboardingComplete: true,
-      },
-      error: null,
-    });
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('id, handle, display_name, department, year, degree_level, is_day_scholar, campus_xp, level, squad_visibility, onboarding_complete, bio, avatar_url')
+      .eq('handle', request.params.handle)
+      .single();
+
+    if (error || !profile) {
+      return reply.status(404).send({ success: false, data: null, error: 'Profile not found' });
+    }
+    
+    const mappedProfile = {
+      id: profile.id,
+      handle: profile.handle,
+      displayName: profile.display_name,
+      department: profile.department,
+      year: profile.year,
+      degreeLevel: profile.degree_level,
+      isDayScholar: profile.is_day_scholar,
+      campusXp: profile.campus_xp,
+      level: profile.level,
+      squadVisibility: profile.squad_visibility,
+      onboardingComplete: profile.onboarding_complete,
+      bio: profile.bio,
+      avatarUrl: profile.avatar_url
+    };
+
+    return reply.send({ success: true, data: mappedProfile, error: null });
   });
 };
 

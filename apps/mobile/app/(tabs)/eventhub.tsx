@@ -192,30 +192,27 @@ export default function EventHubScreen() {
         <Text variant="body-sm" color="onSurfaceVariant">LPU competitions & events</Text>
       </View>
 
-      {/* Category Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll}>
-        <View style={styles.catRow}>
-          {CATEGORIES.map((c) => (
-            <TouchableOpacity
-              key={c.key}
-              style={[
-                styles.catTab,
-                { backgroundColor: activeCategory === c.key ? theme.primary : theme.surfaceContainerLow },
-              ]}
-              onPress={() => setActiveCategory(c.key)}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.catScroll} contentContainerStyle={styles.catRow}>
+        {CATEGORIES.map((c) => (
+          <TouchableOpacity
+            key={c.key}
+            style={[
+              styles.catTab,
+              { backgroundColor: activeCategory === c.key ? theme.primary : theme.surfaceContainerLow },
+            ]}
+            onPress={() => setActiveCategory(c.key)}
+          >
+            <Text
+              variant="label-sm"
+              style={{ color: activeCategory === c.key ? theme.onPrimary : theme.onSurface }}
             >
-              <Text
-                variant="label-sm"
-                style={{ color: activeCategory === c.key ? theme.onPrimary : theme.onSurface }}
-              >
-                {c.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+              {c.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* ---- Spotlight Card ---- */}
         {spotlight && (activeCategory === 'all' || spotlight.category === activeCategory) && (
@@ -338,7 +335,7 @@ export default function EventHubScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
-  catScroll: { flexGrow: 0, marginBottom: 4 },
+  catScroll: { flexGrow: 0, marginBottom: 4, flexShrink: 0 },
   catRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingVertical: 8 },
   catTab: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   content: { paddingHorizontal: 20, paddingBottom: 100, gap: 12 },

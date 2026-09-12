@@ -1,0 +1,216 @@
+:root {
+  --primary: #6C63FF;
+  --primary-hover: #5A52D9;
+  --accent: #43E97B;
+  --bg-color: #FAFAFA;
+  --bg-elevated: #FFFFFF;
+  --text-primary: #121324;
+  --text-secondary: #6B7280;
+  --border-color: rgba(0, 0, 0, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --glass-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
+}
+
+* { box-sizing: border-box; }
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+#root { height: 100%; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  margin: 0;
+}
+
+/* Base Glassmorphism Card */
+.glass-card {
+  background: var(--glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+/* Primary Button */
+.btn-primary {
+  background-color: var(--text-primary);
+  color: var(--bg-elevated);
+  border: none;
+  border-radius: 24px;
+  padding: 10px 20px;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-primary:hover {
+  transform: translateY(-2px);
+  background-color: #000000;
+}
+
+/* App Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.glass-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  z-index: 10;
+}
+
+.nav-left { display: flex; align-items: center; gap: 16px; }
+.icon-btn { background: none; border: none; cursor: pointer; padding: 4px; display: flex; }
+.brand-logo { display: flex; align-items: center; gap: 8px; }
+.logo-icon { font-size: 24px; }
+.brand-text { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+
+.nav-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-color);
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  width: 300px;
+}
+.nav-search input {
+  border: none;
+  background: none;
+  outline: none;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+.main-content {
+  display: flex;
+  flex: 1;
+  position: relative;
+}
+
+.sidebar {
+  width: 240px;
+  background: var(--bg-elevated);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  padding: 16px 0;
+  transition: transform 0.3s ease;
+}
+@media (max-width: 768px) {
+  .sidebar {
+    position: absolute;
+    height: 100%;
+    z-index: 5;
+    transform: translateX(-100%);
+  }
+  .sidebar.open { transform: translateX(0); }
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.sidebar-item:hover { background: var(--bg-color); color: var(--text-primary); }
+.sidebar-item.active {
+  color: var(--primary);
+  background: rgba(108, 99, 255, 0.1);
+  border-right: 3px solid var(--primary);
+}
+
+.map-area {
+  flex: 1;
+  position: relative;
+}
+
+.floating-dashboard {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 300px;
+}
+
+.stat-row { display: flex; gap: 12px; margin-top: 16px; }
+.stat {
+  flex: 1;
+  background: var(--bg-elevated);
+  padding: 12px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid var(--border-color);
+}
+.stat-val { display: block; font-size: 24px; font-weight: 700; color: var(--primary); font-family: 'Outfit'; }
+.stat-label { font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
+
+/* Map Pins */
+.quest-pin-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+.quest-pin {
+  width: 40px;
+  height: 40px;
+  background-color: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(108, 99, 255, 0.4);
+  border: 2px solid #FFF;
+  transition: transform 0.2s;
+}
+.quest-pin-container:hover .quest-pin { transform: scale(1.1); }
+.quest-popup {
+  background: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  margin-top: 8px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: all 0.2s;
+  pointer-events: none;
+}
+.quest-pin-container:hover .quest-popup {
+  opacity: 1;
+  transform: translateY(0);
+}
+.quest-popup h4 { font-size: 13px; margin: 0 0 2px 0; }
+.quest-popup p { font-size: 11px; color: var(--accent); font-weight: 700; margin: 0; }
+  
+.quest-list-container { margin-top: 16px; max-height: 300px; overflow-y: auto; border-top: 1px solid var(--border-color); padding-top: 12px; display: flex; flex-direction: column; gap: 8px; } .quest-list-item { background: var(--bg-elevated); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 12px; } .quest-list-item:hover { background: var(--bg-color); border-color: var(--primary); } .quest-item-icon { width: 32px; height: 32px; border-radius: 16px; background: rgba(108, 99, 255, 0.1); color: var(--primary); display: flex; align-items: center; justify-content: center; } .quest-item-details { flex: 1; } .quest-item-title { font-size: 13px; font-weight: 600; margin: 0 0 2px 0; color: var(--text-primary); } .quest-item-xp { font-size: 11px; font-weight: 700; color: var(--accent); margin: 0; } .quest-list-container::-webkit-scrollbar { width: 4px; } .quest-list-container::-webkit-scrollbar-track { background: transparent; } .quest-list-container::-webkit-scrollbar-thumb { background: var(--text-secondary); border-radius: 4px; } 

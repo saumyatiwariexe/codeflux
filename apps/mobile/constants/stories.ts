@@ -2,12 +2,12 @@ export const STORIES_DATA = [
   {
     "id": 1,
     "gender": "female",
-    "name": "Aanya Sharma",
+    "name": "Isha Kashyap",
     "role": "Full-Stack Developer",
     "experienceLevel": "Intermediate",
     "hackathonsWon": 2,
     "techStack": ["Next.js", "TypeScript", "Node.js", "PostgreSQL", "Tailwind CSS"],
-    "bio": "I ship clean code and drink excessive amounts of chai. Looking for a high-velocity team that wants to build something production-ready before the final buzzer.",
+    "bio": "Over-caffeinated, thrift enthusiast, and always hunting for aesthetic corners in the city ☕🎞️",
     "prompts": [
       {
         "question": "My hackathon superpower",
@@ -23,12 +23,12 @@ export const STORIES_DATA = [
   {
     "id": 2,
     "gender": "female",
-    "name": "Diya Patel",
+    "name": "Oggy ji",
     "role": "AI / ML Engineer",
     "experienceLevel": "Advanced",
     "hackathonsWon": 3,
     "techStack": ["Python", "PyTorch", "LangChain", "FastAPI", "Hugging Face"],
-    "bio": "Turning raw LLMs into practical, low-latency agent workflows. Here to build real intelligence, not just basic API wrappers.",
+    "bio": "Sneakers, street food trails, and spontaneous weekend drives to Himachal 🏔️👟",
     "prompts": [
       {
         "question": "Typical hackathon role",
@@ -44,12 +44,12 @@ export const STORIES_DATA = [
   {
     "id": 3,
     "gender": "female",
-    "name": "Ananya Iyer",
+    "name": "Tara Sen",
     "role": "UI/UX Designer & Frontend",
     "experienceLevel": "Intermediate",
     "hackathonsWon": 1,
     "techStack": ["Figma", "React", "Tailwind CSS", "Framer Motion"],
-    "bio": "Judges rate on presentation and polish first. I make sure our project looks like a seed-funded startup before the 3-minute pitch.",
+    "bio": "Probably romanticizing monsoon rains, reading Sally Rooney, or making pottery 🪴🌧️",
     "prompts": [
       {
         "question": "The secret to winning pitches",
@@ -65,12 +65,12 @@ export const STORIES_DATA = [
   {
     "id": 4,
     "gender": "female",
-    "name": "Pooja Verma",
+    "name": "Dhruv Nambiar",
     "role": "Cloud & DevOps Specialist",
     "experienceLevel": "Intermediate",
     "hackathonsWon": 1,
     "techStack": ["Docker", "Kubernetes", "AWS", "Go", "Terraform"],
-    "bio": "Zero downtime, zero demo crashes. I build CI/CD pipelines, containerize microservices, and ensure our live demo never drops a 500 error.",
+    "bio": "Catch me at live gigs, playing bass badly, or rating South Indian filter coffee 🎸☕",
     "prompts": [
       {
         "question": "My hackathon pet peeve",
@@ -86,12 +86,12 @@ export const STORIES_DATA = [
   {
     "id": 5,
     "gender": "female",
-    "name": "Rhea Nair",
+    "name": "Avani Deshmukh",
     "role": "Data Analyst & Backend",
     "experienceLevel": "Beginner-Friendly",
     "hackathonsWon": 0,
     "techStack": ["Python", "Pandas", "SQL", "Flask", "Tableau"],
-    "bio": "Data pipelines, metrics, and visualization. Excited to tackle tracks in EdTech, FinTech, or Social Impact with ambitious teammates.",
+    "bio": "Architecture student | Sketches, heritage lanes, and endless Spotify listening sessions 🏛️🎧",
     "prompts": [
       {
         "question": "What I bring to the table",
@@ -107,12 +107,12 @@ export const STORIES_DATA = [
   {
     "id": 6,
     "gender": "female",
-    "name": "Sneha Kulkarni",
+    "name": "Karan Singhal",
     "role": "Mobile App Developer",
     "experienceLevel": "Advanced",
     "hackathonsWon": 2,
     "techStack": ["Flutter", "Dart", "Firebase", "GraphQL", "Swift"],
-    "bio": "Cross-platform mobile native experiences delivered in record time. Give me an API contract and I'll deliver buttery smooth iOS and Android builds.",
+    "bio": "Gym enthusiast by morning, night-owl gamer, forever craving tandoori momos 🏋️♂️🎮",
     "prompts": [
       {
         "question": "My hackathon superpower",
@@ -128,12 +128,12 @@ export const STORIES_DATA = [
   {
     "id": 7,
     "gender": "male",
-    "name": "Rohan Mehta",
+    "name": "Divya Rajput",
     "role": "Backend Architect",
     "experienceLevel": "Advanced",
     "hackathonsWon": 4,
     "techStack": ["Go", "Node.js", "Redis", "Kafka", "PostgreSQL"],
-    "bio": "I write robust concurrent backends while everyone else is still picking a CSS library. Obsessed with high throughput and clean system architecture.",
+    "bio": "Golden hour junkie, baking cinnamon rolls, and curating chaotic photo dumps ✨🧁",
     "prompts": [
       {
         "question": "At 3:00 AM you will find me",
@@ -149,12 +149,12 @@ export const STORIES_DATA = [
   {
     "id": 8,
     "gender": "male",
-    "name": "Aditya Rao",
+    "name": "Yash Vardhan",
     "role": "Smart Contracts & Web3",
     "experienceLevel": "Intermediate",
     "hackathonsWon": 1,
     "techStack": ["Solidity", "Hardhat", "Ethers.js", "Rust", "Web3.js"],
-    "bio": "DeFi protocols, decentralized identity, and gas-efficient contracts. Looking to build actual verifiable utility on EVM chains.",
+    "bio": "Documenting everyday life through a 35mm lens. Big fan of indie hip-hop 📷🎙️",
     "prompts": [
       {
         "question": "My hackathon superpower",
@@ -170,12 +170,12 @@ export const STORIES_DATA = [
   {
     "id": 9,
     "gender": "male",
-    "name": "Devansh Gupta",
+    "name": "Nandini Reddy",
     "role": "Cybersecurity & Security Engineer",
     "experienceLevel": "Intermediate",
     "hackathonsWon": 2,
     "techStack": ["Python", "C", "Linux", "OWASP", "Burp Suite", "Docker"],
-    "bio": "Red teamer by heart, builder by night. I ensure our hackathon app isn't leaking credentials, vulnerable to injection, or susceptible to auth bypass.",
+    "bio": "Sunflowers, classical music, and finding peace away from the screen 🌻🎶",
     "prompts": [
       {
         "question": "What I bring to the squad",
@@ -191,12 +191,12 @@ export const STORIES_DATA = [
   {
     "id": 10,
     "gender": "male",
-    "name": "Arjun Singhania",
+    "name": "Samarjit Roy",
     "role": "Frontend Specialist",
     "experienceLevel": "Intermediate",
     "hackathonsWon": 1,
     "techStack": ["React", "Vue.js", "Three.js", "GSAP", "Tailwind CSS"],
-    "bio": "3D web graphics, immersive canvas animations, and reactive interfaces. If your demo needs an undeniable 'wow' factor, ping me.",
+    "bio": "Badminton, terrace sunsets, and searching for the best biryani in town 🏸🍛",
     "prompts": [
       {
         "question": "My hackathon superpower",
@@ -212,12 +212,12 @@ export const STORIES_DATA = [
   {
     "id": 11,
     "gender": "male",
-    "name": "Kabir Sen",
+    "name": "Gauri Mathur",
     "role": "Embedded Systems & IoT",
     "experienceLevel": "Advanced",
     "hackathonsWon": 3,
     "techStack": ["C++", "ESP32", "Raspberry Pi", "MQTT", "Python"],
-    "bio": "Bridging physical hardware with cloud backends. Hardware track veterans know that physical live demos win crowds when executed properly.",
+    "bio": "Collecting tote bags, exploring book fairs, and drinking masala chai twice a day 📚☕",
     "prompts": [
       {
         "question": "In my backpack right now",
@@ -233,12 +233,12 @@ export const STORIES_DATA = [
   {
     "id": 12,
     "gender": "male",
-    "name": "Varun Joshi",
+    "name": "Pranav Hegde",
     "role": "Product Lead & Pitch Specialist",
     "experienceLevel": "Intermediate",
     "hackathonsWon": 2,
     "techStack": ["Product Strategy", "Figma", "Python", "API Integration", "Pitch Decks"],
-    "bio": "Great code loses to average code with an incredible pitch every single time. I handle product vision, timing, judge psychology, and the final demo delivery.",
+    "bio": "Tech, weekend football leagues, and listening to 2000s Bollywood on loop ⚽📻",
     "prompts": [
       {
         "question": "The secret to winning pitches",

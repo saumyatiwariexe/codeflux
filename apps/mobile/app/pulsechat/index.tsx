@@ -38,7 +38,11 @@ export default function PulseChatScreen() {
         </View>
 
         {MOCK_CHATS.map((chat) => (
-          <TouchableOpacity key={chat.id} style={[styles.chatRow, { borderBottomColor: theme.glassBorder }]}>
+          <TouchableOpacity 
+            key={chat.id} 
+            style={[styles.chatRow, { borderBottomColor: theme.glassBorder }]}
+            onPress={() => router.push(`/pulsechat/${chat.id}` as any)}
+          >
             <Avatar displayName={chat.name} size={50} showOnlineDot={chat.unread > 0} isOnline={chat.unread > 0} />
             <View style={styles.chatInfo}>
               <View style={styles.chatHeader}>

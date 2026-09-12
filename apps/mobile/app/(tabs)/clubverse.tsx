@@ -33,21 +33,19 @@ export default function ClubVerseScreen() {
         <Text variant="body-sm" color="onSurfaceVariant">Find your LPU tribe</Text>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll}>
-        <View style={styles.filterRow}>
-          {Object.entries(CAT_LABELS).map(([key, label]) => (
-            <TouchableOpacity
-              key={key}
-              style={[styles.filterTab, { backgroundColor: filter === key ? theme.primary : theme.surfaceContainerLow }]}
-              onPress={() => setFilter(key as CatFilter)}
-            >
-              <Text variant="label-sm" style={{ color: filter === key ? theme.onPrimary : theme.onSurface }}>{label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.filterRow}>
+        {Object.entries(CAT_LABELS).map(([key, label]) => (
+          <TouchableOpacity
+            key={key}
+            style={[styles.filterTab, { backgroundColor: filter === key ? theme.primary : theme.surfaceContainerLow }]}
+            onPress={() => setFilter(key as CatFilter)}
+          >
+            <Text variant="label-sm" style={{ color: filter === key ? theme.onPrimary : theme.onSurface }}>{label}</Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
 
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {filtered.map((club) => (
           <Card key={club.id} variant="default" style={styles.clubCard}>
             <View style={styles.clubTop}>
@@ -90,7 +88,7 @@ export default function ClubVerseScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 8 },
-  filterScroll: { flexGrow: 0 },
+  filterScroll: { flexGrow: 0, flexShrink: 0 },
   filterRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingVertical: 8 },
   filterTab: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   content: { paddingHorizontal: 20, paddingBottom: 100, gap: 12 },

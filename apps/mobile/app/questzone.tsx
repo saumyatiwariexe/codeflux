@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,24 +7,56 @@ import { Text } from '../components/ui/Text';
 import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { XPBar } from '../components/ui/XPBar';
+import { Avatar } from '../components/ui/Avatar';
 import { useThemeStore } from '../stores/useThemeStore';
+import { useAuthStore } from '../stores/useAuthStore';
+import { questsApi, usersApi, setAuthToken } from '../services/api';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-
-const ACTIVE_QUESTS = [
-  { id: 'q1', type: 'explorer', title: 'Campus Explorer: The Great Outdoors', desc: 'Visit 5 different outdoor locations across campus.', xp: 250, progress: 3, total: 5 },
-  { id: 'q2', type: 'academic', title: 'Library Scholar', desc: 'Spend 10 hours in the Central Library this week.', xp: 500, progress: 8, total: 10 },
-  { id: 'q3', type: 'social', title: 'Networker', desc: 'Attend 2 club meetings or events.', xp: 150, progress: 1, total: 2 },
-];
-
-const COMPLETED_QUESTS = [
-  { id: 'c1', title: 'First Day Freshman', xp: 50, date: 'Aug 15' },
-  { id: 'c2', title: 'Cafeteria Connoisseur', xp: 100, date: 'Aug 20' },
-];
 
 export default function QuestZoneScreen() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((s) => s.getColors(systemColorScheme));
+
+  const userAuth = useAuthStore((state) => state.user);
+  
+  const [profile, setProfile] = useState<any>(null);
+  const [quests, setQuests] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const isSameer = userAuth?.email?.toLowerCase().includes('sameersingh');
+
+  useEffect(() => {
+    async function fetchData() {
+      if (userAuth?.token) {
+        setAuthToken(userAuth.token);
+      }
+      
+      try {
+        const [profileRes, questsRes] = await Promise.all([
+          usersApi.getMe(),
+          questsApi.list()
+        ]);
+
+        if (profileRes.success) setProfile(profileRes.data);
+        if (questsRes.success) setQuests(questsRes.data || []);
+      } catch (err) {
+        console.error('Failed to fetch quest data', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [userAuth]);
+
+  const displayName = isSameer ? 'Saumya Tiwari' : (profile?.displayName || 'Paladeium User');
+  const avatarUrl = isSameer ? 'https://saumyatiwari.vercel.app/images/hero/hero-portrait.png' : profile?.avatarUrl;
+  const level = isSameer ? 6 : (profile?.level || 1);
+  const currentXp = isSameer ? 9500 : (profile?.campusXp || 0);
+  const totalXp = isSameer ? 10000 : (level * 1000 + 1000); // Mock total for next level
+
+  const activeQuests = quests.filter(q => q.status !== 'completed');
+  const completedQuests = quests.filter(q => q.status === 'completed');
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.surfaceSpaceDeep }]} edges={['top']}>
@@ -40,17 +72,15 @@ export default function QuestZoneScreen() {
         {/* Profile Stats */}
         <Card variant="elevated" style={styles.statsCard}>
           <View style={styles.statsRow}>
-            <View style={[styles.avatarPlaceholder, { backgroundColor: theme.primaryContainer }]}>
-              <Ionicons name="person" size={32} color={theme.primary} />
-            </View>
+            <Avatar displayName={displayName} avatarUrl={avatarUrl} size={64} showOnlineDot isOnline />
             <View style={{ flex: 1, marginLeft: 16 }}>
-              <Text variant="headline-sm">Level 5</Text>
-              <Text variant="label-sm" color="onSurfaceVariant">Aarav Sharma</Text>
+              <Text variant="headline-sm">Level {level}</Text>
+              <Text variant="label-sm" color="onSurfaceVariant">{displayName}</Text>
               <View style={{ marginTop: 8 }}>
-                <XPBar current={8400} total={10000} />
+                <XPBar current={currentXp} total={totalXp} />
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 4 }}>
-                  <Text variant="label-xs" color="onSurfaceVariant">8,400 XP</Text>
-                  <Text variant="label-xs" color="onSurfaceVariant">10,000 XP</Text>
+                  <Text variant="label-xs" color="onSurfaceVariant">{currentXp.toLocaleString()} XP</Text>
+                  <Text variant="label-xs" color="onSurfaceVariant">{totalXp.toLocaleString()} XP</Text>
                 </View>
               </View>
             </View>
@@ -59,7 +89,11 @@ export default function QuestZoneScreen() {
 
         <Text variant="headline-sm" style={{ marginTop: 24, marginBottom: 12 }}>Active Quests</Text>
         
-        {ACTIVE_QUESTS.map((q) => (
+        {loading ? (
+          <Text variant="body-md" color="onSurfaceVariant">Loading quests...</Text>
+        ) : activeQuests.length === 0 ? (
+          <Text variant="body-md" color="onSurfaceVariant">No active quests right now.</Text>
+        ) : activeQuests.map((q) => (
           <Card key={q.id} variant="default" style={styles.questCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 }}>
               <View style={[styles.iconBox, { backgroundColor: q.type === 'explorer' ? theme.neonEmerald + '20' : q.type === 'academic' ? theme.primaryContainer : theme.accentGold + '20' }]}>
@@ -71,29 +105,33 @@ export default function QuestZoneScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text variant="headline-sm">{q.title}</Text>
-                <Badge label={`+${q.xp} XP`} variant="xp" style={{ alignSelf: 'flex-start', marginTop: 4 }} />
+                <Badge label={`+${q.xpReward || q.xp} XP`} variant="xp" style={{ alignSelf: 'flex-start', marginTop: 4 }} />
               </View>
             </View>
-            <Text variant="body-sm" color="onSurfaceVariant" style={{ marginBottom: 12 }}>{q.desc}</Text>
+            <Text variant="body-sm" color="onSurfaceVariant" style={{ marginBottom: 12 }}>{q.description || q.desc}</Text>
             
             <View style={styles.progressRow}>
               <View style={[styles.progressBarBg, { backgroundColor: theme.surfaceContainerHigh }]}>
-                <View style={[styles.progressBarFill, { backgroundColor: theme.primary, width: `${(q.progress / q.total) * 100}%` }]} />
+                <View style={[styles.progressBarFill, { backgroundColor: theme.primary, width: `${((q.progress || 0) / (q.total || 1)) * 100}%` }]} />
               </View>
-              <Text variant="label-sm" color="onSurfaceVariant">{q.progress}/{q.total}</Text>
+              <Text variant="label-sm" color="onSurfaceVariant">{q.progress || 0}/{q.total || 1}</Text>
             </View>
           </Card>
         ))}
 
         <Text variant="headline-sm" style={{ marginTop: 24, marginBottom: 12 }}>Completed Quests</Text>
         
-        {COMPLETED_QUESTS.map((c) => (
+        {loading ? (
+          <Text variant="body-md" color="onSurfaceVariant">Loading completed quests...</Text>
+        ) : completedQuests.length === 0 ? (
+          <Text variant="body-md" color="onSurfaceVariant">You haven't completed any quests yet.</Text>
+        ) : completedQuests.map((c) => (
           <View key={c.id} style={[styles.completedItem, { borderBottomColor: theme.glassBorder }]}>
             <View style={{ flex: 1 }}>
               <Text variant="body-md" style={{ fontWeight: '600' }}>{c.title}</Text>
-              <Text variant="label-xs" color="onSurfaceVariant">{c.date}</Text>
+              <Text variant="label-xs" color="onSurfaceVariant">Completed</Text>
             </View>
-            <Badge label={`+${c.xp} XP`} variant="xp" />
+            <Badge label={`+${c.xpReward || c.xp} XP`} variant="xp" />
           </View>
         ))}
 

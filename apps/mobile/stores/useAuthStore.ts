@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { setAuthToken } from '../services/api';
 
 export interface AuthUser {
   userId: string;
@@ -32,6 +33,7 @@ export const useAuthStore = create<AuthState>((set) => ({
    */
   signIn: async (user: AuthUser) => {
     await AsyncStorage.setItem('campus_pulse_auth', JSON.stringify(user));
+    setAuthToken(user.token);
     set({ user, isAuthenticated: true, isLoading: false });
   },
 
@@ -40,6 +42,7 @@ export const useAuthStore = create<AuthState>((set) => ({
    */
   signOut: async () => {
     await AsyncStorage.removeItem('campus_pulse_auth');
+    setAuthToken(null);
     set({ user: null, isAuthenticated: false });
   },
 
@@ -53,6 +56,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const stored = await AsyncStorage.getItem('campus_pulse_auth');
       if (stored) {
         const user: AuthUser = JSON.parse(stored);
+        setAuthToken(user.token);
         set({ user, isAuthenticated: true });
       }
     } catch {

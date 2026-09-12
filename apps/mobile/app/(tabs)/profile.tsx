@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Switch,
+  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Switch, ActivityIndicator
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -13,34 +13,8 @@ import { AchievementBadge } from '../../components/profile/AchievementBadge';
 import { SkillTag } from '../../components/profile/SkillTag';
 import { useThemeStore } from '../../stores/useThemeStore';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { usersApi, setAuthToken } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
-
-const MOCK_PROFILE = {
-  displayName: 'Paladeium User',
-  handle: 'campus_user',
-  department: 'CSE',
-  year: 3,
-  degreeLevel: 'UG',
-  hostelBlock: 'Block 32',
-  bio: 'Exploring LPU one quest at a time. Builder. Dreamer. HackLPU contestant.',
-  campusXp: 3500,
-  level: 4,
-  xpToNextLevel: 5000,
-  streakDays: 6,
-  skills: [
-    { name: 'Node.js', proficiency: 'intermediate' as const },
-    { name: 'React Native', proficiency: 'beginner' as const },
-    { name: 'Python', proficiency: 'intermediate' as const },
-    { name: 'Figma', proficiency: 'beginner' as const },
-  ],
-  badges: [
-    { name: 'First Steps', emoji: '', rarity: 'common' as const },
-    { name: 'EduRev Pioneer', emoji: '', rarity: 'common' as const },
-    { name: 'Squad Founder', emoji: '', rarity: 'rare' as const },
-    { name: 'Campus Explorer', emoji: '', rarity: 'rare' as const },
-  ],
-  stats: { events: 4, squads: 2, quests: 8, achievements: 3 },
-};
 
 const SAMEER_PROFILE = {
   displayName: 'Saumya Tiwari',
@@ -55,6 +29,7 @@ const SAMEER_PROFILE = {
   level: 6,
   xpToNextLevel: 10000,
   streakDays: 42,
+  squadVisibility: 'all',
   skills: [
     { name: 'Next.js', proficiency: 'expert' as const },
     { name: 'React', proficiency: 'expert' as const },
@@ -63,9 +38,9 @@ const SAMEER_PROFILE = {
     { name: 'Node.js', proficiency: 'intermediate' as const },
   ],
   badges: [
-    { name: 'Hackathon Winner', emoji: '', rarity: 'epic' as const },
-    { name: 'AI Explorer', emoji: '', rarity: 'rare' as const },
-    { name: 'Squad Founder', emoji: '', rarity: 'rare' as const },
+    { name: 'Hackathon Winner', emoji: '🏆', rarity: 'epic' as const },
+    { name: 'AI Explorer', emoji: '🤖', rarity: 'rare' as const },
+    { name: 'Squad Founder', emoji: '🤝', rarity: 'rare' as const },
   ],
   stats: { events: 12, squads: 5, quests: 24, achievements: 8 },
 };
@@ -77,17 +52,71 @@ export default function ProfileScreen() {
   const setThemeMode = useThemeStore((state) => state.setThemeMode);
   const signOut = useAuthStore((state) => state.signOut);
   const user = useAuthStore((state) => state.user);
-  const [squadVisible, setSquadVisible] = useState(true);
 
   const isSameer = user?.email?.toLowerCase().includes('sameersingh');
-  const p = isSameer ? SAMEER_PROFILE : MOCK_PROFILE;
-  const xpPercent = p.campusXp / p.xpToNextLevel;
+
+  const [profile, setProfile] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [squadVisible, setSquadVisible] = useState(true);
+
+  useEffect(() => {
+    async function loadProfile() {
+      if (user?.token) setAuthToken(user.token);
+      try {
+        const res = await usersApi.getMe();
+        if (res.success) {
+          setProfile(res.data);
+          setSquadVisible(res.data?.squadVisibility === 'all');
+        }
+      } catch (err) {
+        console.error('Failed to load profile', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, [user]);
+
+  const handleToggleVisibility = async (val: boolean) => {
+    setSquadVisible(val);
+    await usersApi.updateMe({ squadVisibility: val ? 'all' : 'none' });
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.surfaceSpaceDeep, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={theme.primary} />
+      </SafeAreaView>
+    );
+  }
+
+  // Fallback defaults if null, with SAMEER_PROFILE override
+  const p = isSameer ? SAMEER_PROFILE : (profile || {
+    displayName: 'Paladeium User',
+    handle: 'user',
+    department: 'Unknown',
+    year: 1,
+    hostelBlock: 'Unknown',
+    bio: 'Ready to explore.',
+    campusXp: 0,
+    level: 1,
+    skills: [],
+    badges: [],
+  });
+
+  const currentXp = p.campusXp || 0;
+  const level = p.level || 1;
+  const xpToNextLevel = level * 1000 + 1000;
+  
+  // Mock stats since they are not in the profile table yet
+  const stats = { events: 0, squads: 0, quests: 0, achievements: 0 };
+  const streakDays = 0;
 
   const STAT_ITEMS = [
-    { label: 'Events', value: p.stats.events, icon: 'calendar' },
-    { label: 'Squads', value: p.stats.squads, icon: 'people' },
-    { label: 'Quests', value: p.stats.quests, icon: 'map' },
-    { label: 'EduRev', value: p.stats.achievements, icon: 'ribbon' },
+    { label: 'Events', value: stats.events, icon: 'calendar' },
+    { label: 'Squads', value: stats.squads, icon: 'people' },
+    { label: 'Quests', value: stats.quests, icon: 'map' },
+    { label: 'EduRev', value: stats.achievements, icon: 'ribbon' },
   ];
 
   return (
@@ -96,16 +125,16 @@ export default function ProfileScreen() {
 
         {/* ---- Hero Header ---- */}
         <View style={styles.hero}>
-          <Avatar displayName={p.displayName} avatarUrl={(p as any).avatarUrl} size={80} showOnlineDot isOnline />
+          <Avatar displayName={p.displayName} avatarUrl={p.avatarUrl} size={80} showOnlineDot isOnline />
           <View style={styles.heroInfo}>
             <Text variant="headline-md">{p.displayName}</Text>
             <Text variant="body-sm" color="onSurfaceVariant">@{p.handle}</Text>
             <Text variant="label-sm" color="onSurfaceVariant">{p.department} · Year {p.year} · {p.hostelBlock}</Text>
             <View style={styles.levelRow}>
               <View style={[styles.levelBadge, { backgroundColor: theme.primaryContainer }]}>
-                <Text variant="label-sm" style={{ color: theme.primary }}>Level {p.level}</Text>
+                <Text variant="label-sm" style={{ color: theme.primary }}>Level {level}</Text>
               </View>
-              <Badge label={` ${p.streakDays}-Day Streak`} variant="squad" />
+              <Badge label={` ${streakDays}-Day Streak`} variant="squad" />
             </View>
           </View>
         </View>
@@ -118,11 +147,11 @@ export default function ProfileScreen() {
         {/* ---- XP Progress ---- */}
         <Card variant="glass" style={styles.xpCard}>
           <View style={styles.xpHeader}>
-            <Text variant="label-sm" color="onSurfaceVariant">CAMPUS XP — LEVEL {p.level}</Text>
-            <Text variant="label-sm" color="neonEmerald">+{(p.xpToNextLevel - p.campusXp).toLocaleString()} to Level {p.level + 1}</Text>
+            <Text variant="label-sm" color="onSurfaceVariant">CAMPUS XP — LEVEL {level}</Text>
+            <Text variant="label-sm" color="neonEmerald">+{(xpToNextLevel - currentXp).toLocaleString()} to Level {level + 1}</Text>
           </View>
           <View style={{ marginTop: 8 }}>
-            <XPBar current={p.campusXp} total={p.xpToNextLevel} showLabel animated />
+            <XPBar current={currentXp} total={xpToNextLevel} showLabel animated />
           </View>
         </Card>
 
@@ -146,9 +175,9 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
           <View style={styles.skillsGrid}>
-            {p.skills.map((s) => (
+            {p.skills && p.skills.length > 0 ? p.skills.map((s: any) => (
               <SkillTag key={s.name} name={s.name} proficiency={s.proficiency} />
-            ))}
+            )) : <Text variant="body-sm" color="onSurfaceVariant">No skills added yet.</Text>}
           </View>
         </View>
 
@@ -162,9 +191,9 @@ export default function ProfileScreen() {
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             <View style={styles.badgesRow}>
-              {p.badges.map((b) => (
+              {p.badges && p.badges.length > 0 ? p.badges.map((b: any) => (
                 <AchievementBadge key={b.name} name={b.name} emoji={b.emoji} rarity={b.rarity} size="md" />
-              ))}
+              )) : <Text variant="body-sm" color="onSurfaceVariant">No badges earned yet.</Text>}
             </View>
           </ScrollView>
         </View>
@@ -179,7 +208,7 @@ export default function ProfileScreen() {
               <View style={{ flex: 1, marginLeft: 12 }}>
                 <Text variant="headline-sm">EduRevolution</Text>
                 <Text variant="body-sm" color="onSurfaceVariant">
-                  3 achievements · 13% attendance relaxation earned
+                  View your academic achievements & benefits
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={theme.primary} />
@@ -215,7 +244,7 @@ export default function ProfileScreen() {
             </View>
             <Switch
               value={squadVisible}
-              onValueChange={setSquadVisible}
+              onValueChange={handleToggleVisibility}
               trackColor={{ false: theme.surfaceContainerHighest, true: theme.neonEmerald }}
             />
           </View>

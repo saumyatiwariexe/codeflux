@@ -1,7 +1,12 @@
 import React, { useState, useRef } from 'react';
 import {
-  View, StyleSheet, useColorScheme, TouchableOpacity, Animated, Dimensions, ScrollView, FlatList
+  View, StyleSheet, useColorScheme, TouchableOpacity, Animated, Dimensions, ScrollView, FlatList, LayoutAnimation, UIManager, Platform
 } from 'react-native';
+
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '../../components/ui/Text';
@@ -11,6 +16,7 @@ import { Avatar } from '../../components/ui/Avatar';
 import { HingeFeed, SwipeCardData } from '../../components/squad/HingeFeed';
 import { useThemeStore } from '../../stores/useThemeStore';
 import { useAuthStore } from '../../stores/useAuthStore';
+import { squadApi } from '../../services/api';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -256,15 +262,14 @@ const MOCK_DECK: SwipeCardData[] = [
     ],
       prompts: []
     },
-
   {
     id: 'profile_1',
-    displayName: 'Aarav Sharma',
-    avatarUrl: require('../../assets/images/profiles/profile_1.jpg'),
-    handle: 'aarav_sharma',
+    displayName: 'Isha Kashyap',
+    avatarUrl: { uri: 'https://scontent.cdninstagram.com/v/t51.82787-19/801009494_18414773815158717_5594564488977709336_n.jpg?_nc_cat=101&ccb=7-5&_nc_sid=bf7eb4&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=TpAq0hhTdJUQ7kNvwHvlleP&_nc_oc=AdqR1VeAW7KeVkLLZSrc4WgeO_0wVn0ACTTVN7i4BSP31dKO6fCQNti7xI8V347-6iSiCFy6769URf8Kgj6PBLvf&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=VuR0igJGfNlEDas2q6DxBg&_nc_ss=7b6a8&oh=00_AQIIB2hK0yuN1Rh8r-N01FTIsFZzcyRAmWk_sgyC74TKpw&oe=6AAB602D' },
+    handle: 'isha.kashyap',
     department: 'CSE',
     year: 3,
-    bio: 'Building blazing-fast LLM wrappers. HackLPU finalist 2025. Always up for a late night coding session.',
+    bio: 'Over-caffeinated, thrift enthusiast, and always hunting for aesthetic corners in the city ☕🎞️',
     matchScore: 94,
     campusXp: 8400,
     level: 5,
@@ -281,12 +286,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_2',
-    displayName: 'Priya Krishnan',
-    avatarUrl: require('../../assets/images/profiles/profile_3.jpg'),
-    handle: 'priya_design',
+    displayName: 'Oggy ji',
+    avatarUrl: { uri: 'https://instagram.faip1-3.fna.fbcdn.net/v/t51.82787-19/696693993_18581656774015961_5114493508268997915_n.jpg?efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby40MDAuYzIifQ&_nc_ht=instagram.faip1-3.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2gHm8FyhuHkU-2NJ5bRzgMlj007IuQBe2zU_AhD5VvW5Q9MjlAOJHIPxCk8cMFi4yooqwSkjQe635z6I3HEqWJu5&_nc_ohc=m_KPZAAnV0YQ7kNvwEALg10&_nc_gid=rp2Jy3ADR2DWP4TRhZgXuQ&edm=AP4sbd4BAAAA&ccb=7-5&oh=00_AQI38Xx72XtFeeWhUOiJnM71-wBelJS4ndZg48DXTvOz5w&oe=6AAB7673&_nc_sid=7a9f4b' },
+    handle: 'oggy.ji',
     department: 'Design',
     year: 2,
-    bio: 'UI/UX designer and Figma wizard. Obsessed with micro-interactions and clean typography.',
+    bio: 'Sneakers, street food trails, and spontaneous weekend drives to Himachal 🏔️👟',
     matchScore: 87,
     campusXp: 5200,
     level: 4,
@@ -302,12 +307,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_3',
-    displayName: 'Karan Ahluwalia',
-    avatarUrl: require('../../assets/images/profiles/profile_2.jpg'),
-    handle: 'karan_pitch',
+    displayName: 'Tara Sen',
+    avatarUrl: { uri: 'https://instagram.faip1-2.fna.fbcdn.net/v/t51.82787-19/778082010_18127933255781029_7292476422261340546_n.jpg?efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.faip1-2.fna.fbcdn.net&_nc_cat=101&_nc_oc=Q6cZ2gHO_WHYhk2g7zTolL4098kz8aTQu2mMBnIlO2uENUv-TzWNUDsCnYa9X9zvscVpN2xKQ8S7YPwsjTvRwLr4p7pr&_nc_ohc=IGRcJboW800Q7kNvwHh2ewG&_nc_gid=OThlRaq1y-wAAnWgs7GTqw&edm=AP4sbd4BAAAA&ccb=7-5&oh=00_AQJZ_ddYebQo_qmQ93WER-VqzG9eJ6kz4O-QwJML1b759A&oe=6AAB6EB0&_nc_sid=7a9f4b' },
+    handle: 'tara.senn',
     department: 'MBA',
     year: 1,
-    bio: 'PM in training. Turn ideas into scalable products. Looking for tech co-founders for a fintech startup.',
+    bio: 'Probably romanticizing monsoon rains, reading Sally Rooney, or making pottery 🪴🌧️',
     matchScore: 79,
     campusXp: 3400,
     level: 3,
@@ -322,11 +327,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_4',
-    displayName: 'Neha Gupta',
-    handle: 'neha_writes',
+    displayName: 'Dhruv Nambiar',
+    avatarUrl: { uri: 'https://instagram.faip1-3.fna.fbcdn.net/v/t51.2885-19/484957631_879684930877050_2654170992432989482_n.jpg?efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.faip1-3.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2gGwqJFf9D0-eG--VAN3sIO42TyK07U6kFeo5qmqX6YGy_k_r5O-XRaNtmNHiIt3HKokGIED9civ4d5Lo9mIEfen&_nc_ohc=3r3G9kBZDXcQ7kNvwFDRjs-&_nc_gid=a7Ry3pMY3wSGYAhH4oU8hA&edm=AP4sbd4BAAAA&ccb=7-5&oh=00_AQILCXRZAji7iHWBzT4Ywh5OsOLpLtwgSlbd7OY9Awuh-w&oe=6AAB593A&_nc_sid=7a9f4b' },
+    handle: 'dhruv.nambiar',
     department: 'Journalism',
     year: 3,
-    bio: 'Editor of the campus newsletter. Words matter. I help tech startups sound human.',
+    bio: 'Catch me at live gigs, playing bass badly, or rating South Indian filter coffee 🎸☕',
     matchScore: 82,
     campusXp: 4100,
     level: 4,
@@ -340,11 +346,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_5',
-    displayName: 'Rohan Mehta',
-    handle: 'rohan_robotics',
+    displayName: 'Avani Deshmukh',
+    avatarUrl: { uri: 'https://scontent.cdninstagram.com/v/t51.82787-19/774514111_17903136429513685_1958153174899390412_n.jpg?_nc_cat=100&ccb=7-5&_nc_sid=bf7eb4&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=D1nfe3m29bkQ7kNvwE9tcud&_nc_oc=Adr9QsaNe_Vxhd9wu71kTDQSHXFZcHuG859QoATYexExIVD_4IVHxBCrS3HPjLMfnqTylR8xGuOy1mJ6hl0Uxwug&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=QZYHCaoKzD86N6BTIuyemw&_nc_ss=7b6a8&oh=00_AQJshJ8WDWsQ8ZKsU4UtdJLDyypmEstHyaMYTw1akKQ1ow&oe=6AAB6831' },
+    handle: 'avani.deshmukh',
     department: 'Mechanical',
     year: 4,
-    bio: 'Robotics enthusiast. Building drones and autonomous rovers. I basically live in the Mac Lab.',
+    bio: 'Architecture student | Sketches, heritage lanes, and endless Spotify listening sessions 🏛️🎧',
     matchScore: 88,
     campusXp: 9200,
     level: 6,
@@ -359,11 +366,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_6',
-    displayName: 'Zara Khan',
-    handle: 'zara_cyber',
+    displayName: 'Karan Singhal',
+    avatarUrl: { uri: 'https://scontent.cdninstagram.com/v/t51.82787-19/754248038_18383521621201542_7369183745681061412_n.jpg?_nc_cat=102&ccb=7-5&_nc_sid=bf7eb4&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=7SSswNMe4n0Q7kNvwHIuEAB&_nc_oc=Adp-eIGuDZAWYlQp8UNqmfY5FGEQ_CABLhFPIqBjsdGP0V3hj-M38onDF_RG4aj2qt9R34CidqN1hpt9qPvNZbRR&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=JoHApiSIqzYN0VhB522jZA&_nc_ss=7b6a8&oh=00_AQIqqMZ0JMfZiEspDaOd-dXARtZyJzxbjVU8irIBMoLNag&oe=6AAB68B4' },
+    handle: 'karansinghal.7',
     department: 'CSE',
     year: 2,
-    bio: 'Ethical hacker and CTF player. Securing systems one vulnerability at a time.',
+    bio: 'Gym enthusiast by morning, night-owl gamer, forever craving tandoori momos 🏋️♂️🎮',
     matchScore: 91,
     campusXp: 6100,
     level: 5,
@@ -378,11 +386,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_7',
-    displayName: 'Aditya Singh',
-    handle: 'aditya_cloud',
+    displayName: 'Divya Rajput',
+    avatarUrl: { uri: 'https://scontent.cdninstagram.com/v/t51.82787-19/792069891_18076324073714951_6523634690938747192_n.jpg?_nc_cat=102&ccb=7-5&_nc_sid=bf7eb4&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=RIbxIxqnFgEQ7kNvwFnDWlP&_nc_oc=AdpfmWZuVLqHhqIOpR_JBJHDGvuwv8gA-g23nabOZckoZmMJT9NBMJjgiOBdtM_1BIheZXujZPe0Iupxfi2t3Sci&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=ygFw9tlIlQElELqIVutvnw&_nc_ss=7b6a8&oh=00_AQJBdBHPiK3f6xVbbYxqFTD72QRLVKI_QF4bt3b8D-CdgQ&oe=6AAB496E' },
+    handle: 'divya_rajput',
     department: 'ECE',
     year: 3,
-    bio: 'AWS certified. I love deploying things and making sure servers don\'t crash at 3 AM.',
+    bio: 'Golden hour junkie, baking cinnamon rolls, and curating chaotic photo dumps ✨🧁',
     matchScore: 85,
     campusXp: 5800,
     level: 4,
@@ -398,11 +407,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_8',
-    displayName: 'Simran Kaur',
-    handle: 'simran_law',
+    displayName: 'Yash Vardhan',
+    avatarUrl: { uri: 'https://scontent.cdninstagram.com/v/t51.2885-19/345052340_194186983446669_7434113337997344583_n.jpg?_nc_cat=104&ccb=7-5&_nc_sid=bf7eb4&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=eH-clMkLpJ8Q7kNvwHrvULe&_nc_oc=AdpH55KaxxVidQgwosoEY3PmK7q5ECSAZKZLrbosoUDvBgIfDw4umH6YOrOn5fq4iAF82NV8Z9x5qDnc2OMA-3Bg&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_ss=7b6a8&oh=00_AQKLZe5j7U0L-sa66KYzr0LtRzlR5PZx6ygqqcoSUzB85g&oe=6AAB5B46' },
+    handle: 'yashvardhan.raw',
     department: 'Law',
     year: 2,
-    bio: 'Debate champion. Moot court finalist. Let me review your startup\'s terms and conditions.',
+    bio: 'Documenting everyday life through a 35mm lens. Big fan of indie hip-hop 📷🎙️',
     matchScore: 76,
     campusXp: 4500,
     level: 3,
@@ -416,11 +426,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_9',
-    displayName: 'Vikram Das',
-    handle: 'vikram_data',
+    displayName: 'Nandini Reddy',
+    avatarUrl: { uri: 'https://instagram.faip1-3.fna.fbcdn.net/v/t51.82787-19/708442427_18085192550625737_3449238367970259265_n.jpg?efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.faip1-3.fna.fbcdn.net&_nc_cat=105&_nc_oc=Q6cZ2gHbzd-z3U0tRIm_LCfDdJ5aHwkU733uyanLTKgxeOb_VHOecCTo5e8JaA10aPDrr1svRLql1f3mb5CukTzNbiT1&_nc_ohc=pGhndtPgyhoQ7kNvwFc2AU_&_nc_gid=gpf8jBC3VC0E7grxRZcrHA&edm=AP4sbd4BAAAA&ccb=7-5&oh=00_AQL4fPQiOUKw7Ymkq6WfIP_XD5rcabwda9qvcMFnOvcltg&oe=6AAB5D6B&_nc_sid=7a9f4b' },
+    handle: 'nandini.reddyy',
     department: 'Data Science',
     year: 3,
-    bio: 'Data is the new oil. Kaggle master. Trying to find patterns in the campus cafeteria menu.',
+    bio: 'Sunflowers, classical music, and finding peace away from the screen 🌻🎶',
     matchScore: 95,
     campusXp: 7700,
     level: 5,
@@ -435,11 +446,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_10',
-    displayName: 'Ananya Reddy',
-    handle: 'ananya_arch',
+    displayName: 'Samarjit Roy',
+    avatarUrl: { uri: 'https://instagram.faip1-3.fna.fbcdn.net/v/t51.2885-19/464981437_1562279321329156_8629665658080676907_n.jpg?efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby4xMDgwLmMyIn0&_nc_ht=instagram.faip1-3.fna.fbcdn.net&_nc_cat=1&_nc_oc=Q6cZ2gG-kROiZBoDdEf3B3S7CFIUzzbgc7AGynQwxz8Mwx-MSM-jRbx6ANWQQS_3QFJ3-Cr4QsF03Fa1DmUGqqvJR63_&_nc_ohc=A2Y0SsWFXroQ7kNvwHUEKX2&_nc_gid=uXZGbDPjhUf7nb2bye1SlQ&edm=AP4sbd4BAAAA&ccb=7-5&oh=00_AQKqv_QflXHbtM0ZPlZwFoj47KvPElCzJkHH9EoUx4SyRQ&oe=6AAB73E8&_nc_sid=7a9f4b' },
+    handle: 'samarjit_roy',
     department: 'Architecture',
     year: 4,
-    bio: 'Designing sustainable spaces. I know why the design block looks better than the tech block.',
+    bio: 'Badminton, terrace sunsets, and searching for the best biryani in town 🏸🍛',
     matchScore: 80,
     campusXp: 8100,
     level: 5,
@@ -453,11 +465,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_11',
-    displayName: 'Rahul Verma',
-    handle: 'rahul_game',
+    displayName: 'Gauri Mathur',
+    avatarUrl: { uri: 'https://scontent.cdninstagram.com/v/t51.82787-19/801582190_17984612949062173_5510978542619317394_n.jpg?_nc_cat=102&ccb=7-5&_nc_sid=bf7eb4&efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLnd3dy4xMDgwLkMzIn0%3D&_nc_ohc=UTN8GmHBNbcQ7kNvwElUeQh&_nc_oc=AdpLQ5lsqRuSpdSbFgNXsl0mBmw5paCeWW1RhuvNrLyVc33s6XBJAb7PosIQer-gqnmg3ZryX0bJIR1yx-6L1XQa&_nc_zt=24&_nc_ht=scontent.cdninstagram.com&_nc_gid=OIyQDOmanlydW5QKr6l4iw&_nc_ss=7b6a8&oh=00_AQLSirFkD2RZzSjM3EJ1IujhMRq6Njv_nkTQPEaBmxWyWg&oe=6AAB7E11' },
+    handle: 'gauri_mathur',
     department: 'CSE',
     year: 2,
-    bio: 'Indie game developer. Unity 3D ninja. Making the next big hit.',
+    bio: 'Collecting tote bags, exploring book fairs, and drinking masala chai twice a day 📚☕',
     matchScore: 89,
     campusXp: 4900,
     level: 4,
@@ -472,11 +485,12 @@ const MOCK_DECK: SwipeCardData[] = [
   },
   {
     id: 'profile_12',
-    displayName: 'Sneha Patel',
-    handle: 'sneha_pharm',
+    displayName: 'Pranav Hegde',
+    avatarUrl: { uri: 'https://instagram.faip1-3.fna.fbcdn.net/v/t51.2885-19/271992592_992949367985554_3991927973230685165_n.jpg?efg=eyJ2ZW5jb2RlX3RhZyI6InByb2ZpbGVfcGljLmRqYW5nby41MTUuYzIifQ&_nc_ht=instagram.faip1-3.fna.fbcdn.net&_nc_cat=110&_nc_oc=Q6cZ2gHk-QMFCTA59KIbNvU89NMwK8dxMIJ3qd3PNRQV9JklMQQkTYPU5Mmju42sB2_KNcfLgwH1EDdswa7EOpLiIjz_&_nc_ohc=9_BhRZx18A0Q7kNvwF4m4IL&_nc_gid=cu1cxinsT5turkWL0XhsGQ&edm=AP4sbd4BAAAA&ccb=7-5&oh=00_AQIgvrUPUfURaMs9GV0NUnNKC2EyOM05AZsbI7c9KwNP_A&oe=6AAB73E7&_nc_sid=7a9f4b' },
+    handle: 'pranav.hegde',
     department: 'Pharmacy',
     year: 1,
-    bio: 'Understanding the chemistry of life. Interested in health-tech apps.',
+    bio: 'Tech, weekend football leagues, and listening to 2000s Bollywood on loop ⚽📻',
     matchScore: 72,
     campusXp: 2100,
     level: 2,
@@ -502,38 +516,77 @@ export default function SquadUpScreen() {
   
   const [activeTab, setActiveTab] = useState<Tab>('discover');
   
-  const [deck, setDeck] = useState(() => {
-    if (user?.email?.toLowerCase().includes('sameersingh')) {
-      return MOCK_DECK.filter(p => p.id !== 'profile_saumya');
-    }
-    return MOCK_DECK;
-  });
+  const [deck, setDeck] = useState<SwipeCardData[]>([]);
+  const [matches, setMatches] = useState<any[]>([]);
 
-  // Force sync on fast refresh
   React.useEffect(() => {
-    if (user?.email?.toLowerCase().includes('sameersingh')) {
-      setDeck(MOCK_DECK.filter(p => p.id !== 'profile_saumya'));
-    } else {
-      setDeck(MOCK_DECK);
-    }
-  }, [MOCK_DECK, user?.email]);
+    const fetchData = async () => {
+      const [deckRes, matchRes] = await Promise.all([
+        squadApi.getDeck(),
+        squadApi.getMatches()
+      ]);
+      
+      console.log('Deck API response:', deckRes);
+      console.log('Match API response:', matchRes);
+      
+      if (deckRes.success && deckRes.data) {
+        setDeck(deckRes.data);
+      }
+      
+      if (matchRes.success && matchRes.data) {
+        const mappedMatches = matchRes.data.map((m: any) => ({
+          id: m.id,
+          name: m.otherProfile?.displayName || 'Unknown User',
+          dept: `${m.otherProfile?.department || ''} · Year ${m.otherProfile?.year || 1}`,
+          score: m.otherProfile?.matchScore || 85,
+          lastMsg: 'Matched!',
+          avatarUrl: m.otherProfile?.avatarUrl,
+        }));
+        setMatches(mappedMatches);
+      }
+    };
+    fetchData();
+  }, [user?.email]);
 
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [lastMatch, setLastMatch] = useState<SwipeCardData | null>(null);
   const matchModalScale = useRef(new Animated.Value(0)).current;
 
-
-  const handleLike = (cardId: string, itemType: string, content: string, card: SwipeCardData) => {
+  const handleLike = async (cardId: string, itemType: string, content: string, card: SwipeCardData) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setDeck(prev => prev.filter(c => c.id !== cardId));
-    if (Math.random() > 0.7) {
+    
+    const res = await squadApi.swipe(cardId, 'like');
+    if (res.success && res.data?.isMatch) {
       setLastMatch(card);
       setShowMatchModal(true);
-      Animated.spring(matchModalScale, { toValue: 1, useNativeDriver: true }).start();
+      Animated.spring(matchModalScale, { 
+        toValue: 1, 
+        stiffness: 250, 
+        damping: 15, 
+        useNativeDriver: true 
+      }).start();
+      
+      // refresh matches
+      const matchRes = await squadApi.getMatches();
+      if (matchRes.success && matchRes.data) {
+        const mappedMatches = matchRes.data.map((m: any) => ({
+          id: m.id,
+          name: m.otherProfile?.displayName || 'Unknown User',
+          dept: `${m.otherProfile?.department || ''} · Year ${m.otherProfile?.year || 1}`,
+          score: m.otherProfile?.matchScore || 85,
+          lastMsg: 'Matched!',
+          avatarUrl: m.otherProfile?.avatarUrl,
+        }));
+        setMatches(mappedMatches);
+      }
     }
   };
 
-  const handlePass = (cardId: string) => {
+  const handlePass = async (cardId: string) => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setDeck(prev => prev.filter(c => c.id !== cardId));
+    await squadApi.swipe(cardId, 'pass');
   };
 
   const dismissMatch = () => {
@@ -556,7 +609,7 @@ export default function SquadUpScreen() {
               onPress={() => setActiveTab(t)}
             >
               <Text variant="label-sm" style={{ color: activeTab === t ? theme.primary : theme.onSurfaceVariant }}>
-                {t === 'discover' ? 'Discover' : t === 'matches' ? `Matches ${MOCK_MATCHES.length}` : 'Teams'}
+                {t === 'discover' ? 'Discover' : t === 'matches' ? `Matches ${matches.length}` : 'Teams'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -578,7 +631,7 @@ export default function SquadUpScreen() {
       {/* ---- Matches Tab ---- */}
       {activeTab === 'matches' && (
         <ScrollView contentContainerStyle={styles.tabContent}>
-          {MOCK_MATCHES.map((m) => (
+          {matches.map((m) => (
             <Card key={m.id} variant="default" style={styles.matchCard}>
               <View style={styles.matchRow}>
                 <Avatar displayName={m.name} size={52} showOnlineDot isOnline />
@@ -672,37 +725,4 @@ const styles = StyleSheet.create({
   },
   matchModalAvatars: { flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 20, marginBottom: 24 },
   modalBtn: { width: '100%', height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-  fabContainer: {
-    position: 'absolute',
-    bottom: 30,
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 40,
-    pointerEvents: 'box-none'
-  },
-  fabBtn: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    shadowColor: '#000',
-    shadowOpacity: 0.15,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 8,
-  },
-  passBtn: {
-    transform: [{ scale: 0.9 }],
-  },
-  likeBtn: {
-    transform: [{ scale: 1.1 }],
-  },
-  fabIcon: {
-    fontSize: 28,
-    fontFamily: 'Outfit',
-    fontWeight: 'bold',
-  }
 });

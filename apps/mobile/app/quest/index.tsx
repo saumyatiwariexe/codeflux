@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity,
 } from 'react-native';
@@ -8,6 +8,8 @@ import { Card } from '../../components/ui/Card';
 import { Badge } from '../../components/ui/Badge';
 import { XPBar } from '../../components/ui/XPBar';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { useAuthStore } from '../../stores/useAuthStore';
+import { questsApi, usersApi, setAuthToken } from '../../services/api';
 
 type QuestType = 'all' | 'explorer' | 'academic' | 'social' | 'daily' | 'weekly';
 
@@ -18,58 +20,6 @@ const QUEST_TYPES: { key: QuestType; label: string; emoji: string }[] = [
   { key: 'explorer', label: 'Explorer', emoji: '' },
   { key: 'social', label: 'Social', emoji: '' },
   { key: 'academic', label: 'Academic', emoji: '' },
-];
-
-const MOCK_QUESTS = [
-  {
-    id: 'q1', type: 'daily',
-    title: 'Morning Mover',
-    description: 'Visit the campus gym or sports complex before 9 AM to earn your daily streak bonus.',
-    xp: 50, timeLeft: '6h 23m', icon: '',
-    progress: 0, total: 1, status: 'available',
-  },
-  {
-    id: 'q2', type: 'explorer',
-    title: 'Discover the Hidden Courtyard',
-    description: 'Navigate to the serene courtyard behind Block 34 and check in to reveal this secret zone.',
-    xp: 150, timeLeft: '6 days', icon: '',
-    progress: 0, total: 1, status: 'available',
-  },
-  {
-    id: 'q3', type: 'social',
-    title: 'Squad Builder',
-    description: 'Form a team of at least 3 members on SquadUp and register for an upcoming event together.',
-    xp: 300, timeLeft: undefined, icon: '',
-    progress: 1, total: 3, status: 'in_progress',
-  },
-  {
-    id: 'q4', type: 'academic',
-    title: 'EduRev Pioneer',
-    description: 'Log your first achievement on EduRevolution — any cert, competition, or research paper counts.',
-    xp: 200, timeLeft: undefined, icon: '',
-    progress: 0, total: 1, status: 'available',
-  },
-  {
-    id: 'q5', type: 'weekly',
-    title: 'Campus Cartographer',
-    description: 'Reveal 5 new zones on the CampusVerse map this week by physically visiting those locations.',
-    xp: 500, timeLeft: '4 days', icon: '',
-    progress: 2, total: 5, status: 'in_progress',
-  },
-  {
-    id: 'q6', type: 'explorer',
-    title: 'Mac Lab Discovery',
-    description: 'Find and check in at the iOS development lab in Block 34.',
-    xp: 100, timeLeft: undefined, icon: '',
-    progress: 1, total: 1, status: 'completed',
-  },
-];
-
-const LEADERBOARD = [
-  { rank: 1, name: 'Rohan Mehta', dept: 'ECE', xp: 12000, level: 7 },
-  { rank: 2, name: 'Neha Sharma', dept: 'CSE', xp: 11200, level: 7 },
-  { rank: 3, name: 'Aarav Sharma', dept: 'CSE', xp: 8400, level: 5 },
-  { rank: 4, name: 'You ', dept: 'CSE', xp: 3500, level: 4 },
 ];
 
 const STATUS_BADGE = {
@@ -84,9 +34,51 @@ export default function QuestZoneScreen() {
   const [activeType, setActiveType] = useState<QuestType>('all');
   const [view, setView] = useState<'quests' | 'leaderboard'>('quests');
 
-  const filtered = MOCK_QUESTS.filter((q) => activeType === 'all' || q.type === activeType);
-  const totalXp = 3500;
-  const completedToday = MOCK_QUESTS.filter((q) => q.status === 'completed').length;
+  const userAuth = useAuthStore((state) => state.user);
+  
+  const [profile, setProfile] = useState<any>(null);
+  const [quests, setQuests] = useState<any[]>([]);
+  const [leaderboard, setLeaderboard] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const isSameer = userAuth?.email?.toLowerCase().includes('sameersingh');
+
+  useEffect(() => {
+    async function fetchData() {
+      if (userAuth?.token) {
+        setAuthToken(userAuth.token);
+      }
+      
+      try {
+        const [profileRes, questsRes, leaderRes] = await Promise.all([
+          usersApi.getMe(),
+          questsApi.list(),
+          questsApi.leaderboard()
+        ]);
+
+        if (profileRes.success) setProfile(profileRes.data);
+        if (questsRes.success) setQuests(questsRes.data || []);
+        if (leaderRes.success) setLeaderboard(leaderRes.data || []);
+      } catch (err) {
+        console.error('Failed to fetch quest data', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [userAuth]);
+
+  const displayName = isSameer ? 'Saumya Tiwari' : (profile?.displayName || 'Paladeium User');
+  const level = isSameer ? 6 : (profile?.level || 1);
+  const currentXp = isSameer ? 9500 : (profile?.campusXp || 0);
+  const totalXp = isSameer ? 10000 : (level * 1000 + 1000); // Mock total for next level
+  const dept = profile?.department || 'Unknown';
+
+  const myRank = leaderboard.findIndex((l) => l.handle === profile?.handle) + 1;
+  const rankDisplay = myRank > 0 ? `#${myRank}` : 'Unranked';
+
+  const filtered = quests.filter((q) => activeType === 'all' || q.type === activeType);
+  const completedToday = quests.filter((q) => q.status === 'completed').length;
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.surfaceSpaceDeep }]} edges={['top']}>
@@ -132,8 +124,12 @@ export default function QuestZoneScreen() {
           </ScrollView>
 
           <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-            {filtered.map((q) => {
-              const statusInfo = STATUS_BADGE[q.status as keyof typeof STATUS_BADGE];
+            {loading ? (
+              <Text variant="body-md" color="onSurfaceVariant">Loading quests...</Text>
+            ) : filtered.length === 0 ? (
+               <Text variant="body-md" color="onSurfaceVariant">No quests found.</Text>
+            ) : filtered.map((q) => {
+              const statusInfo = STATUS_BADGE[q.status as keyof typeof STATUS_BADGE] || STATUS_BADGE.available;
               const isCompleted = q.status === 'completed';
               return (
                 <Card
@@ -143,7 +139,7 @@ export default function QuestZoneScreen() {
                 >
                   <View style={styles.questTop}>
                     <View style={[styles.questIcon, { backgroundColor: theme.primaryContainer }]}>
-                      <Text style={{ fontSize: 22 }}>{q.icon}</Text>
+                      <Text style={{ fontSize: 22 }}>{q.icon || '⭐'}</Text>
                     </View>
                     <View style={{ flex: 1 }}>
                       <View style={styles.questHeader}>
@@ -154,26 +150,26 @@ export default function QuestZoneScreen() {
                       </View>
                       <Text variant="headline-sm" style={{ marginTop: 6 }}>{q.title}</Text>
                       <Text variant="body-sm" color="onSurfaceVariant" style={{ marginTop: 4 }} numberOfLines={2}>
-                        {q.description}
+                        {q.description || q.desc}
                       </Text>
                     </View>
                   </View>
 
                   {/* Progress bar for in-progress quests */}
-                  {q.status === 'in_progress' && q.total > 1 && (
+                  {q.status === 'in_progress' && (q.total || 1) > 1 && (
                     <View style={{ marginTop: 12, gap: 4 }}>
                       <View style={styles.progressLabel}>
                         <Text variant="label-sm" color="onSurfaceVariant">Progress</Text>
-                        <Text variant="label-sm" color="primary">{q.progress}/{q.total}</Text>
+                        <Text variant="label-sm" color="primary">{q.progress || 0}/{q.total || 1}</Text>
                       </View>
-                      <XPBar current={q.progress} total={q.total} color={theme.neonEmerald} height={6} />
+                      <XPBar current={q.progress || 0} total={q.total || 1} color={theme.neonEmerald} height={6} />
                     </View>
                   )}
 
                   {/* Footer */}
                   <View style={styles.questFooter}>
                     <View style={[styles.xpPill, { backgroundColor: theme.accentGold + '22' }]}>
-                      <Text variant="label-md" style={{ color: theme.accentGold }}>+{q.xp} XP</Text>
+                      <Text variant="label-md" style={{ color: theme.accentGold }}>+{q.xpReward || q.xp} XP</Text>
                     </View>
                     {!isCompleted && (
                       <TouchableOpacity style={[styles.startBtn, { backgroundColor: theme.primary }]}>
@@ -193,22 +189,26 @@ export default function QuestZoneScreen() {
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <Card variant="glass" style={{ padding: 20, marginBottom: 16 }}>
             <Text variant="label-sm" color="onSurfaceVariant">YOUR RANKING</Text>
-            <Text variant="headline-lg" color="primary">#4 on Campus</Text>
+            <Text variant="headline-lg" color="primary">{rankDisplay} on Campus</Text>
             <Text variant="body-sm" color="onSurfaceVariant" style={{ marginTop: 4 }}>
-              You're in the top 15% of all LPU students. Keep exploring! 
+              Keep exploring to climb the leaderboard!
             </Text>
           </Card>
-          {LEADERBOARD.map((entry) => (
-            <Card key={entry.rank} variant={entry.name.includes('You') ? 'glass' : 'default'} style={styles.leaderCard}>
+          {loading ? (
+             <Text variant="body-md" color="onSurfaceVariant">Loading leaderboard...</Text>
+          ) : leaderboard.length === 0 ? (
+             <Text variant="body-md" color="onSurfaceVariant">No players on the leaderboard yet.</Text>
+          ) : leaderboard.map((entry) => (
+            <Card key={entry.rank} variant={entry.handle === profile?.handle ? 'glass' : 'default'} style={styles.leaderCard}>
               <View style={styles.leaderRow}>
                 <Text variant="headline-md" style={{ width: 32, textAlign: 'center', color: entry.rank <= 3 ? theme.accentGold : theme.onSurfaceVariant }}>
-                  {entry.rank === 1 ? '' : entry.rank === 2 ? '' : entry.rank === 3 ? '' : `#${entry.rank}`}
+                  {entry.rank === 1 ? '🥇' : entry.rank === 2 ? '🥈' : entry.rank === 3 ? '🥉' : `#${entry.rank}`}
                 </Text>
                 <View style={{ flex: 1, marginLeft: 12 }}>
-                  <Text variant="headline-sm">{entry.name}</Text>
-                  <Text variant="label-sm" color="onSurfaceVariant">{entry.dept} · Level {entry.level}</Text>
+                  <Text variant="headline-sm">{entry.displayName || entry.name} {entry.handle === profile?.handle && '(You)'}</Text>
+                  <Text variant="label-sm" color="onSurfaceVariant">{entry.department || entry.dept} · Level {entry.level}</Text>
                 </View>
-                <Text variant="headline-sm" color="primary">{entry.xp.toLocaleString()} XP</Text>
+                <Text variant="headline-sm" color="primary">{(entry.campusXp || entry.xp).toLocaleString()} XP</Text>
               </View>
             </Card>
           ))}

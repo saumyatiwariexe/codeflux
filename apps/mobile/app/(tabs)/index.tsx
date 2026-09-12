@@ -11,7 +11,9 @@ import { Badge } from '../../components/ui/Badge';
 import { Avatar } from '../../components/ui/Avatar';
 import { XPBar } from '../../components/ui/XPBar';
 import { useThemeStore } from '../../stores/useThemeStore';
+import { useAuthStore } from '../../stores/useAuthStore';
 import { Ionicons } from '@expo/vector-icons';
+import { usersApi, setAuthToken } from '../../services/api';
 
 import { STORIES_DATA } from '../../constants/stories';
 import { StoryViewer } from '../../components/ui/StoryViewer';
@@ -56,6 +58,35 @@ export default function HomeScreen() {
   const [storyVisible, setStoryVisible] = useState(false);
   const [initialStoryIndex, setInitialStoryIndex] = useState(0);
 
+  const userAuth = useAuthStore((state) => state.user);
+  const [profile, setProfile] = useState<any>(null);
+
+  const isSameer = userAuth?.email?.toLowerCase().includes('sameersingh');
+
+  useEffect(() => {
+    async function fetchProfile() {
+      if (userAuth?.token) {
+        setAuthToken(userAuth.token);
+      }
+      try {
+        const res = await usersApi.getMe();
+        if (res.success) {
+          setProfile(res.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch home profile', err);
+      }
+    }
+    fetchProfile();
+  }, [userAuth]);
+
+  const displayName = isSameer ? 'Saumya Tiwari' : (profile?.displayName || 'Paladeium User');
+  const avatarUrl = isSameer ? 'https://saumyatiwari.vercel.app/images/hero/hero-portrait.png' : profile?.avatarUrl;
+  const level = isSameer ? 6 : (profile?.level || 1);
+  const currentXp = isSameer ? 9500 : (profile?.campusXp || 0);
+  const xpToNextLevel = isSameer ? 10000 : (level * 1000 + 1000);
+  const streakDays = isSameer ? 42 : 0; // Mock
+
   const openStory = (index: number) => {
     setInitialStoryIndex(index);
     setStoryVisible(true);
@@ -67,7 +98,7 @@ export default function HomeScreen() {
       <View style={[styles.header, { backgroundColor: theme.surfaceSpaceDeep + 'F0' }]}>
         <View style={styles.headerLeft}>
           <TouchableOpacity onPress={() => router.push('/(tabs)/profile')}>
-            <Avatar displayName="You" size={36} showOnlineDot isOnline />
+            <Avatar displayName={displayName} avatarUrl={avatarUrl} size={44} showOnlineDot isOnline />
           </TouchableOpacity>
         </View>
         <View style={styles.headerRight}>
@@ -96,7 +127,10 @@ export default function HomeScreen() {
             </View>
           </TouchableOpacity>
           {/* Notification Bell */}
-          <TouchableOpacity style={[styles.iconBtn, { backgroundColor: theme.surfaceContainerLow }]}>
+          <TouchableOpacity 
+            style={[styles.iconBtn, { backgroundColor: theme.surfaceContainerLow }]}
+            onPress={() => router.push('/notifications')}
+          >
             <Ionicons name="notifications-outline" size={20} color={theme.onSurface} />
             {notifCount > 0 && (
               <View style={[styles.notifBadge, { backgroundColor: theme.secondary }]}>
@@ -145,17 +179,17 @@ export default function HomeScreen() {
         <Card variant="glass" style={styles.xpCard}>
           <View style={styles.xpHeader}>
             <View>
-              <Text variant="label-sm" color="onSurfaceVariant">PULSE LEVEL 4</Text>
-              <Text variant="headline-sm">Campus Regular</Text>
+              <Text variant="label-sm" color="onSurfaceVariant">PULSE LEVEL {level}</Text>
+              <Text variant="headline-sm">{level >= 5 ? 'Campus Explorer' : 'Campus Regular'}</Text>
             </View>
-            <Badge label=" 6-Day Streak" variant="squad" />
+            <Badge label={` ${streakDays}-Day Streak`} variant="squad" />
           </View>
           <View style={{ marginTop: 12, gap: 6 }}>
             <View style={styles.xpLabelRow}>
-              <Text variant="label-sm" color="onSurfaceVariant">3,500 / 5,000 XP</Text>
-              <Text variant="label-sm" color="neonEmerald">+1,500 XP to Level 5</Text>
+              <Text variant="label-sm" color="onSurfaceVariant">{currentXp.toLocaleString()} / {xpToNextLevel.toLocaleString()} XP</Text>
+              <Text variant="label-sm" color="neonEmerald">+{(xpToNextLevel - currentXp).toLocaleString()} XP to Level {level + 1}</Text>
             </View>
-            <XPBar current={3500} total={5000} />
+            <XPBar current={currentXp} total={xpToNextLevel} />
           </View>
           <TouchableOpacity
             style={[styles.questCTA, { backgroundColor: theme.primaryContainer }]}
@@ -187,13 +221,13 @@ export default function HomeScreen() {
                 <Button title=" Start Chat" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push('/pulsechat')} />
               )}
               {item.type === 'event_live' && (
-                <Button title="View Details →" variant="primary" style={{ marginTop: 12, height: 40 }} />
+                <Button title="View Details →" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push(`/event/${item.id}`)} />
               )}
               {item.type === 'quest' && (
                 <Button title="View Quest Zone →" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push('/questzone')} />
               )}
               {item.type === 'club' && (
-                <Button title="Register Now" variant="primary" style={{ marginTop: 12, height: 40 }} />
+                <Button title="Register Now" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push(`/event/${item.id}`)} />
               )}
             </View>
           </Card>

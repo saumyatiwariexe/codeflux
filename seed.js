@@ -2,7 +2,7 @@ const fs = require('fs');
 const crypto = require('crypto');
 
 const supabaseUrl = 'https://fassxdmpwjctodjusjdl.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhc3N4ZG1wd2pjdG9kanVzamRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNDU0MDUsImV4cCI6MjEwNDcyMTQwNX0.1GsAJG8JWk8qTSZbJWdLwbLisq5wGgIQb6YIgLLOGkE';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhc3N4ZG1wd2pjdG9kanVzamRsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4OTE0NTQwNSwiZXhwIjoyMTA0NzIxNDA1fQ.b3X1h1AQAn_2EnrOIawAniAaaAP43BCzQKib5WAkirU';
 
 const profilesData = JSON.parse(fs.readFileSync('c:/retry/codeflux/jason data/gemini-code-1789206570965.json', 'utf8'));
 

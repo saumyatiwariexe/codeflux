@@ -1,7 +1,7 @@
 
 
 const supabaseUrl = 'https://fassxdmpwjctodjusjdl.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhc3N4ZG1wd2pjdG9kanVzamRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxNDU0MDUsImV4cCI6MjEwNDcyMTQwNX0.1GsAJG8JWk8qTSZbJWdLwbLisq5wGgIQb6YIgLLOGkE';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZhc3N4ZG1wd2pjdG9kanVzamRsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4OTE0NTQwNSwiZXhwIjoyMTA0NzIxNDA1fQ.b3X1h1AQAn_2EnrOIawAniAaaAP43BCzQKib5WAkirU';
 
 async function updateProfile() {
   console.log('Fetching user with email containing sameersingh...');
@@ -24,18 +24,14 @@ async function updateProfile() {
   console.log(`Found user: ${user.lpu_email} with ID: ${user.id}`);
   
   const profileDetails = {
+    handle: 'sameer_1',
     display_name: 'Saumya Tiwari',
     avatar_url: 'https://saumyatiwari.vercel.app/images/hero/hero-portrait.png',
     bio: 'Full Stack Dev, AR/VR builder & AI enthusiast. Founder of Elevecrafts. 1st Runner-Up at HackDiwas 3.0.',
     department: 'BCA',
     year: 1,
-    skills: JSON.stringify([
-      { skill: { name: 'Next.js' }, proficiency: 'expert' },
-      { skill: { name: 'React', icon: 'react' }, proficiency: 'expert' },
-      { skill: { name: 'Python', icon: 'language-python' }, proficiency: 'expert' },
-      { skill: { name: 'WebXR' }, proficiency: 'expert' },
-      { skill: { name: 'Node.js', icon: 'nodejs' }, proficiency: 'intermediate' }
-    ])
+    level: 6,
+    campus_xp: 9500
   };
   
   console.log('Updating profile...');

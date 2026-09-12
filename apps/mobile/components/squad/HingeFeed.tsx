@@ -34,8 +34,13 @@ export function HingeFeed({ data, onLikeInteraction, onPass, onFeedEmpty }: Hing
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((s) => s.getColors(systemColorScheme));
 
+  React.useEffect(() => {
+    if (data.length === 0) {
+      onFeedEmpty();
+    }
+  }, [data.length]);
+
   if (data.length === 0) {
-    onFeedEmpty();
     return (
       <View style={styles.emptyContainer}>
         <Text variant="headline-sm" style={{ color: theme.onSurfaceVariant }}>No more profiles</Text>

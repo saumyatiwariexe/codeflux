@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import {
-  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Modal,
+  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Modal, Image
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -15,7 +15,8 @@ const MOCK_EVENT_DETAIL: Record<string, any> = {
     id: 'evt_hacklpu',
     title: 'HackLPU 2026: National Innovation Odyssey',
     organizer: 'School of Computer Science & DSW',
-    emoji: '',
+    emoji: '🚀',
+    posterUrl: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=1000',
     description: "India's biggest university hackathon with ₹15,00,000 in prizes across 8 challenge tracks — AI/ML, Web3, IoT, Robotics, FinTech, EdTech, HealthTech, and Open Innovation. 48 hours of hacking, mentorship from industry leaders, and networking with 2,000 students from across India.",
     location: 'LPU Main Auditorium, Block 38 — Shatabdi Hall',
     startTime: 'Sat, Sep 13, 2026 — 9:00 AM',
@@ -31,7 +32,268 @@ const MOCK_EVENT_DETAIL: Record<string, any> = {
     tiers: [
       { name: 'General', price: '₹0', perks: ['Full 48h access', 'Meals included', 'Swag bag'] },
     ],
+    isTeamEvent: true,
   },
+  f1: {
+    id: 'f1',
+    title: 'WEB-A-THON 2.0 — Registrations Open!',
+    organizer: 'Metaverse',
+    emoji: '🌐',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/public/club/event/poster/web-a-thon-20--lpus-next-big-hackathon-6aa2c8e7f28decc1178eb634-1789162899017.png',
+    description: 'LPU’s Next Big Hackathon by Metaverse. Register now for ₹169.',
+    location: 'LPU Main Auditorium, Block 38',
+    startTime: 'Sep 25, 2026 — 9:00 AM',
+    endTime: 'Sep 26, 2026 — 9:00 AM',
+    category: 'hackathon',
+    teamSize: '2–4 members',
+    prize: '₹1,00,000',
+    fee: '₹169',
+    attendees: 412,
+    maxAttendees: 2000,
+    status: 'upcoming',
+    tags: ['Web3', 'Hackathon'],
+    tiers: [
+      { name: 'General', price: '₹169', perks: ['Entry pass', 'Swag bag'] },
+    ],
+    isTeamEvent: true,
+  },
+  evt_webathon: {
+    id: 'evt_webathon',
+    title: 'WEB-A-THON 2.0 | LPU’s Next Big Hackathon',
+    organizer: 'Metaverse',
+    emoji: '🌐',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/public/club/event/poster/web-a-thon-20--lpus-next-big-hackathon-6aa2c8e7f28decc1178eb634-1789162899017.png',
+    description: 'LPU’s Next Big Hackathon by Metaverse. Register now for ₹169.',
+    location: 'LPU Main Auditorium, Block 38',
+    startTime: 'Sep 25, 2026 — 9:00 AM',
+    endTime: 'Sep 26, 2026 — 9:00 AM',
+    category: 'hackathon',
+    teamSize: '2–4 members',
+    prize: '₹1,00,000',
+    fee: '₹169',
+    attendees: 412,
+    maxAttendees: 2000,
+    status: 'upcoming',
+    tags: ['Web3', 'Hackathon'],
+    tiers: [
+      { name: 'General', price: '₹169', perks: ['Entry pass', 'Swag bag'] },
+    ],
+    isTeamEvent: true,
+  },
+  f3: {
+    id: 'f3',
+    title: 'Code Heist Hackathon',
+    organizer: 'Thryve',
+    emoji: '💻',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTk4NjdlYjdmMTA4MzUwN2ZiOGRjZjkvMTc4ODUyODAxMzE3Ml82NjYyNDE0ZjcwOWU4NGZjMTI5YWFhZTVmZWU2MGI1MC5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19',
+    description: 'Thryve is hosting a new Hackathon on Sep 18! Build something amazing.',
+    location: 'Block 32',
+    startTime: 'Sep 18, 2026 — 9:00 AM',
+    endTime: 'Sep 19, 2026 — 9:00 AM',
+    category: 'hackathon',
+    teamSize: '1–3 members',
+    prize: '₹50,000',
+    fee: '₹179',
+    attendees: 320,
+    maxAttendees: 500,
+    status: 'upcoming',
+    tags: ['AI', 'Security'],
+    tiers: [
+      { name: 'General', price: '₹179', perks: ['Entry pass', 'Swag bag'] },
+    ],
+    isTeamEvent: true,
+  },
+  evt_codeheist: {
+    id: 'evt_codeheist',
+    title: 'Code Heist Hackathon',
+    organizer: 'Thryve',
+    emoji: '💻',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTk4NjdlYjdmMTA4MzUwN2ZiOGRjZjkvMTc4ODUyODAxMzE3Ml82NjYyNDE0ZjcwOWU4NGZjMTI5YWFhZTVmZWU2MGI1MC5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19',
+    description: 'Thryve is hosting a new Hackathon on Sep 18! Build something amazing.',
+    location: 'Block 32',
+    startTime: 'Sep 18, 2026 — 9:00 AM',
+    endTime: 'Sep 19, 2026 — 9:00 AM',
+    category: 'hackathon',
+    teamSize: '1–3 members',
+    prize: '₹50,000',
+    fee: '₹179',
+    attendees: 320,
+    maxAttendees: 500,
+    status: 'upcoming',
+    tags: ['AI', 'Security'],
+    tiers: [
+      { name: 'General', price: '₹179', perks: ['Entry pass', 'Swag bag'] },
+    ],
+    isTeamEvent: true,
+  },
+  evt_code2career: {
+    id: 'evt_code2career',
+    title: 'Code2Career AI Hackathon',
+    organizer: 'Coding Ninjas LPU',
+    emoji: '🤖',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9jbHViL2V2ZW50L2NvZGUyY2FyZWVyLWFpLWhhY2thdGhvbi0xNzg4NzgzODY5ODQ4LmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJmaXQiOiJjb3ZlciIsIndpZHRoIjo4MDB9fX0=',
+    description: 'AI Hackathon by Coding Ninjas. Great for career building!',
+    location: 'Block 34',
+    startTime: 'Sep 18, 2026 — 10:00 AM',
+    endTime: 'Sep 19, 2026 — 10:00 AM',
+    category: 'hackathon',
+    teamSize: '1–4 members',
+    prize: '₹75,000',
+    fee: '₹199',
+    attendees: 540,
+    maxAttendees: 800,
+    status: 'upcoming',
+    tags: ['AI/ML', 'Career'],
+    tiers: [{ name: 'General', price: '₹199', perks: ['Entry pass'] }],
+    isTeamEvent: true,
+  },
+  evt_anime: {
+    id: 'evt_anime',
+    title: 'Anime Night 2.0',
+    organizer: 'Play2Unite',
+    emoji: '🎌',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTlmZWJhY2ZlN2VlYThhYzZhMDU1ZWEvMTc4OTExMDY4MDMxN18wNjAzNWRiYzk2OTA0NDEyNmQzYjI3ZTk5OWVlOTUyZS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19',
+    description: 'Join us for Anime Night! Screening the latest movies and episodes.',
+    location: 'Baldev Raj Mittal Auditorium',
+    startTime: 'Sep 17, 2026 — 6:00 PM',
+    endTime: 'Sep 17, 2026 — 9:00 PM',
+    category: 'cultural',
+    teamSize: 'Solo',
+    prize: 'N/A',
+    fee: '₹99',
+    attendees: 800,
+    maxAttendees: 1000,
+    status: 'upcoming',
+    tags: ['Anime', 'Screening'],
+    tiers: [{ name: 'General', price: '₹99', perks: ['Entry pass'] }],
+    isTeamEvent: false,
+  },
+  evt_goalrush: {
+    id: 'evt_goalrush',
+    title: 'GOAL RUSH',
+    organizer: 'Gamers Guild',
+    emoji: '⚽',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9jbHViL2V2ZW50L2dvbGQtcnVzaC0xNzg3OTk1MzE1OTA1LmpwZyIsImVkaXRzIjp7InJlc2l6ZSI6eyJmaXQiOiJjb3ZlciIsIndpZHRoIjo4MDB9fX0=',
+    description: 'FIFA Esports tournament! Prove you are the best virtual manager.',
+    location: 'Block 13',
+    startTime: 'Sep 11, 2026 — 10:00 AM',
+    endTime: 'Sep 12, 2026 — 5:00 PM',
+    category: 'sports',
+    teamSize: '5v5',
+    prize: '₹20,000',
+    fee: '₹499',
+    attendees: 120,
+    maxAttendees: 200,
+    status: 'upcoming',
+    tags: ['Esports', 'FIFA'],
+    tiers: [{ name: 'Team Entry', price: '₹499', perks: ['Entry pass for 5'] }],
+    isTeamEvent: true,
+  },
+  evt_paper: {
+    id: 'evt_paper',
+    title: 'Paper Mache workshop',
+    organizer: 'RENOVA',
+    emoji: '🎨',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/public/club/event/poster/paper-mache-workshop-6a9fb8135d8f22c034998d3a-1789050928527.jpg',
+    description: 'Learn the art of Paper Mache in this hands-on workshop.',
+    location: 'Block 55 Art Studio',
+    startTime: 'Sep 15, 2026 — 2:00 PM',
+    endTime: 'Sep 15, 2026 — 5:00 PM',
+    category: 'workshop',
+    teamSize: 'Solo',
+    prize: 'N/A',
+    fee: '₹249',
+    attendees: 45,
+    maxAttendees: 60,
+    status: 'upcoming',
+    tags: ['Art', 'DIY'],
+    tiers: [{ name: 'General', price: '₹249', perks: ['Materials included'] }],
+    isTeamEvent: false,
+  },
+  evt_conference: {
+    id: 'evt_conference',
+    title: 'International conference',
+    organizer: 'LPU',
+    emoji: '🌍',
+    posterUrl: 'https://onlytemptestingmacbease.s3.ap-south-1.amazonaws.com/public/event/6aa294ddf28decc1178e8c34/1789051516809_3fe46f88df53a3af1dbbf54ea9d469c4.png',
+    description: 'Join global scholars and researchers in this international conference.',
+    location: 'Shanti Devi Mittal Auditorium',
+    startTime: 'Oct 29, 2026 — 9:00 AM',
+    endTime: 'Oct 30, 2026 — 5:00 PM',
+    category: 'academic',
+    teamSize: 'Solo',
+    prize: 'N/A',
+    fee: '₹1999',
+    attendees: 200,
+    maxAttendees: 500,
+    status: 'upcoming',
+    tags: ['Academic', 'Conference'],
+    tiers: [{ name: 'General', price: '₹1999', perks: ['Entry pass, Lunch, Kit'] }],
+    isTeamEvent: false,
+  },
+  evt_flood: {
+    id: 'evt_flood',
+    title: 'Nepal flood relief collection drive',
+    organizer: 'LPU',
+    emoji: '🤝',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTk0MTU1MzdmMTA4MzUwN2ZiNzBmNzMvcG9zdGVyXzE3ODgwOTE0NjA3OTBfbmVwYWwtMTZfOS1jbGVhbi5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19',
+    description: 'Help us collect clothes, dry food, and supplies for the Nepal flood victims.',
+    location: 'Uni Mall Ground',
+    startTime: 'Sep 15, 2026 — 9:00 AM',
+    endTime: 'Sep 20, 2026 — 5:00 PM',
+    category: 'cultural',
+    teamSize: 'Solo',
+    prize: 'N/A',
+    fee: 'Free',
+    attendees: 500,
+    maxAttendees: 5000,
+    status: 'upcoming',
+    tags: ['Charity', 'Social'],
+    tiers: [{ name: 'Donation Pass', price: 'Free', perks: ['Contribute items'] }],
+    isTeamEvent: false,
+  },
+  evt_warzone: {
+    id: 'evt_warzone',
+    title: 'Warzone3',
+    organizer: 'Electra',
+    emoji: '🎮',
+    posterUrl: 'https://onlytemptestingmacbease.s3.ap-south-1.amazonaws.com/public/club/event/warzone3-1789137532269.jpg',
+    description: 'Call of Duty Warzone tournament! Bring your squad.',
+    location: 'Block 25 Gaming Arena',
+    startTime: 'Sep 24, 2026 — 11:00 AM',
+    endTime: 'Sep 24, 2026 — 8:00 PM',
+    category: 'sports',
+    teamSize: 'Squad',
+    prize: '₹10,000',
+    fee: '₹169',
+    attendees: 150,
+    maxAttendees: 200,
+    status: 'upcoming',
+    tags: ['Esports', 'Gaming'],
+    tiers: [{ name: 'Squad Entry', price: '₹169', perks: ['Squad Pass'] }],
+    isTeamEvent: true,
+  },
+  evt_lights: {
+    id: 'evt_lights',
+    title: 'lights out',
+    organizer: 'Untangle',
+    emoji: '✨',
+    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/public/club/event/poster/lights-out-6a8a8b80ab033ae5a7011699-1788167034184.png',
+    description: 'A glowing night filled with music, dance, and cultural performances.',
+    location: 'Baldev Raj Mittal Unipolis',
+    startTime: 'Sep 15, 2026 — 7:00 PM',
+    endTime: 'Sep 15, 2026 — 11:00 PM',
+    category: 'cultural',
+    teamSize: 'Solo',
+    prize: 'N/A',
+    fee: '₹292',
+    attendees: 300,
+    maxAttendees: 800,
+    status: 'upcoming',
+    tags: ['Cultural', 'Night'],
+    tiers: [{ name: 'General', price: '₹292', perks: ['Entry pass'] }],
+    isTeamEvent: false,
+  }
 };
 
 export default function EventDetailScreen() {
@@ -41,7 +303,9 @@ export default function EventDetailScreen() {
   const [showTicket, setShowTicket] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
 
+  // Instantly use mock data with placeholder image instead of waiting for API/DB
   const event = MOCK_EVENT_DETAIL[id] ?? MOCK_EVENT_DETAIL['evt_hacklpu'];
+  
   const mockBookingId = `TIX-${Date.now().toString(36).toUpperCase()}-LPU`;
 
   return (
@@ -55,9 +319,20 @@ export default function EventDetailScreen() {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Banner */}
-        <View style={[styles.banner, { backgroundColor: theme.primaryContainer }]}>
-          <Text style={{ fontSize: 64 }}>{event.emoji}</Text>
-          <Badge label={event.category.toUpperCase()} variant="xp" />
+        <View style={[styles.banner, { backgroundColor: theme.primaryContainer, overflow: 'hidden' }]}>
+          {event.posterUrl ? (
+             <>
+               <Image source={{ uri: event.posterUrl }} style={{ width: '100%', height: '100%', resizeMode: 'cover', position: 'absolute' }} />
+               <View style={{ position: 'absolute', bottom: 12, right: 12 }}>
+                 <Badge label={event.category?.toUpperCase() || 'EVENT'} variant="xp" />
+               </View>
+             </>
+          ) : (
+             <>
+               <Text style={{ fontSize: 64 }}>{event.emoji || '📅'}</Text>
+               <Badge label={event.category?.toUpperCase() || 'EVENT'} variant="xp" />
+             </>
+          )}
         </View>
 
         {/* Title section */}
@@ -69,10 +344,10 @@ export default function EventDetailScreen() {
         {/* Meta row */}
         <View style={styles.metaCards}>
           {[
-            { icon: '', label: 'Start', value: event.startTime },
-            { icon: '', label: 'Location', value: event.location },
-            { icon: '', label: 'Team', value: event.teamSize },
-            { icon: '', label: 'Prize', value: event.prize },
+            { icon: '📅', label: 'Start', value: event.startTime },
+            { icon: '📍', label: 'Location', value: event.location },
+            { icon: '👥', label: 'Team', value: event.teamSize },
+            { icon: '🏆', label: 'Prize', value: event.prize },
           ].map((m) => (
             <Card key={m.label} variant="default" style={styles.metaCard}>
               <Text style={{ fontSize: 18 }}>{m.icon}</Text>
@@ -94,7 +369,7 @@ export default function EventDetailScreen() {
         {/* Description */}
         <Card variant="default" style={{ padding: 16 }}>
           <Text variant="headline-sm" style={{ marginBottom: 8 }}>About</Text>
-          <Text variant="body-md" color="onSurfaceVariant">{event.description}</Text>
+          <Text variant="body-md" color="onSurfaceVariant">{event.description || 'No description provided.'}</Text>
         </Card>
 
         {/* Tags */}
@@ -126,13 +401,15 @@ export default function EventDetailScreen() {
         {/* CTA */}
         {!isRegistered ? (
           <View style={{ gap: 10 }}>
-            <Button
-              title=" Register with SquadUp Team"
-              onPress={() => { setIsRegistered(true); setShowTicket(true); }}
-            />
+            {event.isTeamEvent ? (
+              <Button
+                title=" Register with SquadUp Team"
+                onPress={() => { setIsRegistered(true); setShowTicket(true); }}
+              />
+            ) : null}
             <Button
               title="Register Solo"
-              variant="secondary"
+              variant={event.isTeamEvent ? "secondary" : "primary"}
               onPress={() => { setIsRegistered(true); setShowTicket(true); }}
             />
           </View>

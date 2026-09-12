@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.4)', // Darken for readability
   },
   safeArea: {

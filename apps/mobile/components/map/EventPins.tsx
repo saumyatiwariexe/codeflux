@@ -25,15 +25,15 @@ export const EventPins = () => {
           <View style={styles.pinContainer}>
             <Ionicons name="location-sharp" size={32} color={theme.error} />
           </View>
-          {selectedEventId === event.id && (
+          {selectedEventId === event.id ? (
             <Mapbox.Callout title={event.title}>
-              <View style={[styles.calloutContainer, { backgroundColor: theme.card }]}>
-                <Text style={{ fontSize: 14, fontFamily: 'Outfit', fontWeight: '700', color: theme.text }}>
+              <View style={[styles.calloutContainer, { backgroundColor: theme.surfaceContainer }]}>
+                <Text style={{ fontSize: 14, fontFamily: 'Outfit', fontWeight: '700', color: theme.onSurface }}>
                   {event.title}
                 </Text>
               </View>
             </Mapbox.Callout>
-          )}
+          ) : <View />}
         </Mapbox.PointAnnotation>
       ))}
     </>

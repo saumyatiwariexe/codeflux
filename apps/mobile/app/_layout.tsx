@@ -57,6 +57,7 @@ export default function RootLayout() {
           <Stack.Screen name="quest/index" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="edurev/index" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="lostfound/index" options={{ animation: 'slide_from_bottom' }} />
+          <Stack.Screen name="notifications/index" options={{ animation: 'slide_from_right' }} />
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>
