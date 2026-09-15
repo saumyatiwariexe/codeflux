@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, useColorScheme, TouchableOpacity, ScrollView } from 'react-native';
+import { View, StyleSheet, useColorScheme, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Text } from '../../components/ui/Text';
@@ -7,15 +7,12 @@ import { Avatar } from '../../components/ui/Avatar';
 import { Badge } from '../../components/ui/Badge';
 import { useThemeStore } from '../../stores/useThemeStore';
 
-const MOCK_CHATS = [
-  { id: '1', name: 'Aarav Sharma', msg: 'Hey! Saw we matched on SquadUp. You doing HackLPU?', time: '2m', unread: 1, type: 'squad' },
-  { id: '2', name: 'GDSC Core Team', msg: 'Reminder: Friday session moved to Block 32.', time: '1h', unread: 0, type: 'group' },
-  { id: '3', name: 'Neha S.', msg: 'Are you taking the Cloud Computing elective?', time: 'Yesterday', unread: 0, type: 'direct' },
-];
+import { useChatStore } from '../../stores/useChatStore';
 
 export default function PulseChatScreen() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((s) => s.getColors(systemColorScheme));
+  const chats = useChatStore((s) => s.chats);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.surfaceSpaceDeep }]} edges={['top']}>
@@ -25,7 +22,7 @@ export default function PulseChatScreen() {
           <Text variant="label-lg" color="primary">← Back</Text>
         </TouchableOpacity>
         <Text variant="headline-md">PulseChat</Text>
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => Alert.alert('New Chat', 'New chat feature coming soon!')}>
           <Text variant="label-lg" color="primary">New</Text>
         </TouchableOpacity>
       </View>
@@ -33,15 +30,15 @@ export default function PulseChatScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.banner}>
           <Text variant="label-sm" color="onSurfaceVariant" style={{ textAlign: 'center' }}>
-             All DMs are end-to-end encrypted
+            All DMs are end-to-end encrypted
           </Text>
         </View>
 
-        {MOCK_CHATS.map((chat) => (
+        {chats.map((chat) => (
           <TouchableOpacity 
             key={chat.id} 
             style={[styles.chatRow, { borderBottomColor: theme.glassBorder }]}
-            onPress={() => router.push(`/pulsechat/${chat.id}` as any)}
+            onPress={() => router.push({ pathname: '/pulsechat/[id]', params: { id: chat.id, name: chat.name } })}
           >
             <Avatar displayName={chat.name} size={50} showOnlineDot={chat.unread > 0} isOnline={chat.unread > 0} />
             <View style={styles.chatInfo}>

@@ -88,8 +88,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 24,
     shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 6,
     position: 'relative',
   },
   heroBlock: {
@@ -105,12 +107,12 @@ const styles = StyleSheet.create({
     paddingBottom: 24, 
     paddingHorizontal: 24 
   },
-  nameText: { fontSize: 32, fontFamily: 'Outfit', fontWeight: 'bold', textAlign: 'left' },
+  nameText: { fontSize: 32, fontFamily: 'Outfit', fontWeight: 'bold', textAlign: 'left', lineHeight: 40 },
   matchBadge: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20, marginTop: 16 },
   answerText: { fontSize: 24, fontFamily: 'Outfit', fontWeight: '500', marginTop: 12, lineHeight: 32 },
   skillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginTop: 20 },
   statsBlock: {
     alignItems: 'center',
   },
-  xpText: { fontSize: 28, fontFamily: 'Outfit', fontWeight: '600', marginTop: 8 }
+  xpText: { fontSize: 28, fontFamily: 'Outfit', fontWeight: '600', marginTop: 8, lineHeight: 36 }
 });

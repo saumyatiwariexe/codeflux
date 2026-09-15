@@ -1,64 +1,88 @@
-import React, { useState } from 'react';
-import { View, StyleSheet, useColorScheme, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, StyleSheet, useColorScheme, TouchableOpacity, ScrollView, TextInput, KeyboardAvoidingView, Platform, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '../../components/ui/Text';
 import { Avatar } from '../../components/ui/Avatar';
 import { useThemeStore } from '../../stores/useThemeStore';
-
-// Mock data mapping
-const MOCK_CHAT_DETAILS: Record<string, { name: string; type: string; messages: { id: string; text: string; sender: 'me' | 'them'; time: string }[] }> = {
-  '1': {
-    name: 'Aarav Sharma',
-    type: 'squad',
-    messages: [
-      { id: 'm1', text: 'Hey! Saw we matched on SquadUp.', sender: 'them', time: '10:41 AM' },
-      { id: 'm2', text: 'Are you doing HackLPU?', sender: 'them', time: '10:41 AM' },
-      { id: 'm3', text: 'Yes! Im looking for a frontend dev for my idea.', sender: 'me', time: '10:43 AM' },
-      { id: 'm4', text: 'Awesome, Im solid with React Native. What is the problem statement?', sender: 'them', time: '10:45 AM' },
-    ]
-  },
-  '2': {
-    name: 'GDSC Core Team',
-    type: 'group',
-    messages: [
-      { id: 'm1', text: 'Meeting is at 4 PM today.', sender: 'them', time: '2:00 PM' },
-      { id: 'm2', text: 'Reminder: Friday session moved to Block 32.', sender: 'them', time: '3:00 PM' },
-    ]
-  },
-  '3': {
-    name: 'Neha S.',
-    type: 'direct',
-    messages: [
-      { id: 'm1', text: 'Are you taking the Cloud Computing elective?', sender: 'them', time: 'Yesterday' },
-      { id: 'm2', text: 'Yeah, I picked AWS track.', sender: 'me', time: 'Yesterday' },
-    ]
-  },
-};
+import { supabase } from '../../services/supabase';
+import { useChatStore } from '../../stores/useChatStore';
+import { useAuthStore } from '../../stores/useAuthStore';
 
 export default function ChatRoomScreen() {
-  const { id } = useLocalSearchParams();
+  const { id, name } = useLocalSearchParams();
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((s) => s.getColors(systemColorScheme));
   
-  const chatData = MOCK_CHAT_DETAILS[id as string] || { name: 'Unknown User', type: 'direct', messages: [] };
+  const chats = useChatStore((s) => s.chats);
+  const addMessage = useChatStore((s) => s.addMessage);
   
-  const [messages, setMessages] = useState(chatData.messages);
+  // Find chat from global store, or default to empty if navigating fresh from SquadUp match
+  const chatData = chats.find(c => c.id === id) || { name: (name as string) || 'SquadUp Match', type: 'squad', messages: [] };
+  const messages = chatData.messages || [];
+
   const [inputText, setInputText] = useState('');
+  const channelRef = useRef<any>(null);
+
+  useEffect(() => {
+    if (!id) return;
+    const channel = supabase.channel(`chat_${id}`, {
+      config: {
+        broadcast: { ack: true },
+      },
+    })
+      .on('broadcast', { event: 'new_message' }, (payload) => {
+        const incomingMsg = payload.payload;
+        // The store handles duplicates, just pass it
+        addMessage(id as string, { ...incomingMsg, sender: 'them' });
+      })
+      .subscribe();
+
+    channelRef.current = channel;
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id]);
 
   const handleSend = () => {
     if (!inputText.trim()) return;
     
     const newMsg = {
-      id: Date.now().toString(),
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
       text: inputText,
       sender: 'me' as const,
       time: 'Just now'
     };
     
-    setMessages([...messages, newMsg]);
+    // Add to persistent store
+    addMessage(id as string, newMsg);
     setInputText('');
+
+    if (channelRef.current) {
+      channelRef.current.send({
+        type: 'broadcast',
+        event: 'new_message',
+        payload: newMsg
+      });
+    }
+
+    // Ping the recipient globally so they get the message even if they are not in the chat room
+    const myEmail = useAuthStore.getState().user?.email?.toLowerCase() || '';
+    const myName = myEmail === 'rishabhdubey@lpu.in' ? 'Rishabh Dubey' : (myEmail === 'sameersingh@lpu.in' ? 'Saumya Tiwari' : 'User');
+    const recipientEmail = (id as string).replace(myEmail, '').replace('_', '');
+    
+    supabase.channel('global_sync').send({
+      type: 'broadcast',
+      event: 'chat_ping',
+      payload: {
+        to: recipientEmail,
+        roomId: id as string,
+        message: newMsg,
+        senderName: myName
+      }
+    });
   };
 
   return (
@@ -77,7 +101,7 @@ export default function ChatRoomScreen() {
             <Text variant="headline-sm">{chatData.name}</Text>
             {chatData.type === 'squad' && <Text variant="label-xs" color="primary">Squad Match</Text>}
           </View>
-          <TouchableOpacity style={styles.infoBtn}>
+          <TouchableOpacity style={styles.infoBtn} onPress={() => Alert.alert('Chat Info', 'Chat details coming soon!')}>
             <Ionicons name="information-circle-outline" size={24} color={theme.onSurfaceVariant} />
           </TouchableOpacity>
         </View>
@@ -118,7 +142,7 @@ export default function ChatRoomScreen() {
 
         {/* Input Area */}
         <View style={[styles.inputContainer, { borderTopColor: theme.glassBorder, backgroundColor: theme.surfaceSpaceElevated }]}>
-          <TouchableOpacity style={styles.attachBtn}>
+          <TouchableOpacity style={styles.attachBtn} onPress={() => Alert.alert('Attach', 'Attachments coming soon!')}>
             <Ionicons name="add-circle-outline" size={28} color={theme.onSurfaceVariant} />
           </TouchableOpacity>
           <View style={[styles.inputWrapper, { backgroundColor: theme.surfaceContainerLow }]}>

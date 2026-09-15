@@ -1,16 +1,10 @@
 // ============================================================
 // Paladeium — API Service Layer (Mock-first)
-import { Platform } from 'react-native';
-import Constants from 'expo-constants';
-
-const debuggerHost = Constants.expoConfig?.hostUri;
-let localIp = debuggerHost ? debuggerHost.split(':')[0] : '10.33.3.166';
-if (Platform.OS === 'android') {
-  localIp = '10.33.3.166'; // Hardcode host IP for reliable Android physical device connection
-}
+// Replace BASE_URL with your Railway deployment URL
+// ============================================================
 
 const BASE_URL = __DEV__
-  ? `http://${localIp}:3000/api/v1`
+  ? 'http://localhost:3000/api/v1'
   : 'https://campus-pulse-api.railway.app/api/v1';
 
 let authToken: string | null = null;

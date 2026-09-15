@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity,
+  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Alert
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '../../components/ui/Text';
@@ -19,7 +19,24 @@ const QUEST_TYPES: { key: QuestType; label: string; emoji: string }[] = [
   { key: 'weekly', label: 'Weekly', emoji: '' },
   { key: 'explorer', label: 'Explorer', emoji: '' },
   { key: 'social', label: 'Social', emoji: '' },
-  { key: 'academic', label: 'Academic', emoji: '' },
+  { key: 'academic', label: 'Academic', emoji: '📚' },
+];
+
+const MOCK_QUESTS = [
+  { id: 'q1', title: 'Campus Explorer', type: 'explorer', desc: 'Visit the main library, MAC, and Block 32.', xpReward: 500, status: 'available', icon: '🗺️' },
+  { id: 'q2', title: 'HackLPU Registration', type: 'academic', desc: 'Register for the upcoming HackLPU event and form a team.', xpReward: 1000, progress: 1, total: 3, status: 'in_progress', icon: '💻', timeLeft: '2d left' },
+  { id: 'q3', title: 'Social Butterfly', type: 'social', desc: 'Match with 5 people on SquadUp.', xpReward: 800, progress: 5, total: 5, status: 'completed', icon: '🤝' },
+  { id: 'q4', title: 'Morning Hustle', type: 'daily', desc: 'Attend a morning lecture before 9 AM.', xpReward: 300, progress: 0, total: 1, status: 'available', icon: '☕', timeLeft: '14h left' },
+  { id: 'q5', title: 'Library Scavenger', type: 'weekly', desc: 'Find the hidden QR code in the central library fiction section.', xpReward: 1500, progress: 0, total: 1, status: 'available', icon: '📚', timeLeft: '5d left' },
+  { id: 'q6', title: 'Tech Talk Attendee', type: 'academic', desc: 'Attend any guest lecture this week.', xpReward: 600, status: 'available', icon: '🎤' },
+];
+
+const MOCK_LEADERBOARD = [
+  { rank: 1, handle: 'isha.kashyap', displayName: 'Isha Kashyap', department: 'CSE', level: 8, campusXp: 15400 },
+  { rank: 2, handle: 'oggy.ji', displayName: 'Oggy ji', department: 'Design', level: 7, campusXp: 14200 },
+  { rank: 3, handle: 'saumyatiwari', displayName: 'Saumya Tiwari', department: 'BCA', level: 6, campusXp: 9500 },
+  { rank: 4, handle: 'karansinghal.7', displayName: 'Karan Singhal', department: 'CSE', level: 5, campusXp: 8100 },
+  { rank: 5, handle: 'tara.senn', displayName: 'Tara Sen', department: 'MBA', level: 4, campusXp: 6400 },
 ];
 
 const STATUS_BADGE = {
@@ -57,8 +74,17 @@ export default function QuestZoneScreen() {
         ]);
 
         if (profileRes.success) setProfile(profileRes.data);
-        if (questsRes.success) setQuests(questsRes.data || []);
-        if (leaderRes.success) setLeaderboard(leaderRes.data || []);
+        if (questsRes.success && questsRes.data && questsRes.data.length > 0) {
+          setQuests(questsRes.data);
+        } else {
+          setQuests(MOCK_QUESTS);
+        }
+        
+        if (leaderRes.success && leaderRes.data && leaderRes.data.length > 0) {
+          setLeaderboard(leaderRes.data);
+        } else {
+          setLeaderboard(MOCK_LEADERBOARD);
+        }
       } catch (err) {
         console.error('Failed to fetch quest data', err);
       } finally {
@@ -74,7 +100,8 @@ export default function QuestZoneScreen() {
   const totalXp = isSameer ? 10000 : (level * 1000 + 1000); // Mock total for next level
   const dept = profile?.department || 'Unknown';
 
-  const myRank = leaderboard.findIndex((l) => l.handle === profile?.handle) + 1;
+  const activeHandle = isSameer ? 'saumyatiwari' : (profile?.handle || 'saumyatiwari'); // Fallback for demo
+  const myRank = leaderboard.findIndex((l) => l.handle === activeHandle) + 1;
   const rankDisplay = myRank > 0 ? `#${myRank}` : 'Unranked';
 
   const filtered = quests.filter((q) => activeType === 'all' || q.type === activeType);
@@ -172,7 +199,10 @@ export default function QuestZoneScreen() {
                       <Text variant="label-md" style={{ color: theme.accentGold }}>+{q.xpReward || q.xp} XP</Text>
                     </View>
                     {!isCompleted && (
-                      <TouchableOpacity style={[styles.startBtn, { backgroundColor: theme.primary }]}>
+                      <TouchableOpacity 
+                        style={[styles.startBtn, { backgroundColor: theme.primary }]}
+                        onPress={() => Alert.alert('Quest Action', 'Quest progression coming soon!')}
+                      >
                         <Text variant="label-sm" style={{ color: theme.onPrimary }}>
                           {q.status === 'in_progress' ? 'Continue →' : 'Start Quest →'}
                         </Text>

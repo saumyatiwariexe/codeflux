@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Dimensions } from 'react-native';
+import { ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Dimensions, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -13,6 +13,14 @@ import { useAuthStore } from '../stores/useAuthStore';
 import { questsApi, usersApi, setAuthToken } from '../services/api';
 
 const { width: SCREEN_W } = Dimensions.get('window');
+
+const MOCK_QUESTS = [
+  { id: 'q1', title: 'Library Scavenger', type: 'explorer', desc: 'Find the hidden QR code in the central library.', xp: 500, progress: 0, total: 1, status: 'active' },
+  { id: 'q2', title: 'Social Butterfly', type: 'social', desc: 'Match with 5 people on SquadUp.', xp: 800, progress: 3, total: 5, status: 'active' },
+  { id: 'q3', title: 'Early Bird', type: 'academic', desc: 'Attend a morning lecture before 9 AM.', xp: 300, progress: 0, total: 1, status: 'active' },
+  { id: 'q4', title: 'HackLPU Registration', type: 'academic', desc: 'Register for the upcoming HackLPU event.', xp: 1000, progress: 1, total: 1, status: 'completed' },
+  { id: 'q5', title: 'Campus Tour', type: 'explorer', desc: 'Visit 3 different blocks in one day.', xp: 600, progress: 3, total: 3, status: 'completed' },
+];
 
 export default function QuestZoneScreen() {
   const systemColorScheme = useColorScheme();
@@ -39,7 +47,11 @@ export default function QuestZoneScreen() {
         ]);
 
         if (profileRes.success) setProfile(profileRes.data);
-        if (questsRes.success) setQuests(questsRes.data || []);
+        if (questsRes.success && questsRes.data && questsRes.data.length > 0) {
+          setQuests(questsRes.data);
+        } else {
+          setQuests(MOCK_QUESTS);
+        }
       } catch (err) {
         console.error('Failed to fetch quest data', err);
       } finally {
@@ -111,10 +123,18 @@ export default function QuestZoneScreen() {
             <Text variant="body-sm" color="onSurfaceVariant" style={{ marginBottom: 12 }}>{q.description || q.desc}</Text>
             
             <View style={styles.progressRow}>
-              <View style={[styles.progressBarBg, { backgroundColor: theme.surfaceContainerHigh }]}>
-                <View style={[styles.progressBarFill, { backgroundColor: theme.primary, width: `${((q.progress || 0) / (q.total || 1)) * 100}%` }]} />
+              <View style={{ flex: 1 }}>
+                <View style={[styles.progressBarBg, { backgroundColor: theme.surfaceContainerHigh }]}>
+                  <View style={[styles.progressBarFill, { backgroundColor: theme.primary, width: `${((q.progress || 0) / (q.total || 1)) * 100}%` }]} />
+                </View>
+                <Text variant="label-xs" color="onSurfaceVariant" style={{ marginTop: 6 }}>{q.progress || 0} / {q.total || 1} Completed</Text>
               </View>
-              <Text variant="label-sm" color="onSurfaceVariant">{q.progress || 0}/{q.total || 1}</Text>
+              <TouchableOpacity 
+                style={[styles.actionBtn, { backgroundColor: theme.primaryContainer }]} 
+                onPress={() => Alert.alert('Quest Action', q.type === 'explorer' ? 'Location verification coming soon!' : 'Quest progression coming soon!')}
+              >
+                <Text variant="label-sm" style={{ color: theme.primary }}>{q.type === 'explorer' ? 'Check In' : 'Continue'}</Text>
+              </TouchableOpacity>
             </View>
           </Card>
         ))}
@@ -151,8 +171,9 @@ const styles = StyleSheet.create({
   avatarPlaceholder: { width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center' },
   questCard: { padding: 16, marginBottom: 12 },
   iconBox: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  progressBarBg: { flex: 1, height: 8, borderRadius: 4, overflow: 'hidden' },
+  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  progressBarBg: { height: 8, borderRadius: 4, overflow: 'hidden' },
   progressBarFill: { height: '100%', borderRadius: 4 },
+  actionBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
   completedItem: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, borderBottomWidth: 1 },
 });

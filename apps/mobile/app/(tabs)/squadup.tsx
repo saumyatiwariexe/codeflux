@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 import {
-  View, StyleSheet, useColorScheme, TouchableOpacity, Animated, Dimensions, ScrollView, FlatList, LayoutAnimation, UIManager, Platform
+  View, StyleSheet, useColorScheme, TouchableOpacity, Animated, Dimensions, ScrollView, FlatList, LayoutAnimation, UIManager, Platform, Alert
 } from 'react-native';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -8,6 +8,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '../../components/ui/Text';
 import { Card } from '../../components/ui/Card';
@@ -16,13 +17,34 @@ import { Avatar } from '../../components/ui/Avatar';
 import { HingeFeed, SwipeCardData } from '../../components/squad/HingeFeed';
 import { useThemeStore } from '../../stores/useThemeStore';
 import { useAuthStore } from '../../stores/useAuthStore';
-import { squadApi } from '../../services/api';
+import { useChatStore } from '../../stores/useChatStore';
+import { supabase } from '../../services/supabase';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
 type Tab = 'discover' | 'matches' | 'teams';
 
-const MOCK_DECK: SwipeCardData[] = [
+export const MOCK_DECK: SwipeCardData[] = [
+  {
+    id: 'rishabhdubey@lpu.in', // Using email as ID for easy sync matching
+    displayName: 'Rishabh Dubey',
+    avatarUrl: { uri: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' },
+    handle: 'rishabh.dubey',
+    department: 'BCA',
+    year: 3,
+    bio: 'Data-minded builder. I turn noise into next steps. Exploring data, systems, and people.',
+    matchScore: 92,
+    campusXp: 7200,
+    level: 5,
+    skills: [
+      { skill: { name: 'Python', icon: 'language-python' }, proficiency: 'expert' },
+      { skill: { name: 'Data Analytics', icon: 'analytics' }, proficiency: 'expert' },
+      { skill: { name: 'Project Management', icon: 'calendar' }, proficiency: 'expert' }
+    ],
+    prompts: [
+      { question: 'I geek out on', answer: 'Market trend mapping and data visualization dashboards.' }
+    ]
+  },
   {
     id: 'profile_saumya',
     displayName: 'Saumya Tiwari',
@@ -53,7 +75,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'aanya_0',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Turning caffeine into beautiful UI components. Always ready to make something amazing together!',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -71,7 +93,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'elena_1',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Obsessed with clean code and smooth animations. Always up for a late-night debugging session 🚀',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -89,7 +111,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'chloe_2',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Frontend enthusiast with a knack for solving puzzle-like bugs. Positive vibes only! ✨',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -107,7 +129,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'maya_3',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Building full-stack apps that make people smile. Eager to learn and collaborate! 💻',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -125,7 +147,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'sara_4',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Code, coffee, and creativity. I believe every error is just a stepping stone to a solution! 🌱',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -143,7 +165,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'nia_5',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Passionate about accessible tech and seamless user experiences. Let us build the future today 🌟',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -161,7 +183,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'rohan_6',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Backend logic is my playground. Always seeking optimized solutions with a smile! ⚙️',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -179,7 +201,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'marcus_7',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Data-driven and dream-focused. Ready to crunch numbers and build impactful tech! 📊',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -197,7 +219,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'dev_8',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Cloud architect in the making. I love turning complex infrastructure into scalable magic! ☁️',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -215,7 +237,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'liam_9',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'AI and automation geek. Finding joy in teaching machines how to make our lives easier 🤖',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -233,7 +255,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'kabir_10',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Security-minded developer with a heart for open-source. Ready to secure the web! 🛡️',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -251,7 +273,7 @@ const MOCK_DECK: SwipeCardData[] = [
       handle: 'alex_11',
       department: 'General',
       year: 1,
-      bio: 'Ready to build awesome things!',
+      bio: 'Tech generalist who loves wearing multiple hats. Bring on the challenging hackathon ideas! 💡',
       matchScore: Math.floor(Math.random() * 20) + 75,
       campusXp: Math.floor(Math.random() * 5000) + 1000,
       level: 1,
@@ -516,48 +538,64 @@ export default function SquadUpScreen() {
   
   const [activeTab, setActiveTab] = useState<Tab>('discover');
   
-  const [deck, setDeck] = useState<SwipeCardData[]>([]);
-  const [matches, setMatches] = useState<any[]>([]);
+  const [deck, setDeck] = useState<SwipeCardData[]>(() => {
+    if (user?.email?.toLowerCase().includes('sameersingh')) {
+      return MOCK_DECK.filter(p => p.id !== 'profile_saumya');
+    }
+    if (user?.email?.toLowerCase().includes('rishabhdubey')) {
+      return MOCK_DECK.filter(p => p.id !== 'rishabhdubey@lpu.in');
+    }
+    return MOCK_DECK;
+  });
 
+  // Force sync on fast refresh
   React.useEffect(() => {
-    const fetchData = async () => {
-      const [deckRes, matchRes] = await Promise.all([
-        squadApi.getDeck(),
-        squadApi.getMatches()
-      ]);
-      
-      console.log('Deck API response:', deckRes);
-      console.log('Match API response:', matchRes);
-      
-      if (deckRes.success && deckRes.data) {
-        setDeck(deckRes.data);
-      }
-      
-      if (matchRes.success && matchRes.data) {
-        const mappedMatches = matchRes.data.map((m: any) => ({
-          id: m.id,
-          name: m.otherProfile?.displayName || 'Unknown User',
-          dept: `${m.otherProfile?.department || ''} · Year ${m.otherProfile?.year || 1}`,
-          score: m.otherProfile?.matchScore || 85,
-          lastMsg: 'Matched!',
-          avatarUrl: m.otherProfile?.avatarUrl,
-        }));
-        setMatches(mappedMatches);
-      }
-    };
-    fetchData();
+    if (user?.email?.toLowerCase().includes('sameersingh')) {
+      setDeck(MOCK_DECK.filter(p => p.id !== 'profile_saumya'));
+    } else if (user?.email?.toLowerCase().includes('rishabhdubey')) {
+      setDeck(MOCK_DECK.filter(p => p.id !== 'rishabhdubey@lpu.in'));
+    } else {
+      setDeck(MOCK_DECK);
+    }
   }, [user?.email]);
 
   const [showMatchModal, setShowMatchModal] = useState(false);
   const [lastMatch, setLastMatch] = useState<SwipeCardData | null>(null);
+  const [matches, setMatches] = useState(MOCK_MATCHES);
   const matchModalScale = useRef(new Animated.Value(0)).current;
 
-  const handleLike = async (cardId: string, itemType: string, content: string, card: SwipeCardData) => {
+  // Real-time Subscriptions
+  React.useEffect(() => {
+    if (!user?.email) return;
+    
+    const channel = supabase.channel('squadup_sync')
+      .on('broadcast', { event: 'new_match' }, (payload) => {
+        const { to, matchData } = payload.payload;
+        if (to === user.email.toLowerCase()) {
+          setLastMatch(matchData);
+          setShowMatchModal(true);
+          Animated.spring(matchModalScale, { 
+            toValue: 1, stiffness: 250, damping: 15, useNativeDriver: true 
+          }).start();
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.email]);
+
+  const MY_TECH_STACK = ['React', 'Node.js', 'MongoDB', 'Python', 'TailwindCSS'];
+
+  const handleLike = (cardId: string, itemType: string, content: string, card: SwipeCardData) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setDeck(prev => prev.filter(c => c.id !== cardId));
     
-    const res = await squadApi.swipe(cardId, 'like');
-    if (res.success && res.data?.isMatch) {
+    // Check if the profile has any tech stack overlap with the current user
+    const hasSimilarTech = card.skills?.some(s => MY_TECH_STACK.includes(s.skill.name));
+    
+    if (hasSimilarTech) {
       setLastMatch(card);
       setShowMatchModal(true);
       Animated.spring(matchModalScale, { 
@@ -566,27 +604,38 @@ export default function SquadUpScreen() {
         damping: 15, 
         useNativeDriver: true 
       }).start();
-      
-      // refresh matches
-      const matchRes = await squadApi.getMatches();
-      if (matchRes.success && matchRes.data) {
-        const mappedMatches = matchRes.data.map((m: any) => ({
-          id: m.id,
-          name: m.otherProfile?.displayName || 'Unknown User',
-          dept: `${m.otherProfile?.department || ''} · Year ${m.otherProfile?.year || 1}`,
-          score: m.otherProfile?.matchScore || 85,
-          lastMsg: 'Matched!',
-          avatarUrl: m.otherProfile?.avatarUrl,
-        }));
-        setMatches(mappedMatches);
-      }
+
+      // Broadcast the match to the other user's device
+      // We pass our own mock profile data so they see us in the match popup
+      const myProfileAsCard: SwipeCardData = {
+        id: user?.email || 'admin-id',
+        displayName: user?.email?.includes('rishabh') ? 'Rishabh Dubey' : 'Saumya Tiwari',
+        avatarUrl: { uri: user?.email?.includes('rishabh') ? 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png' : 'https://saumyatiwari.vercel.app/images/hero/hero-portrait.png' },
+        handle: user?.email?.split('@')[0] || 'user',
+        department: 'BCA',
+        year: 1,
+        bio: 'Ready to build something awesome.',
+        matchScore: 99,
+        campusXp: 9500,
+        level: 6,
+        skills: [],
+        prompts: []
+      };
+
+      supabase.channel('squadup_sync').send({
+        type: 'broadcast',
+        event: 'new_match',
+        payload: {
+          to: card.id, // we mapped Rishabh's card ID to his email above
+          matchData: myProfileAsCard
+        }
+      });
     }
   };
 
-  const handlePass = async (cardId: string) => {
+  const handlePass = (cardId: string) => {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setDeck(prev => prev.filter(c => c.id !== cardId));
-    await squadApi.swipe(cardId, 'pass');
   };
 
   const dismissMatch = () => {
@@ -594,6 +643,49 @@ export default function SquadUpScreen() {
       setShowMatchModal(false);
       matchModalScale.setValue(0);
     });
+  };
+
+  const addCurrentMatch = () => {
+    if (lastMatch) {
+      const newMatch = {
+        id: lastMatch.id,
+        name: lastMatch.displayName,
+        dept: `${lastMatch.department} · Year ${lastMatch.year}`,
+        score: lastMatch.matchScore || 90,
+        lastMsg: 'You matched! Send a message.'
+      };
+      setMatches(prev => {
+        if (!prev.some(m => m.id === newMatch.id)) {
+          return [newMatch, ...prev];
+        }
+        return prev;
+      });
+    }
+  };
+
+  const handleSendMessage = () => {
+    addCurrentMatch();
+    if (lastMatch) {
+      const myId = user?.email || 'admin-id';
+      const theirId = lastMatch.id;
+      const roomId = [myId, theirId].sort().join('_');
+
+      useChatStore.getState().addChat({
+        id: roomId,
+        name: lastMatch.displayName,
+        msg: 'You matched! Send a message.',
+        time: 'Just now',
+        unread: 0,
+        type: 'squad'
+      });
+      router.push({ pathname: '/pulsechat/[id]', params: { id: roomId, name: lastMatch.displayName } });
+    }
+    dismissMatch();
+  };
+
+  const handleKeepDiscovering = () => {
+    addCurrentMatch();
+    dismissMatch();
   };
 
   return (
@@ -609,7 +701,7 @@ export default function SquadUpScreen() {
               onPress={() => setActiveTab(t)}
             >
               <Text variant="label-sm" style={{ color: activeTab === t ? theme.primary : theme.onSurfaceVariant }}>
-                {t === 'discover' ? 'Discover' : t === 'matches' ? `Matches ${matches.length}` : 'Teams'}
+                {t === 'discover' ? 'Discover' : t === 'matches' ? `Matches (${matches.length})` : 'Teams'}
               </Text>
             </TouchableOpacity>
           ))}
@@ -647,10 +739,30 @@ export default function SquadUpScreen() {
                 </View>
               </View>
               <View style={styles.matchActions}>
-                <TouchableOpacity style={[styles.msgBtn, { backgroundColor: theme.primaryContainer }]}>
+                <TouchableOpacity 
+                  style={[styles.msgBtn, { backgroundColor: theme.primaryContainer }]}
+                  onPress={() => {
+                    const myId = user?.email || 'admin-id';
+                    const theirId = m.id;
+                    const roomId = [myId, theirId].sort().join('_');
+
+                    useChatStore.getState().addChat({
+                      id: roomId,
+                      name: m.name,
+                      msg: m.lastMsg || 'Start chatting...',
+                      time: 'Just now',
+                      unread: 0,
+                      type: 'squad'
+                    });
+                    router.push({ pathname: '/pulsechat/[id]', params: { id: roomId, name: m.name } });
+                  }}
+                >
                   <Text variant="label-sm" style={{ color: theme.primary }}>Message</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.msgBtn, { backgroundColor: theme.surfaceContainerHigh }]}>
+                <TouchableOpacity 
+                  style={[styles.msgBtn, { backgroundColor: theme.surfaceContainerHigh }]}
+                  onPress={() => Alert.alert('Profile', 'Profile view coming soon!')}
+                >
                   <Text variant="label-sm" color="onSurfaceVariant">View Profile</Text>
                 </TouchableOpacity>
               </View>
@@ -673,9 +785,14 @@ export default function SquadUpScreen() {
       {showMatchModal && lastMatch && (
         <TouchableOpacity style={styles.modalBackdrop} onPress={dismissMatch} activeOpacity={1}>
           <Animated.View
-            style={[styles.matchModal, { backgroundColor: theme.surfaceSpaceElevated, transform: [{ scale: matchModalScale }] }]}
+            style={[styles.matchModal, { 
+              backgroundColor: theme.surfaceSpaceElevated, 
+              borderColor: theme.glassBorder,
+              borderWidth: 1,
+              transform: [{ scale: matchModalScale }] 
+            }]}
           >
-            <Text variant="headline-lg" style={{ textAlign: 'center', marginTop: 12 }}>You Matched!</Text>
+            <Text variant="headline-lg" color="primary" style={{ textAlign: 'center', marginTop: 12 }}>You Matched!</Text>
             <Text variant="body-md" color="onSurfaceVariant" style={{ textAlign: 'center', marginTop: 6 }}>
               You and {lastMatch.displayName} both liked each other
             </Text>
@@ -686,11 +803,11 @@ export default function SquadUpScreen() {
             </View>
             <TouchableOpacity
               style={[styles.modalBtn, { backgroundColor: theme.primary }]}
-              onPress={dismissMatch}
+              onPress={handleSendMessage}
             >
               <Text variant="label-md" style={{ color: theme.onPrimary }}>Send First Message</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={dismissMatch} style={{ marginTop: 12 }}>
+            <TouchableOpacity onPress={handleKeepDiscovering} style={{ marginTop: 12 }}>
               <Text variant="label-sm" color="onSurfaceVariant">Keep Discovering</Text>
             </TouchableOpacity>
           </Animated.View>
@@ -720,8 +837,10 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', zIndex: 100,
   },
   matchModal: {
-    margin: 24, borderRadius: 28, padding: 28,
+    margin: 24, borderRadius: 32, padding: 28,
     alignItems: 'center', width: SCREEN_W - 48,
+    shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 20, shadowOffset: { width: 0, height: 10 },
+    elevation: 10,
   },
   matchModalAvatars: { flexDirection: 'row', alignItems: 'center', gap: 20, marginTop: 20, marginBottom: 24 },
   modalBtn: { width: '100%', height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },

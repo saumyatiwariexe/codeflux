@@ -1,7 +1,7 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const { supabase } = require('./lib/supabase');
-
+const crypto = require('crypto');
 
 const MOCK_AVATARS = [
   'https://randomuser.me/api/portraits/men/32.jpg',
@@ -25,7 +25,7 @@ async function seedProfiles() {
   
   console.log(`Found ${users.length} users.`);
   
-  const profiles = users.map((u: any, i: number) => {
+  const profiles = users.map((u, i) => {
     // Generate a simple name based on the email part before @
     const namePart = u.lpu_email.split('@')[0].replace(/[0-9]/g, '');
     const displayName = namePart.charAt(0).toUpperCase() + namePart.slice(1);

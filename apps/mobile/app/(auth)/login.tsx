@@ -34,6 +34,15 @@ export default function LoginScreen() {
     // Bypassing real auth — just using local mock data
     const fakeToken = 'mock-dev-token-123';
     let mockUserId = email.split('@')[0] || 'mock-dev-user-id';
+    let mockEmail = email.toLowerCase();
+
+    if (email === 'admin' && password === 'admin') {
+      mockUserId = 'admin-id';
+      mockEmail = 'sameersingh@lpu.in'; // Main admin profile (Saumya/Sameer)
+    } else if (email === 'admin1' && password === 'admin1') {
+      mockUserId = 'admin1-id';
+      mockEmail = 'rishabhdubey@lpu.in'; // Rishabh Dubey profile
+    }
     
     // Generate a real UUID for new users so we can insert them into Supabase
     if (isNewUser) {
@@ -47,7 +56,7 @@ export default function LoginScreen() {
     
     await signIn({
       userId: mockUserId,
-      email: email.toLowerCase(),
+      email: mockEmail,
       token: fakeToken,
       isNewUser: isNewUser,
     });

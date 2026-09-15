@@ -45,6 +45,34 @@ const SAMEER_PROFILE = {
   stats: { events: 12, squads: 5, quests: 24, achievements: 8 },
 };
 
+const RISHABH_PROFILE = {
+  displayName: 'Rishabh Dubey',
+  avatarUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png', // generic avatar for now
+  handle: 'rishabh.dubey',
+  department: 'BCA',
+  year: 3,
+  degreeLevel: 'UG',
+  hostelBlock: 'Block 41',
+  bio: 'Data-minded builder. I turn noise into next steps. Exploring data, systems, and people.',
+  campusXp: 7200,
+  level: 5,
+  xpToNextLevel: 8000,
+  streakDays: 14,
+  squadVisibility: 'all',
+  skills: [
+    { name: 'Python', proficiency: 'expert' as const },
+    { name: 'Data Analytics', proficiency: 'expert' as const },
+    { name: 'Power BI', proficiency: 'intermediate' as const },
+    { name: 'Project Management', proficiency: 'expert' as const },
+    { name: 'JavaScript', proficiency: 'intermediate' as const },
+  ],
+  badges: [
+    { name: 'Data Explorer', emoji: '📊', rarity: 'epic' as const },
+    { name: 'Certified Analyst', emoji: '📜', rarity: 'rare' as const },
+  ],
+  stats: { events: 5, squads: 2, quests: 18, achievements: 8 },
+};
+
 export default function ProfileScreen() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((state) => state.getColors(systemColorScheme));
@@ -54,6 +82,7 @@ export default function ProfileScreen() {
   const user = useAuthStore((state) => state.user);
 
   const isSameer = user?.email?.toLowerCase().includes('sameersingh');
+  const isRishabh = user?.email?.toLowerCase().includes('rishabhdubey');
 
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -90,8 +119,8 @@ export default function ProfileScreen() {
     );
   }
 
-  // Fallback defaults if null, with SAMEER_PROFILE override
-  const p = isSameer ? SAMEER_PROFILE : (profile || {
+  // Fallback defaults if null, with SAMEER_PROFILE or RISHABH_PROFILE override
+  const p = isSameer ? SAMEER_PROFILE : isRishabh ? RISHABH_PROFILE : (profile || {
     displayName: 'Paladeium User',
     handle: 'user',
     department: 'Unknown',

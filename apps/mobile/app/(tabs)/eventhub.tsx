@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Image,
+  ScrollView, View, StyleSheet, useColorScheme, TouchableOpacity, Image, Alert, FlatList, Dimensions
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -50,7 +50,7 @@ const MOCK_EVENTS = [
     attendees: 320,
     status: 'upcoming',
     tags: ['AI', 'Security'],
-    isSpotlight: false,
+    isSpotlight: true,
     posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTk4NjdlYjdmMTA4MzUwN2ZiOGRjZjkvMTc4ODUyODAxMzE3Ml82NjYyNDE0ZjcwOWU4NGZjMTI5YWFhZTVmZWU2MGI1MC5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19'
   },
   {
@@ -80,7 +80,7 @@ const MOCK_EVENTS = [
     attendees: 800,
     status: 'upcoming',
     tags: ['Anime', 'Screening'],
-    isSpotlight: false,
+    isSpotlight: true,
     posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTlmZWJhY2ZlN2VlYThhYzZhMDU1ZWEvMTc4OTExMDY4MDMxN18wNjAzNWRiYzk2OTA0NDEyNmQzYjI3ZTk5OWVlOTUyZS5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19'
   },
   {
@@ -179,10 +179,35 @@ export default function EventHubScreen() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((state) => state.getColors(systemColorScheme));
   const [activeCategory, setActiveCategory] = useState<Category>('all');
+  const [spotlightIndex, setSpotlightIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+  const { width: SCREEN_W } = Dimensions.get('window');
 
   const filtered = MOCK_EVENTS.filter((e) => activeCategory === 'all' || e.category === activeCategory);
-  const spotlight = MOCK_EVENTS.find((e) => e.isSpotlight);
+  const activeSpotlights = filtered.filter((e) => e.isSpotlight);
   const rest = filtered.filter((e) => !e.isSpotlight);
+
+  useEffect(() => {
+    if (activeSpotlights.length <= 1) return;
+    const timer = setInterval(() => {
+      setSpotlightIndex((prev) => {
+        const nextIndex = (prev + 1) % activeSpotlights.length;
+        flatListRef.current?.scrollToIndex({ index: nextIndex, animated: true });
+        return nextIndex;
+      });
+    }, 4000);
+    return () => clearInterval(timer);
+  }, [activeSpotlights.length]);
+
+  const handleScroll = (event: any) => {
+    const scrollX = event.nativeEvent.contentOffset.x;
+    const index = Math.round(scrollX / (SCREEN_W - 40));
+    if (index >= 0 && index < activeSpotlights.length && index !== spotlightIndex) {
+      setSpotlightIndex(index);
+    }
+  };
+
+  const validIndex = spotlightIndex % (activeSpotlights.length || 1);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: theme.surfaceSpaceDeep }]} edges={['top']}>
@@ -215,72 +240,111 @@ export default function EventHubScreen() {
       <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 
         {/* ---- Spotlight Card ---- */}
-        {spotlight && (activeCategory === 'all' || spotlight.category === activeCategory) && (
+        {activeSpotlights.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
               <Text variant="headline-sm">Spotlight</Text>
               <Text variant="label-sm" color="secondary">Closing Soon!</Text>
             </View>
-            <TouchableOpacity onPress={() => router.push(`/event/${spotlight.id}`)}>
-              <Card variant="elevated" style={styles.spotlightCard}>
-                <View style={[styles.banner, { backgroundColor: theme.primaryContainer }]}>
-                  {spotlight.posterUrl ? (
-                    <Image source={{ uri: spotlight.posterUrl }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
-                  ) : (
-                    <>
-                      <Ionicons name="trophy" size={48} color={theme.primary} />
-                      <Text variant="headline-lg" style={{ color: theme.primary, marginTop: 8 }}>
-                        {spotlight.title}
+            <FlatList
+              ref={flatListRef}
+              data={activeSpotlights}
+              keyExtractor={(item) => item.id}
+              horizontal
+              pagingEnabled
+              showsHorizontalScrollIndicator={false}
+              onMomentumScrollEnd={handleScroll}
+              renderItem={({ item: spot }) => (
+                <TouchableOpacity 
+                  onPress={() => router.push(`/event/${spot.id}`)}
+                  style={{ width: SCREEN_W - 40 }}
+                  activeOpacity={0.9}
+                >
+                  <Card variant="elevated" style={styles.spotlightCard}>
+                    <View style={[styles.banner, { backgroundColor: theme.primaryContainer }]}>
+                      {spot.posterUrl ? (
+                        <Image source={{ uri: spot.posterUrl }} style={{ width: '100%', height: '100%', resizeMode: 'cover' }} />
+                      ) : (
+                        <>
+                          <Ionicons name="trophy" size={48} color={theme.primary} />
+                          <Text variant="headline-lg" style={{ color: theme.primary, marginTop: 8 }}>
+                            {spot.title}
+                          </Text>
+                        </>
+                      )}
+                    </View>
+                    <View style={styles.spotlightBody}>
+                      <Text variant="label-sm" color="onSurfaceVariant">{spot.organizer}</Text>
+                      <Text variant="headline-md" style={{ marginTop: 4 }}>{spot.title}</Text>
+
+                      <View style={styles.metaRow}>
+                        {[
+                          { label: 'Deadline', value: spot.deadline, color: theme.error },
+                          { label: 'Team', value: spot.teamSize, color: theme.onSurface },
+                          { label: 'Fee', value: spot.fee, color: theme.neonEmerald },
+                        ].map((m) => (
+                          <View key={m.label} style={[styles.metaBox, { backgroundColor: theme.surfaceContainerLow }]}>
+                            <Text variant="label-xs" color="onSurfaceVariant">{m.label}</Text>
+                            <Text variant="label-md" style={{ color: m.color }}>{m.value}</Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      {/* Prize */}
+                      <View style={[styles.prizeRow, { backgroundColor: theme.accentGold + '15' }]}>
+                        <Ionicons name="gift" size={18} color={theme.accentGold} />
+                        <Text variant="headline-sm" style={{ color: theme.accentGold, marginLeft: 8 }}>{spot.prize}</Text>
+                        <Text variant="label-sm" color="onSurfaceVariant" style={{ marginLeft: 4 }}>in prizes</Text>
+                      </View>
+
+                      {/* Tags */}
+                      <View style={styles.tagsRow}>
+                        {spot.tags.map((t) => (
+                          <View key={t} style={[styles.tag, { backgroundColor: theme.surfaceContainerHigh }]}>
+                            <Text variant="label-xs" color="onSurfaceVariant">{t}</Text>
+                          </View>
+                        ))}
+                      </View>
+
+                      <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                        <Button 
+                          title="Register with SquadUp Team" 
+                          style={{ flex: 1 }} 
+                          onPress={() => Alert.alert('Registration', 'Redirecting to event registration...')} 
+                        />
+                        <TouchableOpacity 
+                          style={[styles.shareBtn, { backgroundColor: theme.surfaceContainerHigh }]}
+                          onPress={() => Alert.alert('Share', 'Share functionality coming soon!')}
+                        >
+                          <Ionicons name="share-outline" size={20} color={theme.onSurface} />
+                        </TouchableOpacity>
+                      </View>
+
+                      <Text variant="label-sm" color="onSurfaceVariant" style={{ marginTop: 8, textAlign: 'center' }}>
+                        {spot.attendees.toLocaleString()} registered{spot.attendees > 800 ? ' · High demand' : ''}
                       </Text>
-                    </>
-                  )}
-                </View>
-                <View style={styles.spotlightBody}>
-                  <Text variant="label-sm" color="onSurfaceVariant">{spotlight.organizer}</Text>
-                  <Text variant="headline-md" style={{ marginTop: 4 }}>{spotlight.title}</Text>
+                    </View>
+                  </Card>
+                </TouchableOpacity>
+              )}
+            />
 
-                  <View style={styles.metaRow}>
-                    {[
-                      { label: 'Deadline', value: spotlight.deadline, color: theme.error },
-                      { label: 'Team', value: spotlight.teamSize, color: theme.onSurface },
-                      { label: 'Fee', value: spotlight.fee, color: theme.neonEmerald },
-                    ].map((m) => (
-                      <View key={m.label} style={[styles.metaBox, { backgroundColor: theme.surfaceContainerLow }]}>
-                        <Text variant="label-xs" color="onSurfaceVariant">{m.label}</Text>
-                        <Text variant="label-md" style={{ color: m.color }}>{m.value}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  {/* Prize */}
-                  <View style={[styles.prizeRow, { backgroundColor: theme.accentGold + '15' }]}>
-                    <Ionicons name="gift" size={18} color={theme.accentGold} />
-                    <Text variant="headline-sm" style={{ color: theme.accentGold, marginLeft: 8 }}>{spotlight.prize}</Text>
-                    <Text variant="label-sm" color="onSurfaceVariant" style={{ marginLeft: 4 }}>in prizes</Text>
-                  </View>
-
-                  {/* Tags */}
-                  <View style={styles.tagsRow}>
-                    {spotlight.tags.map((t) => (
-                      <View key={t} style={[styles.tag, { backgroundColor: theme.surfaceContainerHigh }]}>
-                        <Text variant="label-xs" color="onSurfaceVariant">{t}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
-                    <Button title="Register with SquadUp Team" style={{ flex: 1 }} />
-                    <TouchableOpacity style={[styles.shareBtn, { backgroundColor: theme.surfaceContainerHigh }]}>
-                      <Ionicons name="share-outline" size={20} color={theme.onSurface} />
-                    </TouchableOpacity>
-                  </View>
-
-                  <Text variant="label-sm" color="onSurfaceVariant" style={{ marginTop: 8, textAlign: 'center' }}>
-                    {spotlight.attendees.toLocaleString()} registered{spotlight.attendees > 800 ? ' · High demand' : ''}
-                  </Text>
-                </View>
-              </Card>
-            </TouchableOpacity>
+            {/* Carousel Dots */}
+            {activeSpotlights.length > 1 && (
+              <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6, marginTop: 12 }}>
+                {activeSpotlights.map((_, i) => (
+                  <View 
+                    key={i} 
+                    style={{ 
+                      width: i === validIndex ? 18 : 6, 
+                      height: 6, 
+                      borderRadius: 3, 
+                      backgroundColor: i === validIndex ? theme.primary : theme.surfaceContainerHighest 
+                    }} 
+                  />
+                ))}
+              </View>
+            )}
           </>
         )}
 
@@ -295,7 +359,7 @@ export default function EventHubScreen() {
             <Card variant="default" style={styles.eventCard}>
               <View style={styles.eventCardInner}>
                 {ev.posterUrl ? (
-                  <Image source={{ uri: ev.posterUrl }} style={styles.eventIcon} />
+                  <Image source={{ uri: ev.posterUrl }} style={styles.eventIcon} resizeMode="cover" />
                 ) : (
                   <View style={[styles.eventIcon, { backgroundColor: theme.primaryContainer }]}>
                     <Ionicons
@@ -340,7 +404,7 @@ const styles = StyleSheet.create({
   catTab: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 8, borderRadius: 20 },
   content: { paddingHorizontal: 20, paddingBottom: 100, gap: 12 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  spotlightCard: { overflow: 'hidden' },
+  spotlightCard: { overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
   banner: { height: 160, alignItems: 'center', justifyContent: 'center' },
   spotlightBody: { padding: 20 },
   metaRow: { flexDirection: 'row', gap: 8, marginTop: 16 },
