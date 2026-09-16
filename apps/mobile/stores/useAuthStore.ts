@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 export interface UserProfile {
-  clerkUserId: string;
+  id: string;
   email: string;
   displayName: string;
   avatarUrl: string | null;
@@ -21,12 +21,23 @@ interface AuthState {
   setUserProfile: (profile: UserProfile) => void;
   clearUserProfile: () => void;
   setLoadingProfile: (loading: boolean) => void;
+  mockLogin: () => void;
 }
 
+const MOCK_USER: UserProfile = {
+  id: 'mock-user-123',
+  email: 'test@lpu.in',
+  displayName: 'Test Student',
+  avatarUrl: null,
+  handle: '@teststudent',
+  campusXp: 1500,
+  onboardingComplete: true,
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  userProfile: null,
-  isAuthenticated: false,
+  user: MOCK_USER,
+  userProfile: MOCK_USER,
+  isAuthenticated: true,
   isLoadingProfile: false,
 
   setUser: (user) =>
@@ -54,4 +65,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     }),
 
   setLoadingProfile: (loading: boolean) => set({ isLoadingProfile: loading }),
+
+  mockLogin: () =>
+    set({
+      user: MOCK_USER,
+      userProfile: MOCK_USER,
+      isAuthenticated: true,
+      isLoadingProfile: false,
+    }),
 }));

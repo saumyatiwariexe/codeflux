@@ -4,7 +4,7 @@
 // and EduRev evidence attachments.
 // ============================================================
 
-import * as ImagePicker from 'expo-image-picker';
+
 import { supabase } from './supabase';
 
 // Storage bucket names — must exist in Supabase Dashboard → Storage
@@ -23,50 +23,7 @@ export interface UploadResult {
   error: string | null;
 }
 
-/**
- * Opens the device image picker (camera roll).
- * Requests media library permissions if not already granted.
- *
- * @returns The selected image URI, or null if cancelled / denied.
- */
-export async function pickImage(): Promise<string | null> {
-  const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (status !== 'granted') {
-    return null;
-  }
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ['images'],
-    allowsEditing: true,
-    quality: 0.8,
-    aspect: [1, 1],
-  });
-
-  if (result.canceled) return null;
-  return result.assets[0]?.uri ?? null;
-}
-
-/**
- * Opens the device camera to capture a new photo.
- * Requests camera permissions if not already granted.
- *
- * @returns The captured image URI, or null if cancelled / denied.
- */
-export async function captureImage(): Promise<string | null> {
-  const { status } = await ImagePicker.requestCameraPermissionsAsync();
-  if (status !== 'granted') {
-    return null;
-  }
-
-  const result = await ImagePicker.launchCameraAsync({
-    allowsEditing: true,
-    quality: 0.8,
-    aspect: [1, 1],
-  });
-
-  if (result.canceled) return null;
-  return result.assets[0]?.uri ?? null;
-}
 
 /**
  * Internal: converts a local file URI to a Blob and uploads it

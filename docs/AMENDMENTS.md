@@ -265,3 +265,24 @@ Firebase Auth OTP requires a working email relay and LPU SMTP integration to dem
 - Breaking changes: Yes — `firebase_uid` column renamed to `clerk_user_id` in existing `users` table migration. All RLS policies rewritten to match Clerk JWT structure. Run migration 005 to apply.
 
 >>>>>>> Stashed changes
+
+## AMD-009 — Remove Clerk Auth, Implement Mock Auth Bypass
+**Date:** 2026-09-17 00:22 IST
+**Requested by:** Team
+**Status:** ACTIVE
+
+### What Changed
+Clerk Authentication has been completely removed because it was causing build invalidation issues and adding unnecessary friction for the hackathon demo. A simple Mock Auth system (auto-login as a dummy user) has been implemented to bypass auth screens entirely.
+
+### Overrides
+- IMPLEMENTATION_GUIDE.md:Part 2 (Locked Decisions) — Auth row: "Clerk OAuth (Google + GitHub)" -> "Mock Auth Bypass"
+- AGENTS.md:Section 4 Locked Table — Auth row updated to Mock Auth Bypass
+- PRD.md:MODULE 10 (Profile) — Clerk sign out replaced with mock sign out
+
+### Rationale
+To ensure a stable build and allow rapid development and demoing without being blocked by third-party auth provider requirements.
+
+### Impact
+- Modules affected: Auth Flow, Profile
+- Files to update: IMPLEMENTATION_GUIDE.md, AGENTS.md, package.json
+- Breaking changes: Supabase RLS will no longer receive real Clerk JWTs. RLS may need to be disabled or mocked for the hackathon.

@@ -4,7 +4,6 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
-import { useClerk, useUser } from '@clerk/expo';
 import { Ionicons } from '@expo/vector-icons';
 import { Text } from '../../components/ui/Text';
 import { Card } from '../../components/ui/Card';
@@ -49,16 +48,14 @@ export default function ProfileScreen() {
   const themeMode = useThemeStore((state) => state.themeMode);
   const setThemeMode = useThemeStore((state) => state.setThemeMode);
   const [squadVisible, setSquadVisible] = useState(true);
-  const { signOut } = useClerk();
-  const { user: clerkUser } = useUser();
-  const signOutStore = useAuthStore((s) => s.signOut);
+  const signOutStore = useAuthStore((s) => s.clearUserProfile); // using generic clear
 
   const p = MOCK_PROFILE;
-  // Override with real Clerk user data where available
-  const displayName = clerkUser?.fullName ?? clerkUser?.username ?? p.displayName;
-  const email = clerkUser?.primaryEmailAddress?.emailAddress ?? '';
-  const handle = clerkUser?.username ?? p.handle;
-  const isEmailVerified = clerkUser?.primaryEmailAddress?.verification?.status === 'verified';
+  // Mock User info
+  const displayName = p.displayName;
+  const email = 'test@lpu.in';
+  const handle = p.handle;
+  const isEmailVerified = true;
   const xpPercent = p.campusXp / p.xpToNextLevel;
 
   const STAT_ITEMS = [
@@ -214,9 +211,8 @@ export default function ProfileScreen() {
         <TouchableOpacity
           style={[styles.signOutBtn, { borderColor: theme.error + '44' }]}
           onPress={async () => {
-            await signOutStore();
-            await signOut();
-            router.replace('/(auth)/welcome');
+            signOutStore();
+            // In bypass mode, there is no welcome screen to redirect to
           }}
         >
           <Ionicons name="log-out-outline" size={18} color={theme.error} style={{ marginRight: 8 }} />

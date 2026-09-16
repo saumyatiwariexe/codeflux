@@ -34,11 +34,32 @@ export const MapCanvas: React.FC<MapCanvasProps> = ({ activeLayer }) => {
         attributionEnabled={false}
       >
         <Mapbox.Camera
-          zoomLevel={15.5}
-          centerCoordinate={LPU_COORDINATES}
-          pitch={45}
+          followUserLocation={true}
+          followUserMode="course"
+          followZoomLevel={17}
+          followPitch={60}
           animationMode="flyTo"
           animationDuration={2000}
+        />
+
+        {/* 3D Buildings Layer */}
+        <Mapbox.VectorSource id="building-source" url="mapbox://mapbox.mapbox-streets-v8">
+          <Mapbox.FillExtrusionLayer
+            id="building3d"
+            sourceLayerID="building"
+            style={{
+              fillExtrusionOpacity: 0.8,
+              fillExtrusionHeight: ['get', 'height'],
+              fillExtrusionBase: ['get', 'min_height'],
+              fillExtrusionColor: systemColorScheme === 'dark' ? '#333333' : '#e0e0e0',
+            }}
+          />
+        </Mapbox.VectorSource>
+
+        {/* Player Location */}
+        <Mapbox.UserLocation 
+          visible={true}
+          showsUserHeadingIndicator={true}
         />
         
         <FogOfWar />

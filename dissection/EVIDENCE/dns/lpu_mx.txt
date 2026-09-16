@@ -1,0 +1,26 @@
+
+; <<>> DiG 9.20.23-1-Debian <<>> lpu.in MX
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 36017
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 5
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4000
+;; QUESTION SECTION:
+;lpu.in.				IN	MX
+
+;; ANSWER SECTION:
+lpu.in.			3563	IN	MX	0 lpu-in.mail.protection.outlook.com.
+
+;; ADDITIONAL SECTION:
+lpu-in.mail.protection.outlook.com. 10 IN A	52.101.137.0
+lpu-in.mail.protection.outlook.com. 10 IN A	52.101.137.2
+lpu-in.mail.protection.outlook.com. 10 IN A	52.101.124.117
+lpu-in.mail.protection.outlook.com. 10 IN A	52.101.157.80
+
+;; Query time: 103 msec
+;; SERVER: 10.255.255.254#53(10.255.255.254) (UDP)
+;; WHEN: Tue Sep 15 23:39:12 IST 2026
+;; MSG SIZE  rcvd: 149
+

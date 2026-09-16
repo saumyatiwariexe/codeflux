@@ -8,6 +8,7 @@ import { Badge } from '../../components/ui/Badge';
 import { Card } from '../../components/ui/Card';
 import { useThemeStore } from '../../stores/useThemeStore';
 import { MapCanvas } from '../../components/map/MapCanvas';
+import Mapbox from '@rnmapbox/maps';
 
 const { width: W, height: H } = Dimensions.get('window');
 
@@ -40,6 +41,17 @@ export default function CampusVerseScreen() {
   const drawerY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    // Request location permissions (primarily for Android)
+    const requestLocation = async () => {
+      try {
+        const isGranted = await Mapbox.requestAndroidLocationPermissions();
+        console.log('Location permission:', isGranted);
+      } catch (error) {
+        console.error('Failed to request location permission:', error);
+      }
+    };
+    requestLocation();
+
     // Pulse live event pins
     Animated.loop(
       Animated.sequence([

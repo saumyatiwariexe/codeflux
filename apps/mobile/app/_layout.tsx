@@ -10,35 +10,17 @@ import { Outfit_600SemiBold, Outfit_700Bold } from '@expo-google-fonts/outfit';
 import { useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { ClerkProvider, useAuth } from '@clerk/expo';
-import * as SecureStore from 'expo-secure-store';
 import { useThemeStore } from '../stores/useThemeStore';
+import { useAuthStore } from '../stores/useAuthStore';
 import { initApi } from '../services/api';
 import { setClerkToken } from '../services/supabase';
 
-const CLERK_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY ?? '';
-
-const tokenCache = {
-  async getToken(key: string) {
-    try {
-      return await SecureStore.getItemAsync(key);
-    } catch {
-      return null;
-    }
-  },
-  async saveToken(key: string, value: string) {
-    try {
-      await SecureStore.setItemAsync(key, value);
-    } catch {
-      // Silently fail — user will need to sign in again
-    }
-  },
-};
-
-function RootLayoutInner() {
+export default function RootLayout() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((s) => s.getColors(systemColorScheme));
-  const { isSignedIn, isLoaded, getToken } = useAuth();
+  
+  // Use Zustand Mock Auth instead of Clerk
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -48,40 +30,25 @@ function RootLayoutInner() {
     Outfit_700Bold,
   });
 
-  // Wire Clerk token into API and Supabase
+  // Mock API token setting
   useEffect(() => {
-    if (!isLoaded) return;
-
-    if (isSignedIn) {
-      const getAuthToken = async () => {
-        try {
-          const t = await getToken({ template: 'supabase' });
-          if (t) return t;
-        } catch {
-          // Fall back to standard session token
-        }
-        return await getToken();
-      };
-
+    if (isAuthenticated) {
+      // In mock auth, we just provide a dummy token
+      const getAuthToken = async () => 'mock-token-123';
       initApi(getAuthToken);
-      getAuthToken().then((t) => setClerkToken(t));
+      setClerkToken('mock-token-123');
     } else {
       setClerkToken(null);
     }
-  }, [isSignedIn, isLoaded]);
+  }, [isAuthenticated]);
 
-  // Auth guard: redirect once Clerk is loaded and fonts are ready
+  // Always start at tabs since mock auth is baked in
   useEffect(() => {
-    if (!isLoaded || !fontsLoaded) return;
+    if (!fontsLoaded) return;
+    router.replace('/(tabs)');
+  }, [fontsLoaded]);
 
-    if (!isSignedIn) {
-      router.replace('/(auth)/welcome');
-    } else {
-      router.replace('/(tabs)');
-    }
-  }, [isLoaded, isSignedIn, fontsLoaded]);
-
-  if (!fontsLoaded || !isLoaded) return null;
+  if (!fontsLoaded) return null;
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -94,7 +61,6 @@ function RootLayoutInner() {
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="event/[id]" options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="quest/index" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="edurev/index" options={{ animation: 'slide_from_bottom' }} />
@@ -102,16 +68,5 @@ function RootLayoutInner() {
         </Stack>
       </SafeAreaProvider>
     </GestureHandlerRootView>
-  );
-}
-
-export default function RootLayout() {
-  return (
-    <ClerkProvider
-      publishableKey={CLERK_PUBLISHABLE_KEY}
-      tokenCache={tokenCache}
-    >
-      <RootLayoutInner />
-    </ClerkProvider>
   );
 }

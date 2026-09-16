@@ -1,0 +1,15 @@
+{
+	"appId": "ums.lovely.university",
+	"appName": "LPUTouch",
+	"webDir": "www",
+	"bundledWebRuntime": false,
+	"plugins": {
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		}
+	}
+}
