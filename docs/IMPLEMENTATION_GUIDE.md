@@ -80,6 +80,17 @@ The CampusVerse map is the flagship feature. It must be:
 | `expo-sensors` | ~57.0.3 | Pedometer / Accelerometer for map avatar |
 | `@supabase/supabase-js` | ^2.116.0 | Real-time chat synchronization |
 
+<!-- Updated by AMD-008 -->
+**Added Libraries (AMD-008):**
+
+| Library | Version | Purpose |
+|---|---|---|
+| `@clerk/clerk-expo` | latest | OAuth auth (Google + GitHub) — replaces Firebase Auth |
+| `@supabase/supabase-js` | latest | Supabase DB + Storage client |
+| `expo-image-picker` | latest | Camera roll access for file uploads |
+| `expo-web-browser` | latest | Required by Clerk for OAuth redirect |
+| `expo-secure-store` | latest | Clerk session token storage (more secure than AsyncStorage) |
+
 **Removed Libraries (AMD-004):**
 
 | Library | Reason Removed |

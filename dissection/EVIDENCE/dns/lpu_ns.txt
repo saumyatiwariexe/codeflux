@@ -1,0 +1,35 @@
+
+; <<>> DiG 9.20.23-1-Debian <<>> lpu.in NS
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 61677
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 13
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4000
+;; QUESTION SECTION:
+;lpu.in.				IN	NS
+
+;; ANSWER SECTION:
+lpu.in.			21563	IN	NS	wren.ns.cloudflare.com.
+lpu.in.			21563	IN	NS	jihoon.ns.cloudflare.com.
+
+;; ADDITIONAL SECTION:
+wren.ns.cloudflare.com.	21563	IN	A	172.64.34.141
+wren.ns.cloudflare.com.	21563	IN	A	108.162.194.141
+wren.ns.cloudflare.com.	21563	IN	A	162.159.38.141
+wren.ns.cloudflare.com.	21563	IN	AAAA	2606:4700:50::a29f:268d
+wren.ns.cloudflare.com.	21563	IN	AAAA	2a06:98c1:50::ac40:228d
+wren.ns.cloudflare.com.	21563	IN	AAAA	2803:f800:50::6ca2:c28d
+jihoon.ns.cloudflare.com. 21563	IN	A	162.159.44.233
+jihoon.ns.cloudflare.com. 21563	IN	A	172.64.35.233
+jihoon.ns.cloudflare.com. 21563	IN	A	108.162.195.233
+jihoon.ns.cloudflare.com. 21563	IN	AAAA	2803:f800:50::6ca2:c3e9
+jihoon.ns.cloudflare.com. 21563	IN	AAAA	2606:4700:58::a29f:2ce9
+jihoon.ns.cloudflare.com. 21563	IN	AAAA	2a06:98c1:50::ac40:23e9
+
+;; Query time: 12 msec
+;; SERVER: 10.255.255.254#53(10.255.255.254) (UDP)
+;; WHEN: Tue Sep 15 23:39:12 IST 2026
+;; MSG SIZE  rcvd: 356
+

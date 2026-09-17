@@ -1,0 +1,11 @@
+HTTP/2 200 
+content-length: 15218
+content-type: text/html
+last-modified: Fri, 13 Mar 2026 10:48:52 GMT
+accept-ranges: bytes
+etag: "c455ffbd6b2dc1:0"
+server: Microsoft-IIS/10.0
+x-powered-by: ASP.NET
+x-frame-options: SAMEORIGIN
+date: Tue, 15 Sep 2026 18:09:09 GMT
+

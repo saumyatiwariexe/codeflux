@@ -1,189 +1,109 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { ApiResponse, SwipeDeckCard, SquadMatch, Profile, ProfileSkill, Skill } from '../../../../shared/src/types';
+import { ApiResponse, SwipeDeckCard, SquadMatch } from '../../../../shared/src/types';
 import { calculateMatchScore, getSkillComplementPercent } from '../../services/matching';
 import { supabase } from '../../lib/supabase';
-import { rankCandidatesWithAI, CandidateWithScore } from '../../services/ai';
+import { requireAuth, JwtPayload } from '../../lib/auth';
+import { mapProfileRow, PROFILE_SELECT_WITH_JOINS } from '../../lib/mappers';
 
 const swipeSchema = z.object({
-  targetId: z.string(),
+  targetId: z.string().uuid(),
   action: z.enum(['like', 'pass', 'super']),
   context: z.enum(['hackathon', 'project', 'general', 'internship']).default('general'),
-});
-
-const deckQuerySchema = z.object({
-  context: z.string().optional().default('general'),
-  limit: z.coerce.number().optional().default(10),
 });
 
 /**
  * SquadUp routes: swipe deck, swipe actions, matches, teams
  */
 const squadRoutes: FastifyPluginAsync = async (fastify) => {
-  // Auth guard helper
-  const requireAuth = async (request: any, reply: any) => {
-    try {
-      await request.jwtVerify();
-    } catch {
-      reply.status(401).send({ success: false, data: null, error: 'Unauthorized' });
-    }
-  };
-
   /**
    * GET /api/v1/squad/deck
-   * Returns a paginated, AI-ranked swipe deck for the current user.
-   * Excludes already-swiped profiles.
+   * Real, AI-free (heuristic) ranked deck: excludes self and anyone already swiped on.
    */
-  fastify.get<{ Querystring: z.infer<typeof deckQuerySchema> }>('/deck', { preHandler: requireAuth }, async (request: any, reply) => {
-    const { userId } = request.user as { userId: string }; // This is firebase_uid inside the token 'sub'
-    const query = deckQuerySchema.parse(request.query);
+  fastify.get('/deck', { preHandler: requireAuth }, async (request, reply) => {
+    const { userId } = request.user as JwtPayload;
 
-    // 1. Get the current user's profile ID
-    const { data: userRecord, error: userErr } = await supabase
-      .from('users')
-      .select('id')
-      .eq('firebase_uid', userId)
-      .single();
+    const [{ data: me, error: meErr }, { data: swiped, error: swipedErr }] = await Promise.all([
+      supabase.from('profiles').select(PROFILE_SELECT_WITH_JOINS).eq('id', userId).maybeSingle(),
+      supabase.from('squad_swipes').select('swiped_id').eq('swiper_id', userId),
+    ]);
 
-    if (userErr || !userRecord) {
-      return reply.status(404).send({ success: false, data: null, error: 'User not found' });
+    if (meErr || swipedErr) {
+      fastify.log.error(meErr ?? swipedErr);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+    if (!me) {
+      return reply.status(400).send({ success: false, data: null, error: 'Complete your profile before using SquadUp' });
     }
 
-    const currentProfileId = userRecord.id;
+    const excludeIds = [userId, ...(swiped ?? []).map((s) => s.swiped_id)];
 
-    // 2. Fetch current user profile with skills
-    const { data: currentProfileData, error: profileErr } = await supabase
+    const { data: candidates, error: candErr } = await supabase
       .from('profiles')
-      .select(`
-        *,
-        profile_skills (
-          proficiency,
-          skills (*)
-        )
-      `)
-      .eq('id', currentProfileId)
-      .single();
+      .select(PROFILE_SELECT_WITH_JOINS)
+      .not('id', 'in', `(${excludeIds.join(',')})`)
+      .eq('onboarding_complete', true)
+      .limit(20);
 
-    if (profileErr || !currentProfileData) {
-      return reply.status(404).send({ success: false, data: null, error: 'Profile not found' });
+    if (candErr) {
+      fastify.log.error(candErr);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
     }
 
-    const currentUser: Profile = mapProfile(currentProfileData);
+    const currentProfile = mapProfileRow(me);
+    const deck: SwipeDeckCard[] = (candidates ?? [])
+      .map(mapProfileRow)
+      .map((profile) => ({
+        ...profile,
+        matchScore: calculateMatchScore(currentProfile, profile),
+        skillComplementScore: getSkillComplementPercent(currentProfile, profile),
+        mutualClubs: [],
+      }))
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, 10);
 
-    // 3. Fetch IDs of profiles we have already swiped on
-    const { data: swipes } = await supabase
-      .from('squad_swipes')
-      .select('swiped_id')
-      .eq('swiper_id', currentProfileId);
-
-    const swipedIds = (swipes || []).map(s => s.swiped_id);
-    swipedIds.push(currentProfileId); // exclude self
-
-    // 4. Fetch candidates from DB
-    // In production, you might want to paginate or filter by specific criteria first to avoid large payload
-    const { data: candidateData, error: candidatesErr } = await supabase
-      .from('profiles')
-      .select(`
-        *,
-        profile_skills (
-          proficiency,
-          skills (*)
-        )
-      `)
-      .not('id', 'in', `(${swipedIds.join(',')})`)
-      .eq('squad_visibility', 'all') // simple visibility filter
-      .limit(50); // Fetch up to 50 for heuristic scoring
-
-    if (candidatesErr || !candidateData) {
-      return reply.status(500).send({ success: false, data: null, error: 'Failed to fetch candidates' });
-    }
-
-    const candidates: Profile[] = candidateData.map(mapProfile);
-
-    // 5. Heuristic scoring (DB score)
-    const heuristicallyScored: CandidateWithScore[] = candidates.map(c => {
-      const dbScore = calculateMatchScore(currentUser, c);
-      return { ...c, dbScore };
-    });
-
-    // Take top 3 heuristically scored for AI ranking to strictly save Gemini tokens
-    heuristicallyScored.sort((a, b) => b.dbScore - a.dbScore);
-    const topCandidates = heuristicallyScored.slice(0, Math.min(3, query.limit));
-
-    // 6. AI Re-ranking
-    const aiRanked = await rankCandidatesWithAI(currentUser, topCandidates, query.context);
-
-    // Format for frontend response
-    const deck: SwipeDeckCard[] = aiRanked.slice(0, query.limit).map(c => ({
-      ...c,
-      matchScore: c.matchScore || c.dbScore,
-      skillComplementScore: getSkillComplementPercent(currentUser, c),
-      mutualClubs: [], // Placeholder, could join clubs in the future
-      matchReason: c.matchReason,
-    }));
-
-    return reply.send({ success: true, data: deck, error: null });
+    return reply.send({ success: true, data: deck, error: null } satisfies ApiResponse<SwipeDeckCard[]>);
   });
 
   /**
    * POST /api/v1/squad/swipe
-   * Records a swipe action and checks for mutual match.
+   * Records a swipe and creates a squad_match row on mutual like.
    */
-  fastify.post<{ Body: z.infer<typeof swipeSchema> }>('/swipe', { preHandler: requireAuth }, async (request: any, reply) => {
+  fastify.post<{ Body: z.infer<typeof swipeSchema> }>('/swipe', { preHandler: requireAuth }, async (request, reply) => {
     const body = swipeSchema.safeParse(request.body);
     if (!body.success) {
       return reply.status(400).send({ success: false, data: null, error: body.error.errors[0].message });
     }
 
-    const { userId } = request.user as { userId: string };
+    const { userId } = request.user as JwtPayload;
     const { targetId, action, context } = body.data;
 
-    // Get DB profile ID
-    const { data: userRecord } = await supabase.from('users').select('id').eq('firebase_uid', userId).single();
-    if (!userRecord) return reply.status(404).send({ success: false, data: null, error: 'User not found' });
-    
-    const swiperId = userRecord.id;
-
-    // 1. Record the swipe
-    const { error: swipeErr } = await supabase
+    const { error: insertErr } = await supabase
       .from('squad_swipes')
-      .insert({
-        swiper_id: swiperId,
-        swiped_id: targetId,
-        action,
-        context
-      });
+      .upsert({ swiper_id: userId, swiped_id: targetId, action, context }, { onConflict: 'swiper_id,swiped_id' });
 
-    if (swipeErr) {
-      // Ignore conflict errors (already swiped)
-      if (swipeErr.code !== '23505') {
-        return reply.status(500).send({ success: false, data: null, error: 'Failed to record swipe' });
-      }
+    if (insertErr) {
+      fastify.log.error(insertErr);
+      return reply.status(500).send({ success: false, data: null, error: 'Failed to record swipe' });
     }
 
     let isMatch = false;
-
-    // 2. Check for mutual match
     if (action !== 'pass') {
-      const { data: reciprocalSwipe } = await supabase
+      const { data: reciprocal } = await supabase
         .from('squad_swipes')
-        .select('id, action')
+        .select('action')
         .eq('swiper_id', targetId)
-        .eq('swiped_id', swiperId)
+        .eq('swiped_id', userId)
         .neq('action', 'pass')
-        .single();
+        .maybeSingle();
 
-      if (reciprocalSwipe) {
+      if (reciprocal) {
         isMatch = true;
-        
-        // Insert match
-        await supabase
+        const [userA, userB] = [userId, targetId].sort();
+        const { error: matchErr } = await supabase
           .from('squad_matches')
-          .insert({
-            user_a: swiperId < targetId ? swiperId : targetId,
-            user_b: swiperId < targetId ? targetId : swiperId,
-            status: 'matched'
-          });
+          .upsert({ user_a: userA, user_b: userB, status: 'matched' }, { onConflict: 'user_a,user_b' });
+        if (matchErr) fastify.log.error(matchErr);
       }
     }
 
@@ -191,104 +111,41 @@ const squadRoutes: FastifyPluginAsync = async (fastify) => {
       success: true,
       data: { isMatch, action, targetId },
       error: null,
-    });
+    } satisfies ApiResponse<{ isMatch: boolean; action: string; targetId: string }>);
   });
 
   /**
    * GET /api/v1/squad/matches
-   * Returns all mutual matches for the current user.
    */
-  fastify.get('/matches', { preHandler: requireAuth }, async (request: any, reply) => {
-    const { userId } = request.user as { userId: string };
-    
-    const { data: userRecord } = await supabase.from('users').select('id').eq('firebase_uid', userId).single();
-    if (!userRecord) return reply.status(404).send({ success: false, data: null, error: 'User not found' });
-    
-    const profileId = userRecord.id;
+  fastify.get('/matches', { preHandler: requireAuth }, async (request, reply) => {
+    const { userId } = request.user as JwtPayload;
 
-    // Query matches where user is user_a OR user_b
-    const { data: matchesData, error: matchErr } = await supabase
+    const { data, error } = await supabase
       .from('squad_matches')
-      .select(`
-        id, matched_at, status, team_id,
-        user_a, user_b
-      `)
-      .or(`user_a.eq.${profileId},user_b.eq.${profileId}`);
+      .select(`*, profileA:profiles!squad_matches_user_a_fkey(${PROFILE_SELECT_WITH_JOINS}), profileB:profiles!squad_matches_user_b_fkey(${PROFILE_SELECT_WITH_JOINS})`)
+      .or(`user_a.eq.${userId},user_b.eq.${userId}`)
+      .order('matched_at', { ascending: false });
 
-    if (matchErr || !matchesData) {
-      return reply.status(500).send({ success: false, data: null, error: 'Failed to fetch matches' });
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
     }
 
-    // Now fetch the other profiles
-    const otherProfileIds = matchesData.map(m => m.user_a === profileId ? m.user_b : m.user_a);
-    
-    let profilesMap = new Map<string, Profile>();
-    if (otherProfileIds.length > 0) {
-      const { data: otherProfilesData } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          profile_skills (
-            proficiency,
-            skills (*)
-          )
-        `)
-        .in('id', otherProfileIds);
-        
-      if (otherProfilesData) {
-        otherProfilesData.forEach(p => {
-          profilesMap.set(p.id, mapProfile(p));
-        });
-      }
-    }
-
-    const formattedMatches: SquadMatch[] = matchesData.map(m => {
-      const otherId = m.user_a === profileId ? m.user_b : m.user_a;
+    const matches: SquadMatch[] = (data ?? []).map((row: any) => {
+      const otherRow = row.user_a === userId ? row.profileB : row.profileA;
       return {
-        id: m.id,
-        userA: m.user_a,
-        userB: m.user_b,
-        matchedAt: m.matched_at,
-        teamId: m.team_id,
-        status: m.status as any,
-        otherProfile: profilesMap.get(otherId)
+        id: row.id,
+        userA: row.user_a,
+        userB: row.user_b,
+        matchedAt: row.matched_at,
+        teamId: row.team_id ?? undefined,
+        status: row.status,
+        otherProfile: otherRow ? mapProfileRow(otherRow) : undefined,
       };
     });
 
-    return reply.send({ success: true, data: formattedMatches, error: null });
+    return reply.send({ success: true, data: matches, error: null } satisfies ApiResponse<SquadMatch[]>);
   });
 };
-
-// Helper function to map DB profile to frontend Profile type
-function mapProfile(data: any): Profile {
-  return {
-    id: data.id,
-    handle: data.handle,
-    displayName: data.display_name,
-    avatarUrl: data.avatar_url,
-    bio: data.bio,
-    department: data.department,
-    year: data.year,
-    degreeLevel: data.degree_level,
-    stream: data.stream,
-    pronouns: data.pronouns,
-    hostelBlock: data.hostel_block,
-    isDayScholar: data.is_day_scholar,
-    campusXp: data.campus_xp,
-    level: data.level,
-    squadVisibility: data.squad_visibility,
-    onboardingComplete: data.onboarding_complete,
-    skills: (data.profile_skills || []).map((ps: any) => ({
-      skillId: ps.skills.id,
-      proficiency: ps.proficiency,
-      skill: {
-        id: ps.skills.id,
-        name: ps.skills.name,
-        category: ps.skills.category,
-        icon: ps.skills.icon,
-      } as Skill
-    })),
-  };
-}
 
 export default squadRoutes;

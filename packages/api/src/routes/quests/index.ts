@@ -1,138 +1,158 @@
 import { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
 import { ApiResponse, Quest, QuestProgress } from '../../../../shared/src/types';
 import { supabase } from '../../lib/supabase';
+import { requireAuth, JwtPayload } from '../../lib/auth';
+import { distanceMeters } from '../../lib/geo';
+
+function mapQuest(row: any): Quest {
+  return {
+    id: row.id,
+    title: row.title,
+    description: row.description ?? undefined,
+    type: row.type,
+    xpReward: row.xp_reward,
+    badgeId: row.badge_id ?? undefined,
+    edurevLinkage: row.edurev_linkage,
+    locationRequired: row.location_required,
+    targetLocation: row.target_location ?? undefined,
+    completionCriteria: row.completion_criteria ?? undefined,
+    expiresAt: row.expires_at ?? undefined,
+    isActive: row.is_active,
+  };
+}
+
+const verifySchema = z.object({ lat: z.number(), lng: z.number() });
 
 const questRoutes: FastifyPluginAsync = async (fastify) => {
-  const requireAuth = async (request: any, reply: any) => {
-    try { await request.jwtVerify(); } catch { reply.status(401).send({ success: false, data: null, error: 'Unauthorized' }); }
-  };
-
-  /** GET /api/v1/quests — active quests for user */
-  fastify.get('/', { preHandler: requireAuth }, async (request: any, reply) => {
-    const { data: quests, error: questsError } = await supabase
+  /** GET /api/v1/quests — active quests, for CampusVerse's Discovery Layer to render as map spawns (AMD-006) */
+  fastify.get('/', { preHandler: requireAuth }, async (_request, reply) => {
+    const { data, error } = await supabase
       .from('quests')
       .select('*')
-      .eq('is_active', true);
+      .eq('is_active', true)
+      .order('created_at', { ascending: false });
 
-    if (questsError) return reply.status(500).send({ success: false, data: null, error: questsError.message });
-
-    const { data: progress, error: progressError } = await supabase
-      .from('quest_progress')
-      .select('*')
-      .eq('profile_id', request.user.userId);
-
-    if (progressError) return reply.status(500).send({ success: false, data: null, error: progressError.message });
-
-    const mappedQuests: any[] = (quests || []).map((q: any) => {
-      const userProgress = (progress || []).find((p: any) => p.quest_id === q.id);
-      return {
-        id: q.id,
-        title: q.title,
-        description: q.description,
-        type: q.type,
-        xpReward: q.xp_reward,
-        edurevLinkage: q.edurev_linkage,
-        locationRequired: q.location_required,
-        targetLocation: q.target_location ? {
-          lat: q.target_location.lat,
-          lng: q.target_location.lng,
-          radiusMeters: q.target_location.radius_meters
-        } : undefined,
-        isActive: q.is_active,
-        expiresAt: q.expires_at,
-        status: userProgress ? userProgress.status : 'available',
-        progress: userProgress ? 1 : 0,
-        total: 1,
-        icon: q.type === 'explorer' ? '🧭' : q.type === 'academic' ? '📚' : q.type === 'social' ? '🤝' : '⭐',
-        timeLeft: q.expires_at ? 'Ends soon' : undefined
-      };
-    });
-
-    return reply.send({ success: true, data: mappedQuests, error: null });
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
+    return reply.send({ success: true, data: (data ?? []).map(mapQuest), error: null } satisfies ApiResponse<Quest[]>);
   });
 
   /** GET /api/v1/quests/leaderboard */
   fastify.get('/leaderboard', async (_request, reply) => {
-    const { data: profiles, error } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
-      .select('id, handle, display_name, department, campus_xp, level')
+      .select('handle, display_name, campus_xp, level, department')
       .order('campus_xp', { ascending: false })
-      .limit(20);
+      .limit(10);
 
-    if (error) return reply.status(500).send({ success: false, data: null, error: error.message });
+    if (error) {
+      fastify.log.error(error);
+      return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+    }
 
-    const leaderboard = (profiles || []).map((p: any, index: number) => ({
-      rank: index + 1,
-      handle: p.handle,
-      displayName: p.display_name,
-      campusXp: p.campus_xp,
-      level: p.level,
-      department: p.department || 'Unknown'
+    const leaderboard = (data ?? []).map((row, i) => ({
+      rank: i + 1,
+      handle: row.handle,
+      displayName: row.display_name,
+      campusXp: row.campus_xp,
+      level: row.level,
+      department: row.department,
     }));
 
     return reply.send({ success: true, data: leaderboard, error: null });
   });
 
-  /** POST /api/v1/quests/:id/verify — submit location for quest completion */
-  fastify.post<{ Params: { id: string }; Body: { lat: number; lng: number } }>(
+  /**
+   * POST /api/v1/quests/:id/verify — GPS-radius check, awards XP, and (per AMD-007)
+   * auto-generates EduRev evidence for edurev_linkage quests instead of requiring manual submission.
+   */
+  fastify.post<{ Params: { id: string }; Body: z.infer<typeof verifySchema> }>(
     '/:id/verify',
     { preHandler: requireAuth },
-    async (request: any, reply) => {
-      const { id: questId } = request.params;
-      const userId = request.user.userId;
+    async (request, reply) => {
+      const { userId } = request.user as JwtPayload;
+      const body = verifySchema.safeParse(request.body);
+      if (!body.success) {
+        return reply.status(400).send({ success: false, data: null, error: body.error.errors[0].message });
+      }
 
-      // 1. Fetch quest
-      const { data: questData, error: qError } = await supabase.from('quests').select('*').eq('id', questId).single();
-      if (qError || !questData) return reply.status(404).send({ success: false, data: null, error: 'Quest not found' });
-
-      // 2. Check existing progress
-      const { data: existingProgress } = await supabase
-        .from('quest_progress')
+      const { data: quest, error: questErr } = await supabase
+        .from('quests')
         .select('*')
-        .eq('quest_id', questId)
-        .eq('profile_id', userId)
-        .single();
-        
-      if (existingProgress && existingProgress.status === 'completed') {
-        return reply.status(400).send({ success: false, data: null, error: 'Quest already completed' });
+        .eq('id', request.params.id)
+        .maybeSingle();
+      if (questErr) {
+        fastify.log.error(questErr);
+        return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+      }
+      if (!quest) return reply.status(404).send({ success: false, data: null, error: 'Quest not found' });
+
+      if (quest.location_required) {
+        const target = quest.target_location as { lat: number; lng: number; radius_meters: number } | null;
+        if (!target) {
+          return reply.status(400).send({ success: false, data: null, error: 'Quest has no target location configured' });
+        }
+        const dist = distanceMeters({ lat: body.data.lat, lng: body.data.lng }, { lat: target.lat, lng: target.lng });
+        if (dist > target.radius_meters) {
+          return reply.status(400).send({
+            success: false,
+            data: null,
+            error: `You're ${Math.round(dist)}m away — get within ${target.radius_meters}m to complete this quest.`,
+          });
+        }
       }
 
-      // 3. Mark completed and award XP
-      const xpToAward = questData.xp_reward;
-      const { data: progressData, error: pError } = await supabase.from('quest_progress').upsert({
-        id: existingProgress?.id || require('crypto').randomUUID(),
-        profile_id: userId,
-        quest_id: questId,
-        status: 'completed',
-        xp_awarded: xpToAward,
-        completed_at: new Date().toISOString()
-      }).select().single();
-
-      if (pError) return reply.status(500).send({ success: false, data: null, error: pError.message });
-
-      // 4. Update user Profile XP
-      const { data: userProfile, error: profileErr } = await supabase
-        .from('profiles')
-        .select('campus_xp, level')
-        .eq('id', userId)
+      const { data: progress, error: progressErr } = await supabase
+        .from('quest_progress')
+        .upsert(
+          {
+            profile_id: userId,
+            quest_id: quest.id,
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+            xp_awarded: quest.xp_reward,
+          },
+          { onConflict: 'profile_id,quest_id' }
+        )
+        .select('*')
         .single();
 
-      if (userProfile) {
-        const newXp = (userProfile.campus_xp || 0) + xpToAward;
-        const newLevel = Math.floor(newXp / 1000) + 1; // Simple level calc
-        await supabase.from('profiles').update({ campus_xp: newXp, level: newLevel }).eq('id', userId);
+      if (progressErr || !progress) {
+        fastify.log.error(progressErr);
+        return reply.status(500).send({ success: false, data: null, error: 'Failed to record quest completion' });
       }
 
-      const progress: QuestProgress = {
-        id: progressData.id,
-        profileId: userId,
-        questId: questId,
-        status: 'completed',
-        completedAt: progressData.completed_at,
-        xpAwarded: progressData.xp_awarded,
+      const { data: profile } = await supabase.from('profiles').select('campus_xp').eq('id', userId).single();
+      if (profile) {
+        await supabase.from('profiles').update({ campus_xp: profile.campus_xp + quest.xp_reward }).eq('id', userId);
+      }
+
+      // AMD-007: quest completion is the primary data path into EduRev Connect — auto-submit evidence.
+      if (quest.edurev_linkage) {
+        await supabase.from('edurev_achievements').insert({
+          profile_id: userId,
+          title: `Quest completed: ${quest.title}`,
+          description: quest.description ?? '',
+          category: 'MOOC',
+          status: 'submitted',
+          xp_awarded: quest.xp_reward,
+        });
+      }
+
+      const result: QuestProgress = {
+        id: progress.id,
+        profileId: progress.profile_id,
+        questId: progress.quest_id,
+        status: progress.status,
+        completedAt: progress.completed_at ?? undefined,
+        xpAwarded: progress.xp_awarded ?? undefined,
+        quest: mapQuest(quest),
       };
 
-      return reply.send({ success: true, data: progress, error: null } satisfies ApiResponse<QuestProgress>);
+      return reply.send({ success: true, data: result, error: null } satisfies ApiResponse<QuestProgress>);
     }
   );
 };

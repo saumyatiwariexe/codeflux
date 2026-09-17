@@ -1,17 +1,25 @@
 // ============================================================
-// Paladeium — API Service Layer (Mock-first)
-// Replace BASE_URL with your Railway deployment URL
+// Paladeium — API Service Layer (AMD-008)
+// Token is now fetched from Clerk on each request instead of
+// being stored statically. Pass a token getter via initApi().
 // ============================================================
 
 const BASE_URL = __DEV__
   ? 'http://localhost:3000/api/v1'
   : 'https://campus-pulse-api.railway.app/api/v1';
 
-let authToken: string | null = null;
+/** Clerk's `getToken()` function injected at app start */
+let _getToken: (() => Promise<string | null>) | null = null;
 
-/** Call this after sign-in to attach the token to all future requests */
-export function setAuthToken(token: string | null) {
-  authToken = token;
+/**
+ * Call this once in the root layout after Clerk has loaded.
+ * Pass Clerk's `getToken` so every API request automatically
+ * attaches a fresh JWT without needing a manual setAuthToken call.
+ *
+ * @param getToken - Async function that returns the current Clerk session token
+ */
+export function initApi(getToken: () => Promise<string | null>): void {
+  _getToken = getToken;
 }
 
 async function request<T>(
@@ -23,8 +31,11 @@ async function request<T>(
     ...(options.headers as Record<string, string>),
   };
 
-  if (authToken) {
-    headers['Authorization'] = `Bearer ${authToken}`;
+  if (_getToken) {
+    const token = await _getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
   }
 
   try {
@@ -39,23 +50,6 @@ async function request<T>(
     };
   }
 }
-
-// ---- Auth ----
-export const authApi = {
-  sendOtp: (email: string) =>
-    request<{ expiresIn: number; devOtp?: string }>('/auth/send-otp', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    }),
-
-  verifyOtp: (email: string, otp: string) =>
-    request<{ token: string; userId: string; isNewUser: boolean }>('/auth/verify-otp', {
-      method: 'POST',
-      body: JSON.stringify({ email, otp }),
-    }),
-
-  logout: () => request<void>('/auth/logout', { method: 'DELETE' }),
-};
 
 // ---- Users ----
 export const usersApi = {

@@ -1,64 +1,76 @@
 import { create } from 'zustand';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export interface AuthUser {
-  userId: string;
+export interface UserProfile {
+  id: string;
   email: string;
-  token: string;
-  isNewUser: boolean;
+  displayName: string;
+  avatarUrl: string | null;
+  handle: string | null;
+  campusXp: number;
+  onboardingComplete: boolean;
 }
+
+export type AuthUser = UserProfile;
 
 interface AuthState {
-  user: AuthUser | null;
+  user: UserProfile | null;
+  userProfile: UserProfile | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  isHydrated: boolean;
-
-  // Actions
-  signIn: (user: AuthUser) => Promise<void>;
-  signOut: () => Promise<void>;
-  hydrateFromStorage: () => Promise<void>;
+  isLoadingProfile: boolean;
+  setUser: (user: UserProfile | null) => void;
+  setUserProfile: (profile: UserProfile) => void;
+  clearUserProfile: () => void;
+  setLoadingProfile: (loading: boolean) => void;
+  mockLogin: () => void;
 }
 
+const MOCK_USER: UserProfile = {
+  id: 'mock-user-123',
+  email: 'test@lpu.in',
+  displayName: 'Test Student',
+  avatarUrl: null,
+  handle: '@teststudent',
+  campusXp: 1500,
+  onboardingComplete: true,
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
-  user: null,
-  isAuthenticated: false,
-  isLoading: false,
-  isHydrated: false,
+  user: MOCK_USER,
+  userProfile: MOCK_USER,
+  isAuthenticated: true,
+  isLoadingProfile: false,
 
-  /**
-   * Signs the user in by persisting their auth info to AsyncStorage
-   * and updating global state.
-   */
-  signIn: async (user: AuthUser) => {
-    await AsyncStorage.setItem('campus_pulse_auth', JSON.stringify(user));
-    set({ user, isAuthenticated: true, isLoading: false });
-  },
+  setUser: (user) =>
+    set({
+      user,
+      userProfile: user,
+      isAuthenticated: user !== null,
+      isLoadingProfile: false,
+    }),
 
-  /**
-   * Signs the user out, clearing persisted storage and global state.
-   */
-  signOut: async () => {
-    await AsyncStorage.removeItem('campus_pulse_auth');
-    set({ user: null, isAuthenticated: false });
-  },
+  setUserProfile: (profile: UserProfile) =>
+    set({
+      user: profile,
+      userProfile: profile,
+      isAuthenticated: true,
+      isLoadingProfile: false,
+    }),
 
-  /**
-   * Hydrates auth state from AsyncStorage on app startup.
-   * Call this in the root layout's useEffect.
-   */
-  hydrateFromStorage: async () => {
-    set({ isLoading: true });
-    try {
-      const stored = await AsyncStorage.getItem('campus_pulse_auth');
-      if (stored) {
-        const user: AuthUser = JSON.parse(stored);
-        set({ user, isAuthenticated: true });
-      }
-    } catch {
-      // Storage read failed — start fresh
-    } finally {
-      set({ isLoading: false, isHydrated: true });
-    }
-  },
+  clearUserProfile: () =>
+    set({
+      user: null,
+      userProfile: null,
+      isAuthenticated: false,
+      isLoadingProfile: false,
+    }),
+
+  setLoadingProfile: (loading: boolean) => set({ isLoadingProfile: loading }),
+
+  mockLogin: () =>
+    set({
+      user: MOCK_USER,
+      userProfile: MOCK_USER,
+      isAuthenticated: true,
+      isLoadingProfile: false,
+    }),
 }));

@@ -1,0 +1,63 @@
+=== DNS EVIDENCE ===
+
+; <<>> DiG 9.20.23-1-Debian <<>> ums.lpu.in A
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 46667
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4000
+;; QUESTION SECTION:
+;ums.lpu.in.			IN	A
+
+;; ANSWER SECTION:
+ums.lpu.in.		3600	IN	A	172.19.2.250
+
+;; Query time: 8 msec
+;; SERVER: 10.255.255.254#53(10.255.255.254) (UDP)
+;; WHEN: Tue Sep 15 23:39:12 IST 2026
+;; MSG SIZE  rcvd: 55
+
+
+; <<>> DiG 9.20.23-1-Debian <<>> ums.lpu.in CNAME
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 14497
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4000
+;; QUESTION SECTION:
+;ums.lpu.in.			IN	CNAME
+
+;; AUTHORITY SECTION:
+ums.lpu.in.		3600	IN	SOA	dns-server-1. hostmaster. 2 900 600 86400 3600
+
+;; Query time: 16 msec
+;; SERVER: 10.255.255.254#53(10.255.255.254) (UDP)
+;; WHEN: Tue Sep 15 23:39:12 IST 2026
+;; MSG SIZE  rcvd: 97
+
+
+; <<>> DiG 9.20.23-1-Debian <<>> ums.lpu.in ANY
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 45716
+;; flags: qr aa rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4000
+;; QUESTION SECTION:
+;ums.lpu.in.			IN	ANY
+
+;; ANSWER SECTION:
+ums.lpu.in.		3600	IN	A	172.19.2.250
+ums.lpu.in.		3600	IN	NS	dns-server-1.
+ums.lpu.in.		3600	IN	SOA	dns-server-1. hostmaster. 2 900 600 86400 3600
+
+;; Query time: 23 msec
+;; SERVER: 10.255.255.254#53(10.255.255.254) (TCP)
+;; WHEN: Tue Sep 15 23:39:12 IST 2026
+;; MSG SIZE  rcvd: 127
+

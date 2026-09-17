@@ -1,0 +1,27 @@
+=== /lpuums/ ===
+HTTP/2 404
+content-type: text/html
+server: Microsoft-IIS/10.0
+x-powered-by: ASP.NET
+access-control-allow-origin: https://*.lpu.in
+strict-transport-security: max-age=31536000
+content-security-policy: frame-ancestors https://*.lpu.in
+access-control-allow-methods: GET, OPTIONS
+access-control-allow-headers: Content-Type
+cross-origin-resource-policy: cross-origin
+
+=== /econnect/ ===
+content-type: text/html; charset=utf-8
+server: Microsoft-IIS/10.0
+x-powered-by: ASP.NET
+
+=== /myclass/ ===
+content-type: text/html; charset=utf-8
+server: Microsoft-IIS/10.0
+set-cookie: ASP.NET_SessionId=[REDACTED]; path=/; HttpOnly; SameSite=Lax
+x-powered-by: ASP.NET
+
+=== TLS Certificate ===
+Issuer: DigiCert / GeoTrust TLS RSA CA G1
+Subject: CN=*.lpu.in, O=Lovely Professional University, L=Phagwara, ST=Punjab, C=IN
+Valid: Nov 3 2025 - Nov 20 2026

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LPU Data Connection Test</title>
+    <style>
+        body { font-family: 'Consolas', 'Courier New', monospace; max-width: 900px; margin: 0 auto; padding: 15px; background-color: #000000; color: #00FF00; box-sizing: border-box; }
+        .card { background: #000000; border: 1px solid #00FF00; padding: 20px; margin-bottom: 20px; word-wrap: break-word; }
+        h1 { color: #00FF00; font-weight: normal; text-align: center; text-transform: uppercase; font-size: 1.5rem; margin-top: 10px; }
+        h2 { color: #00FF00; margin-top: 0; font-weight: normal; border-bottom: 1px solid #00FF00; padding-bottom: 8px; font-size: 1.2rem; }
+        button { width: 100%; background-color: #000000; color: #00FF00; border: 1px solid #00FF00; padding: 15px 20px; cursor: pointer; font-size: 16px; font-weight: bold; font-family: 'Consolas', monospace; text-transform: uppercase; margin-top: 10px; }
+        button:hover, button:active { background-color: #00FF00; color: #000000; }
+        pre { background: #000000; color: #00FF00; padding: 12px; overflow-x: auto; max-height: 400px; border: 1px dashed #00FF00; font-size: 13px; white-space: pre-wrap; word-wrap: break-word; }
+        input { box-sizing: border-box; background: #000000; color: #00FF00; padding: 14px; margin-bottom: 15px; width: 100%; border: 1px solid #00FF00; font-size: 16px; font-family: 'Consolas', monospace; }
+        input:focus { outline: none; border-color: #00FF00; background-color: #0a220a; }
+        .profile-badge { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 20px; padding: 15px; background: #000000; border: 2px solid #00FF00; display: none; }
+        .profile-badge h3 { margin: 0; color: #00FF00; font-size: 1.1rem; }
+        .profile-badge p { margin: 0; color: #00aa00; font-size: 14px; }
+        p { color: #00aa00; font-size: 14px; line-height: 1.4; }
+        
+        @media (min-width: 600px) {
+            body { padding: 30px; }
+            .card { padding: 30px; }
+            h1 { font-size: 2rem; }
+            button { width: auto; }
+            pre { white-space: pre; word-wrap: normal; font-size: 14px; }
+            .profile-badge { flex-direction: row; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Paladeium Data Pipeline Test</h1>
+    
+    <div class="card">
+        <h2>Student Data Extractor</h2>
+        <p style="color: #aaa; font-size: 14px;">Enter your UMS credentials below. The local proxy will fetch the JWT token, decode your profile, and attempt to fetch your extended app permissions.</p>
+        
+        <label>Registration Number</label>
+        <input type="text" id="regNo" placeholder="e.g. 12213XXXX">
+        
+        <label>Password</label>
+        <input type="password" id="password" placeholder="Your UMS Password">
+        
+        <button onclick="testLogin()" id="loginBtn">Fetch My Data</button>
+        
+        <div id="profileBadge" class="profile-badge" style="margin-top: 20px;">
+            <div>
+                <h3 id="pbName">Loading...</h3>
+                <p id="pbReg">Reg: -- | Roll ID: --</p>
+            </div>
+        </div>
+
+        <pre id="private-output">Awaiting credentials...</pre>
+    </div>
+
+    <script>
+        async function testLogin() {
+            const out = document.getElementById('private-output');
+            const btn = document.getElementById('loginBtn');
+            const badge = document.getElementById('profileBadge');
+            const regNo = document.getElementById('regNo').value;
+            const password = document.getElementById('password').value;
+            
+            if(!regNo || !password) {
+                out.innerText = "Please enter credentials.";
+                out.style.color = '#ff6b6b';
+                return;
+            }
+
+            btn.innerText = "Extracting Data...";
+            btn.style.opacity = '0.7';
+            out.innerText = "Contacting proxy...\n1. Getting JWT Token\n2. Decoding JWT\n3. Fetching extra profile data...";
+            out.style.color = '#fff';
+            badge.style.display = 'none';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/test-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ regNo, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    out.style.color = '#43E97B';
+                    // Update visual badge
+                    const basic = data.scraped_data.basic_profile;
+                    if (basic) {
+                        badge.style.display = 'flex';
+                        document.getElementById('pbName').innerText = basic.NAME || "Unknown Name";
+                        document.getElementById('pbReg').innerText = `Reg: ${basic.LoginName} | Roll ID: ${basic.RollId} | IP: ${basic.IPAddress}`;
+                    }
+                } else {
+                    out.style.color = '#ff6b6b';
+                }
+
+                out.innerText = JSON.stringify(data, null, 2);
+
+            } catch (error) {
+                out.innerText = `Connection Failed: ${error.message}\n\nDid you restart the proxy server?`;
+                out.style.color = '#ff6b6b';
+            } finally {
+                btn.innerText = "Fetch My Data";
+                btn.style.opacity = '1';
+            }
+        }
+    </script>
+</body>
+</html>
