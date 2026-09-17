@@ -76,6 +76,9 @@ The CampusVerse map is the flagship feature. It must be:
 | `expo-constants` | ~57.0.17 | App config, env access |
 | `expo-haptics` | ~57.0.2 | Tap haptic feedback |
 | `expo-font` | ~57.0.3 | Font loading |
+| `expo-location` | ^57.0.17 | GPS for quest verification and map |
+| `expo-sensors` | ~57.0.3 | Pedometer / Accelerometer for map avatar |
+| `@supabase/supabase-js` | ^2.116.0 | Real-time chat synchronization |
 
 **Removed Libraries (AMD-004):**
 
@@ -88,10 +91,8 @@ The CampusVerse map is the flagship feature. It must be:
 | Library | Purpose | When |
 |---|---|---|
 | `@tanstack/react-query` | Server state / API cache | When backend API is wired |
-| `expo-location` | GPS for quest verification | When QuestZone goes live |
 | `expo-notifications` | Push notifications | Phase 2 |
 | `expo-camera` | QR scanner for event check-in | Phase 2 |
-| `socket.io-client` | Real-time PulseChat | Phase 2 |
 
 ### Backend — Node.js + TypeScript (Fastify)
 

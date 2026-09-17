@@ -2,8 +2,7 @@ import React from 'react';
 import { View, StyleSheet, useColorScheme } from 'react-native';
 import { Text } from '../ui/Text';
 import { useThemeStore } from '../../stores/useThemeStore';
-import { PioneerBadgeIcon, SocialBadgeIcon, QuestExplorationIcon } from '../ui/Icons';
-
+import { Ionicons } from '@expo/vector-icons';
 type BadgeRarity = 'common' | 'rare' | 'epic' | 'legendary';
 
 interface AchievementBadgeProps {
@@ -44,13 +43,13 @@ export function AchievementBadge({ name, emoji, rarity, size = 'md' }: Achieveme
   const renderIcon = () => {
     const lowercaseName = name.toLowerCase();
     if (lowercaseName.includes('pioneer') || lowercaseName.includes('first') || lowercaseName.includes('winner')) {
-      return <PioneerBadgeIcon size={svgSize} />;
+      return <Ionicons name="trophy" size={svgSize * 0.7} color={colors.label} />;
     }
     if (lowercaseName.includes('squad') || lowercaseName.includes('social')) {
-      return <SocialBadgeIcon size={svgSize} />;
+      return <Ionicons name="people" size={svgSize * 0.7} color={colors.label} />;
     }
     if (lowercaseName.includes('explorer') || lowercaseName.includes('map') || lowercaseName.includes('ai')) {
-      return <QuestExplorationIcon size={svgSize} />;
+      return <Ionicons name="compass" size={svgSize * 0.7} color={colors.label} />;
     }
     
     return <Text style={{ fontSize: emojiSize }}>{displayEmoji || '🏆'}</Text>;

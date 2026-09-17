@@ -224,7 +224,7 @@ export default function HomeScreen() {
                 <Button title="View Details →" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push(`/event/${item.id}`)} />
               )}
               {item.type === 'quest' && (
-                <Button title="View Quest Zone →" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push('/questzone')} />
+                <Button title="View Quest Zone →" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push('/quest')} />
               )}
               {item.type === 'club' && (
                 <Button title="Register Now" variant="primary" style={{ marginTop: 12, height: 40 }} onPress={() => router.push(`/event/${item.id}`)} />
