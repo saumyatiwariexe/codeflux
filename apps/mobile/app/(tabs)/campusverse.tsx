@@ -10,6 +10,8 @@ import { useThemeStore } from '../../stores/useThemeStore';
 import { MapCanvas } from '../../components/map/MapCanvas';
 import { LIVE_EVENTS, MAP_QUESTS } from '../../constants/mapData';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
+import Mapbox from '@rnmapbox/maps';
 
 
 const { width: W, height: H } = Dimensions.get('window');
@@ -36,6 +38,7 @@ export default function CampusVerseScreen() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((state) => state.getColors(systemColorScheme));
   const [activeLayer, setActiveLayer] = useState<MapLayer>('all');
+  const [hasLocationPermission, setHasLocationPermission] = useState(false);
 
   // Pulse animations for pins
   const pinPulse = useRef(new Animated.Value(1)).current;
@@ -43,6 +46,19 @@ export default function CampusVerseScreen() {
   const drawerY = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
+    (async () => {
+      // Request Expo permission
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      
+      // Crucial for Android: Mapbox demands its own native permission call
+      // or the LocationManager will silently refuse to start.
+      const isGrantedMapbox = await Mapbox.requestAndroidLocationPermissions();
+      
+      if (status === 'granted' || isGrantedMapbox) {
+        setHasLocationPermission(true);
+      }
+    })();
+
     // Pulse live event pins
     Animated.loop(
       Animated.sequence([
@@ -60,21 +76,18 @@ export default function CampusVerseScreen() {
     ).start();
   }, []);
 
-  const MAP_H = H * 0.58;
-
-  const visiblePins = MAP_PINS.filter((p) => {
-    if (activeLayer === 'all') return true;
-    if (activeLayer === 'quests') return p.type === 'quest';
-    if (activeLayer === 'events') return p.type === 'event';
-    return true;
-  });
-
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: '#0A0B12' }]} edges={['top']}>
 
       {/* === MAP VIEWPORT === */}
-      <View style={[styles.mapContainer, { height: MAP_H }]}>
-        <MapCanvas activeLayer={activeLayer} />
+      <View style={[styles.mapContainer, { flex: 1 }]}>
+        {hasLocationPermission ? (
+          <MapCanvas activeLayer={activeLayer} />
+        ) : (
+          <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text>Acquiring GPS Signal...</Text>
+          </View>
+        )}
 
         {/* ---- Top controls ---- */}
         <View style={styles.topControls}>
@@ -83,23 +96,6 @@ export default function CampusVerseScreen() {
             <Text style={{ fontSize: 14 }}></Text>
             <Text variant="body-sm" color="onSurfaceVariant"> Search block, lab, room...</Text>
           </View>
-          {/* Layer filters */}
-          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            <View style={styles.filterRow}>
-              {(['all', 'quests', 'events', 'clubs'] as MapLayer[]).map((layer) => (
-                <TouchableOpacity
-                  key={layer}
-                  style={[styles.filterChip, { backgroundColor: activeLayer === layer ? theme.primary : theme.surfaceContainerLow + 'E0' }]}
-                  onPress={() => setActiveLayer(layer)}
-                >
-                  <Text variant="label-sm" style={{ color: activeLayer === layer ? theme.onPrimary : theme.onSurfaceVariant }}>
-                  {layer === 'all' ? 'All' : layer === 'quests' ? `Quests (${MAP_QUESTS.filter(q => !q.completed).length})` : layer === 'events' ? `Events (${LIVE_EVENTS.filter(e => e.type === 'event').length})` : 'Clubs'}
-
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
         </View>
 
         {/* ---- XP Fog stats (top right) ---- */}
@@ -109,54 +105,6 @@ export default function CampusVerseScreen() {
           <Text variant="label-xs" color="onSurfaceVariant">ZONES</Text>
         </View>
       </View>
-
-      {/* === BOTTOM QUEST DRAWER === */}
-      <ScrollView
-        style={[styles.drawer, { backgroundColor: theme.surfaceSpaceDeep }]}
-        contentContainerStyle={styles.drawerContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={[styles.drawerHandle, { backgroundColor: theme.outlineVariant }]} />
-
-
-
-        {/* Active Quests preview */}
-        <Text variant="headline-sm" style={{ marginTop: 20, marginBottom: 12 }}>Active Quests</Text>
-        {MAP_QUESTS.filter(q => !q.completed).slice(0, 3).map((q) => {
-          const COLORS: Record<string, string> = { explorer: '#43E97B', academic: '#60A5FA', social: '#F59E0B', challenge: '#FF6584', daily: '#A78BFA' };
-          const color = COLORS[q.type] ?? theme.primary;
-          return (
-            <View key={q.id} style={[styles.nearbyRow, { marginBottom: 10, backgroundColor: theme.surfaceContainerLow + 'CC', borderRadius: 14, padding: 14 }]}>
-              <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: color + '22', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: color + '60' }}>
-                <Ionicons name="flag" size={16} color={color} />
-              </View>
-              <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text variant="headline-sm" numberOfLines={1}>{q.title}</Text>
-                <Text variant="label-xs" color="onSurfaceVariant">{q.xp} XP · {q.difficulty} · {q.timeLimit ?? 'No deadline'}</Text>
-              </View>
-            </View>
-          );
-        })}
-
-        {/* Nearby Events */}
-        <Text variant="headline-sm" style={{ marginTop: 20, marginBottom: 12 }}>Nearby Events</Text>
-        {LIVE_EVENTS.slice(0, 3).map((ev, i) => (
-          <Card key={ev.id} variant="default" style={[styles.nearbyCard, { padding: 0, overflow: 'hidden' }]}>
-            {ev.posterUrl && (
-              <Image source={{ uri: ev.posterUrl }} style={{ width: '100%', height: 120, resizeMode: 'cover' }} />
-            )}
-            <View style={[styles.nearbyRow, { padding: 14 }]}>
-              <Ionicons name="location-sharp" size={28} color={theme.error} />
-              <View style={{ flex: 1, marginLeft: 12 }}>
-                <Text variant="headline-sm">{ev.title}</Text>
-                <Text variant="label-sm" color="onSurfaceVariant">Happening Now · {Math.floor(Math.random() * 500 + 50)}m away</Text>
-              </View>
-            </View>
-          </Card>
-        ))}
-
-        <View style={{ height: 24 }} />
-      </ScrollView>
     </SafeAreaView>
   );
 }

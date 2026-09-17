@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paladeium Tweak Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6C63FF;
+            --accent: #43E97B;
+            --bg-deep: #0B0C14;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(108, 99, 255, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(67, 233, 123, 0.15), transparent 25%);
+            font-family: 'Inter', sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 0;
+        }
+
+        .dashboard {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            animation: floatIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes floatIn {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            margin: 0 0 10px 0;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p.subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            margin: 0 0 30px 0;
+            font-size: 0.95rem;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        label {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .val-input {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            color: var(--accent);
+            font-family: 'Inter', sans-serif;
+            text-align: center;
+            width: 80px;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        
+        .val-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(108, 99, 255, 0.3);
+        }
+
+        /* Hide HTML5 Number input arrows */
+        .val-input::-webkit-outer-spin-button,
+        .val-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .val-input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+
+        input[type=range]:focus {
+            outline: none;
+        }
+
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 6px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        input[type=range]::-webkit-slider-thumb {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            -webkit-appearance: none;
+            margin-top: -7px;
+            box-shadow: 0 0 10px rgba(108, 99, 255, 0.5);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease;
+        }
+
+        input[type=range]:hover::-webkit-slider-thumb {
+            transform: scale(1.2);
+            background: var(--accent);
+            box-shadow: 0 0 15px rgba(67, 233, 123, 0.5);
+        }
+
+        input[type=range]:hover::-webkit-slider-runnable-track {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .section-title {
+            margin: 30px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--glass-border);
+            font-family: 'Outfit', sans-serif;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.3rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <h1>Live Tweaks</h1>
+        <p class="subtitle">Drag a slider or type a precise value.</p>
+
+        <div class="section-title">Camera Engine</div>
+        
+        <div class="control-group">
+            <div class="control-header">
+                <label>Zoom Level</label>
+                <input type="number" class="val-input" id="zoom-input" value="21.5" step="0.1">
+            </div>
+            <input type="range" id="zoom" min="10" max="22" step="0.1" value="21.5">
+        </div>
+
+        <div class="control-group">
+            <div class="control-header">
+                <label>Camera Pitch</label>
+                <input type="number" class="val-input" id="pitch-input" value="60" step="1">
+            </div>
+            <input type="range" id="pitch" min="0" max="85" step="1" value="60">
+        </div>
+
+        <div class="section-title">Character Model</div>
+
+        <div class="control-group">
+            <div class="control-header">
+                <label>Scale (Size)</label>
+                <input type="number" class="val-input" id="scale-input" value="150" step="0.01">
+            </div>
+            <input type="range" id="scale" min="0.01" max="300" step="0.01" value="150">
+        </div>
+
+        <div class="control-group">
+            <div class="control-header">
+                <label>Pitch Rotation (X)</label>
+                <input type="number" class="val-input" id="rotPitch-input" value="180" step="1">
+            </div>
+            <input type="range" id="rotPitch" min="-180" max="180" step="1" value="180">
+        </div>
+
+        <div class="control-group">
+            <div class="control-header">
+                <label>Roll Rotation (Y)</label>
+                <input type="number" class="val-input" id="rotRoll-input" value="0" step="1">
+            </div>
+            <input type="range" id="rotRoll" min="-180" max="180" step="1" value="0">
+        </div>
+
+        <div class="control-group">
+            <div class="control-header">
+                <label>Yaw Offset (Z)</label>
+                <input type="number" class="val-input" id="rotYaw-input" value="180" step="1">
+            </div>
+            <input type="range" id="rotYaw" min="-180" max="180" step="1" value="180">
+        </div>
+
+        <div class="section-title">Character Position Offset</div>
+
+        <div class="control-group">
+            <div class="control-header">
+                <label>Translation X (Left/Right)</label>
+                <input type="number" class="val-input" id="transX-input" value="0" step="0.1">
+            </div>
+            <input type="range" id="transX" min="-50" max="50" step="0.1" value="0">
+        </div>
+
+        <div class="control-group">
+            <div class="control-header">
+                <label>Translation Y (Up/Down)</label>
+                <input type="number" class="val-input" id="transY-input" value="0" step="0.1">
+            </div>
+            <input type="range" id="transY" min="-50" max="50" step="0.1" value="0">
+        </div>
+
+        <div class="control-group">
+            <div class="control-header">
+                <label>Translation Z (Forward/Back)</label>
+                <input type="number" class="val-input" id="transZ-input" value="0" step="0.1">
+            </div>
+            <input type="range" id="transZ" min="-50" max="50" step="0.1" value="0">
+        </div>
+
+    </div>
+
+    <script>
+        let timeout = null;
+
+        const state = {
+            zoom: 21.5,
+            pitch: 60,
+            scale: 150,
+            rotPitch: 180,
+            rotRoll: 0,
+            rotYaw: 180,
+            transX: 0,
+            transY: 0,
+            transZ: 0
+        };
+
+        const updateStateAndSend = (key, value, source) => {
+            if (value === '' || isNaN(value)) return; // Don't send empty or invalid strings when typing
+            
+            state[key] = parseFloat(value);
+            
+            // Only update the element that did NOT trigger the event to prevent cursor jumping/decimal wiping
+            if (source === 'slider') {
+                document.getElementById(`${key}-input`).value = value;
+            } else if (source === 'input') {
+                document.getElementById(key).value = value;
+            }
+
+            if (timeout) clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                fetch('/api/tweak', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(state)
+                }).catch(err => console.error("Tweak failed", err));
+            }, 300);
+        };
+
+        ['zoom', 'pitch', 'scale', 'rotPitch', 'rotRoll', 'rotYaw', 'transX', 'transY', 'transZ'].forEach(id => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                updateStateAndSend(id, e.target.value, 'slider');
+            });
+            
+            document.getElementById(`${id}-input`).addEventListener('input', (e) => {
+                updateStateAndSend(id, e.target.value, 'input');
+            });
+        });
+    </script>
+</body>
+</html>

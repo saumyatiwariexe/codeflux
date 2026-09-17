@@ -11,7 +11,7 @@ export const FogOfWar = () => {
   return (
     <>
       {/* The thick fog layer covering the campus */}
-      <Mapbox.ShapeSource id="fogSource" shape={FOG_BOUNDARY_GEOJSON}>
+      <Mapbox.ShapeSource id="fogSource" shape={FOG_BOUNDARY_GEOJSON as any}>
         <Mapbox.FillLayer
           id="fogFill"
           style={{
@@ -26,7 +26,7 @@ export const FogOfWar = () => {
       {/* We achieve this by drawing overlapping polygons with a lighter/transparent fill to counteract the fog,
           or explicitly coloring discovered areas. Since pure subtraction requires complex GeoJSON math,
           we will overlay glowing revealed zones on top of the fog. */}
-      <Mapbox.ShapeSource id="discoveredSource" shape={DISCOVERED_ZONES_GEOJSON}>
+      <Mapbox.ShapeSource id="discoveredSource" shape={DISCOVERED_ZONES_GEOJSON as any}>
         <Mapbox.FillLayer
           id="discoveredFill"
           style={{

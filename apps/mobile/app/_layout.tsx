@@ -28,16 +28,11 @@ export default function RootLayout() {
     hydrateFromStorage();
   }, []);
 
-  // Auth guard: redirect once hydration is complete
+  // Always start at tabs since auth is bypassed
   useEffect(() => {
     if (!isHydrated || !fontsLoaded) return;
-
-    if (!isAuthenticated) {
-      router.replace('/(auth)/welcome');
-    } else {
-      router.replace('/(tabs)');
-    }
-  }, [isHydrated, isAuthenticated, fontsLoaded]);
+    router.replace('/(tabs)');
+  }, [isHydrated, fontsLoaded]);
 
   if (!fontsLoaded) return null;
 
@@ -52,7 +47,6 @@ export default function RootLayout() {
           }}
         >
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="event/[id]" options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="quest/index" options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen name="edurev/index" options={{ animation: 'slide_from_bottom' }} />
