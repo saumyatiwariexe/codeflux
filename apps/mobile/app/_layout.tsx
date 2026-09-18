@@ -11,9 +11,8 @@ import { useAuthStore } from '../stores/useAuthStore';
 export default function RootLayout() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((s) => s.getColors(systemColorScheme));
-  const hydrateFromStorage = useAuthStore((s) => s.hydrateFromStorage);
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
-  const isHydrated = useAuthStore((s) => s.isHydrated);
+  const user = useAuthStore((s) => s.user);
 
   const [fontsLoaded] = useFonts({
     Inter_400Regular,
@@ -23,16 +22,16 @@ export default function RootLayout() {
     Outfit_700Bold,
   });
 
-  // Hydrate auth state from AsyncStorage on startup
   useEffect(() => {
-    hydrateFromStorage();
-  }, []);
-
-  // Always start at tabs since auth is bypassed
-  useEffect(() => {
-    if (!isHydrated || !fontsLoaded) return;
-    router.replace('/(tabs)');
-  }, [isHydrated, fontsLoaded]);
+    if (!fontsLoaded) return;
+    if (!isAuthenticated) {
+      router.replace('/(auth)/welcome');
+    } else if (user && !user.onboardingComplete) {
+      router.replace('/(auth)/onboarding');
+    } else {
+      router.replace('/(tabs)');
+    }
+  }, [fontsLoaded, isAuthenticated, user]);
 
   if (!fontsLoaded) return null;
 
@@ -46,6 +45,7 @@ export default function RootLayout() {
             animation: 'fade',
           }}
         >
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="event/[id]" options={{ animation: 'slide_from_right' }} />
           <Stack.Screen name="quest/index" options={{ animation: 'slide_from_bottom' }} />

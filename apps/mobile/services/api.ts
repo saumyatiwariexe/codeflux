@@ -8,18 +8,14 @@ const BASE_URL = __DEV__
   ? 'http://localhost:3000/api/v1'
   : 'https://campus-pulse-api.railway.app/api/v1';
 
-/** Clerk's `getToken()` function injected at app start */
-let _getToken: (() => Promise<string | null>) | null = null;
+/** Global token stored in memory after login */
+let _token: string | null = null;
 
 /**
- * Call this once in the root layout after Clerk has loaded.
- * Pass Clerk's `getToken` so every API request automatically
- * attaches a fresh JWT without needing a manual setAuthToken call.
- *
- * @param getToken - Async function that returns the current Clerk session token
+ * Call this to set the JWT token for all subsequent requests.
  */
-export function initApi(getToken: () => Promise<string | null>): void {
-  _getToken = getToken;
+export function setAuthToken(token: string | null): void {
+  _token = token;
 }
 
 async function request<T>(
@@ -31,11 +27,8 @@ async function request<T>(
     ...(options.headers as Record<string, string>),
   };
 
-  if (_getToken) {
-    const token = await _getToken();
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
+  if (_token) {
+    headers['Authorization'] = `Bearer ${_token}`;
   }
 
   try {
@@ -51,11 +44,34 @@ async function request<T>(
   }
 }
 
+// ---- Auth ----
+export const authApi = {
+  login: async (data: { regNo: string; password: string }) => {
+    // Mocking the response so you can test the UI without running the backend!
+    console.log("Mocking login for:", data.regNo);
+    return {
+      success: true,
+      data: {
+        userId: 'mock-user-id',
+        name: 'Test Student',
+        token: 'mock-jwt-token',
+        isNewUser: true // Set to true so it routes you to the Onboarding/Signup screen!
+      }
+    };
+  },
+  logout: () => request<any>('/auth/logout', { method: 'POST' }),
+};
+
 // ---- Users ----
 export const usersApi = {
   getMe: () => request<any>('/users/me'),
-  updateMe: (data: Partial<any>) =>
-    request<any>('/users/me', { method: 'PATCH', body: JSON.stringify(data) }),
+  updateMe: async (data: Partial<any>) => {
+    console.log("Mocking updateMe with data:", data);
+    return {
+      success: true,
+      data: { ...data }
+    };
+  },
   getProfile: (handle: string) => request<any>(`/users/${handle}`),
 };
 

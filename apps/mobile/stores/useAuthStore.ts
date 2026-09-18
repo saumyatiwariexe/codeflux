@@ -1,13 +1,24 @@
 import { create } from 'zustand';
 
 export interface UserProfile {
-  id: string;
+  id: string; // Registration Number
   email: string;
-  displayName: string;
-  avatarUrl: string | null;
-  handle: string | null;
-  campusXp: number;
-  onboardingComplete: boolean;
+  name?: string;
+  displayName?: string;
+  avatarUrl?: string | null;
+  handle?: string | null;
+  bio?: string;
+  department?: string;
+  year?: number;
+  hostelBlock?: string;
+  phoneNumber?: string;
+  links?: any[];
+  experiences?: any[];
+  projects?: any[];
+  socialHandles?: Record<string, string>;
+  campusXp?: number;
+  onboardingComplete?: boolean;
+  token?: string;
 }
 
 export type AuthUser = UserProfile;
@@ -21,23 +32,13 @@ interface AuthState {
   setUserProfile: (profile: UserProfile) => void;
   clearUserProfile: () => void;
   setLoadingProfile: (loading: boolean) => void;
-  mockLogin: () => void;
+  signOut: () => void;
 }
 
-const MOCK_USER: UserProfile = {
-  id: 'mock-user-123',
-  email: 'test@lpu.in',
-  displayName: 'Test Student',
-  avatarUrl: null,
-  handle: '@teststudent',
-  campusXp: 1500,
-  onboardingComplete: true,
-};
-
 export const useAuthStore = create<AuthState>((set) => ({
-  user: MOCK_USER,
-  userProfile: MOCK_USER,
-  isAuthenticated: true,
+  user: null,
+  userProfile: null,
+  isAuthenticated: false,
   isLoadingProfile: false,
 
   setUser: (user) =>
@@ -66,11 +67,11 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   setLoadingProfile: (loading: boolean) => set({ isLoadingProfile: loading }),
 
-  mockLogin: () =>
+  signOut: () =>
     set({
-      user: MOCK_USER,
-      userProfile: MOCK_USER,
-      isAuthenticated: true,
+      user: null,
+      userProfile: null,
+      isAuthenticated: false,
       isLoadingProfile: false,
     }),
 }));

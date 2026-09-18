@@ -7,32 +7,7 @@ import { Text } from '../../components/ui/Text';
 import { Card } from '../../components/ui/Card';
 import { useThemeStore } from '../../stores/useThemeStore';
 
-const MOCK_NOTIFICATIONS = [
-  {
-    id: 'n1',
-    title: 'Squad Match!',
-    body: 'You and Aarav Sharma liked each other.',
-    time: '15m ago',
-    icon: 'people',
-    isRead: false,
-  },
-  {
-    id: 'n2',
-    title: 'Quest Completed',
-    body: 'You earned 50 XP for Morning Mover.',
-    time: '3h ago',
-    icon: 'trophy',
-    isRead: false,
-  },
-  {
-    id: 'n3',
-    title: 'Event Reminder',
-    body: 'WEB-A-THON 2.0 starts tomorrow!',
-    time: '1d ago',
-    icon: 'calendar',
-    isRead: true,
-  },
-];
+const MOCK_NOTIFICATIONS: any[] = [];
 
 export default function NotificationsScreen() {
   const systemColorScheme = useColorScheme();

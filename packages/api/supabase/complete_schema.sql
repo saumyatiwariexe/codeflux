@@ -13,8 +13,8 @@ CREATE EXTENSION IF NOT EXISTS "postgis";
 
 -- ── 2. Users & Profiles (Clerk Authentication Layer) ──────────
 CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  clerk_user_id TEXT UNIQUE NOT NULL,
+  id TEXT PRIMARY KEY, -- Registration Number
+  name TEXT,
   email TEXT UNIQUE NOT NULL,
   phone TEXT,
   is_id_verified BOOLEAN DEFAULT false,
@@ -25,11 +25,10 @@ CREATE TABLE IF NOT EXISTS users (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
-CREATE INDEX IF NOT EXISTS idx_users_clerk_user_id ON users(clerk_user_id);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 
 CREATE TABLE IF NOT EXISTS profiles (
-  id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+  id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
   handle TEXT UNIQUE NOT NULL CHECK (handle ~ '^[a-z0-9_]{3,30}$'),
   display_name TEXT NOT NULL,
   avatar_url TEXT,
@@ -40,6 +39,11 @@ CREATE TABLE IF NOT EXISTS profiles (
   stream TEXT,
   pronouns TEXT,
   hostel_block TEXT,
+  phone_number TEXT,
+  links JSONB DEFAULT '[]'::jsonb, -- Array of strings/urls
+  experiences JSONB DEFAULT '[]'::jsonb,
+  projects JSONB DEFAULT '[]'::jsonb,
+  social_handles JSONB DEFAULT '{}'::jsonb,
   is_day_scholar BOOLEAN DEFAULT false,
   campus_xp INTEGER DEFAULT 0,
   level INTEGER DEFAULT 1,
@@ -65,7 +69,7 @@ CREATE TABLE IF NOT EXISTS skills (
 );
 
 CREATE TABLE IF NOT EXISTS profile_skills (
-  profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  profile_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   skill_id UUID REFERENCES skills(id) ON DELETE CASCADE,
   proficiency TEXT DEFAULT 'intermediate' CHECK (proficiency IN ('beginner', 'intermediate', 'expert')),
   PRIMARY KEY (profile_id, skill_id)
@@ -115,7 +119,7 @@ CREATE TABLE IF NOT EXISTS tickets (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tier_id UUID REFERENCES ticket_tiers(id),
   event_id UUID REFERENCES events(id) ON DELETE CASCADE,
-  holder_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  holder_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   team_id UUID,
   qr_code TEXT UNIQUE NOT NULL,
   booking_id TEXT UNIQUE NOT NULL,
@@ -147,7 +151,7 @@ CREATE INDEX IF NOT EXISTS idx_clubs_slug ON clubs(slug);
 
 CREATE TABLE IF NOT EXISTS club_memberships (
   club_id UUID REFERENCES clubs(id) ON DELETE CASCADE,
-  profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  profile_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   role TEXT DEFAULT 'member' CHECK (role IN ('member', 'coordinator', 'president', 'faculty_advisor')),
   joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   PRIMARY KEY (club_id, profile_id)
@@ -160,7 +164,7 @@ CREATE TABLE IF NOT EXISTS teams (
   description TEXT,
   goal TEXT,
   competition_id UUID REFERENCES events(id),
-  creator_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  creator_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   max_members INTEGER DEFAULT 5,
   status TEXT DEFAULT 'forming' CHECK (status IN ('forming', 'complete', 'competing', 'archived')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
@@ -168,7 +172,7 @@ CREATE TABLE IF NOT EXISTS teams (
 
 CREATE TABLE IF NOT EXISTS team_members (
   team_id UUID REFERENCES teams(id) ON DELETE CASCADE,
-  profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  profile_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   role TEXT,
   joined_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   PRIMARY KEY (team_id, profile_id)
@@ -176,8 +180,8 @@ CREATE TABLE IF NOT EXISTS team_members (
 
 CREATE TABLE IF NOT EXISTS squad_swipes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  swiper_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  swiped_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  swiper_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
+  swiped_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   action TEXT NOT NULL CHECK (action IN ('like', 'pass', 'super')),
   context TEXT DEFAULT 'general' CHECK (context IN ('hackathon', 'project', 'general', 'internship')),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
@@ -189,8 +193,8 @@ CREATE INDEX IF NOT EXISTS idx_swipes_swiped ON squad_swipes(swiped_id);
 
 CREATE TABLE IF NOT EXISTS squad_matches (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_a UUID REFERENCES profiles(id) ON DELETE CASCADE,
-  user_b UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  user_a TEXT REFERENCES profiles(id) ON DELETE CASCADE,
+  user_b TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   matched_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   team_id UUID REFERENCES teams(id),
   status TEXT DEFAULT 'matched' CHECK (status IN ('matched', 'teamed', 'archived')),
@@ -221,7 +225,7 @@ CREATE INDEX IF NOT EXISTS idx_quests_type ON quests(type);
 
 CREATE TABLE IF NOT EXISTS quest_progress (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  profile_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   quest_id UUID REFERENCES quests(id) ON DELETE CASCADE,
   status TEXT DEFAULT 'in_progress' CHECK (status IN ('in_progress', 'completed', 'expired')),
   progress_data JSONB,
@@ -242,7 +246,7 @@ CREATE TABLE IF NOT EXISTS badges (
 );
 
 CREATE TABLE IF NOT EXISTS profile_badges (
-  profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  profile_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   badge_id UUID REFERENCES badges(id) ON DELETE CASCADE,
   awarded_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   PRIMARY KEY (profile_id, badge_id)
@@ -251,7 +255,7 @@ CREATE TABLE IF NOT EXISTS profile_badges (
 -- ── 8. EduRevolution (LPU Policy Integration) ─────────────────
 CREATE TABLE IF NOT EXISTS edurev_achievements (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  profile_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  profile_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT,
   category TEXT CHECK (category IN ('RESEARCH_PAPER', 'COMPETITION_WIN', 'CERTIFICATION', 'PATENT', 'INTERNSHIP', 'STARTUP', 'MOOC')),
@@ -270,7 +274,7 @@ CREATE INDEX IF NOT EXISTS idx_edurev_profile ON edurev_achievements(profile_id)
 -- ── 9. LostPulse (Lost & Found) ───────────────────────────────
 CREATE TABLE IF NOT EXISTS lost_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  reporter_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  reporter_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT,
   category TEXT CHECK (category IN ('electronics', 'bag', 'wallet', 'id_card', 'keys', 'clothing', 'books', 'other')),
@@ -284,7 +288,7 @@ CREATE TABLE IF NOT EXISTS lost_items (
 
 CREATE TABLE IF NOT EXISTS found_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  reporter_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+  reporter_id TEXT REFERENCES profiles(id) ON DELETE CASCADE,
   title TEXT NOT NULL,
   description TEXT,
   category TEXT CHECK (category IN ('electronics', 'bag', 'wallet', 'id_card', 'keys', 'clothing', 'books', 'other')),
@@ -312,54 +316,54 @@ ALTER TABLE edurev_achievements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE lost_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE found_items ENABLE ROW LEVEL SECURITY;
 
--- Helper query: gets current user's profile ID based on Clerk JWT sub
--- auth.jwt() ->> 'sub' yields the Clerk User ID: 'user_2...'
+-- Helper query: gets current user's profile ID based on our JWT
+-- auth.jwt() ->> 'userId' yields the Registration Number
 
 CREATE POLICY "users_own_data" ON users
-  FOR ALL USING (clerk_user_id = auth.jwt() ->> 'sub');
+  FOR ALL USING (id = auth.jwt() ->> 'userId');
 
 CREATE POLICY "profiles_read_all" ON profiles
-  FOR SELECT USING (auth.role() = 'authenticated' OR auth.jwt() ->> 'sub' IS NOT NULL);
+  FOR SELECT USING (auth.role() = 'authenticated' OR auth.jwt() ->> 'userId' IS NOT NULL);
 
 CREATE POLICY "profiles_own_write" ON profiles
-  FOR ALL USING (id IN (SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'));
+  FOR ALL USING (id = auth.jwt() ->> 'userId');
 
 CREATE POLICY "profile_skills_read" ON profile_skills FOR SELECT USING (true);
 CREATE POLICY "profile_skills_own_write" ON profile_skills
-  FOR ALL USING (profile_id IN (SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'));
+  FOR ALL USING (profile_id = auth.jwt() ->> 'userId');
 
 CREATE POLICY "events_read_all" ON events FOR SELECT USING (true);
 
 CREATE POLICY "tickets_own_data" ON tickets
-  FOR ALL USING (holder_id IN (SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'));
+  FOR ALL USING (holder_id = auth.jwt() ->> 'userId');
 
 CREATE POLICY "clubs_read_all" ON clubs FOR SELECT USING (true);
 
 -- Swipes are strictly private to the swiper
 CREATE POLICY "swipes_private" ON squad_swipes
-  FOR ALL USING (swiper_id IN (SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'));
+  FOR ALL USING (swiper_id = auth.jwt() ->> 'userId');
 
 -- Matches visible to both participants
 CREATE POLICY "matches_own_data" ON squad_matches
   FOR SELECT USING (
-    user_a IN (SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub') OR
-    user_b IN (SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub')
+    user_a = auth.jwt() ->> 'userId' OR
+    user_b = auth.jwt() ->> 'userId'
   );
 
 CREATE POLICY "quest_progress_private" ON quest_progress
-  FOR ALL USING (profile_id IN (SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'));
+  FOR ALL USING (profile_id = auth.jwt() ->> 'userId');
 
 CREATE POLICY "edurev_private" ON edurev_achievements
-  FOR ALL USING (profile_id IN (SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'));
+  FOR ALL USING (profile_id = auth.jwt() ->> 'userId');
 
 CREATE POLICY "lost_items_read_all" ON lost_items FOR SELECT USING (true);
 CREATE POLICY "found_items_read_all" ON found_items FOR SELECT USING (true);
 
 CREATE POLICY "lost_items_own_insert" ON lost_items
-  FOR INSERT WITH CHECK (reporter_id IN (SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'));
+  FOR INSERT WITH CHECK (reporter_id = auth.jwt() ->> 'userId');
 
 CREATE POLICY "found_items_own_insert" ON found_items
-  FOR INSERT WITH CHECK (reporter_id IN (SELECT id FROM users WHERE clerk_user_id = auth.jwt() ->> 'sub'));
+  FOR INSERT WITH CHECK (reporter_id = auth.jwt() ->> 'userId');
 
 -- ── 11. Supabase Storage Setup ─────────────────────────────────
 INSERT INTO storage.buckets (id, name, public)
@@ -376,13 +380,13 @@ CREATE POLICY "avatars_public_read" ON storage.objects
 CREATE POLICY "avatars_owner_upload" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'avatars'
-    AND auth.jwt() ->> 'sub' IS NOT NULL
+    AND auth.jwt() ->> 'userId' IS NOT NULL
   );
 
 CREATE POLICY "avatars_owner_update" ON storage.objects
   FOR UPDATE USING (
     bucket_id = 'avatars'
-    AND auth.jwt() ->> 'sub' IS NOT NULL
+    AND auth.jwt() ->> 'userId' IS NOT NULL
   );
 
 CREATE POLICY "lostfound_public_read" ON storage.objects
@@ -391,14 +395,14 @@ CREATE POLICY "lostfound_public_read" ON storage.objects
 CREATE POLICY "lostfound_authenticated_upload" ON storage.objects
   FOR INSERT WITH CHECK (
     bucket_id = 'lostfound'
-    AND auth.jwt() ->> 'sub' IS NOT NULL
+    AND auth.jwt() ->> 'userId' IS NOT NULL
   );
 
 CREATE POLICY "edurev_owner_only" ON storage.objects
   FOR ALL USING (
     bucket_id = 'edurev'
-    AND auth.jwt() ->> 'sub' IS NOT NULL
-    AND (storage.foldername(name))[1] = auth.jwt() ->> 'sub'
+    AND auth.jwt() ->> 'userId' IS NOT NULL
+    AND (storage.foldername(name))[1] = auth.jwt() ->> 'userId'
   );
 
 -- ── 12. Seed Data ──────────────────────────────────────────────

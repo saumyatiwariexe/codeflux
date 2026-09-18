@@ -18,38 +18,7 @@ import { usersApi, setAuthToken } from '../../services/api';
 import { STORIES_DATA } from '../../constants/stories';
 import { StoryViewer } from '../../components/ui/StoryViewer';
 
-const MOCK_FEED = [
-  {
-    id: 'f1', type: 'event_live',
-    title: 'WEB-A-THON 2.0 — Registrations Open!',
-    body: 'LPU’s Next Big Hackathon by Metaverse. Register now for ₹169.',
-    badge: 'NEW', badgeVariant: 'notification' as const,
-    time: '5m ago',
-    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/public/club/event/poster/web-a-thon-20--lpus-next-big-hackathon-6aa2c8e7f28decc1178eb634-1789162899017.png'
-  },
-  {
-    id: 'f2', type: 'squad_match',
-    title: ' New Squad Match!',
-    body: 'You matched with Aarav Sharma — 94% Synergy. Start a conversation.',
-    badge: '94% SYNERGY', badgeVariant: 'squad' as const,
-    time: '15m ago',
-  },
-  {
-    id: 'f3', type: 'club',
-    title: ' Code Heist Hackathon',
-    body: 'Thryve is hosting a new Hackathon on Sep 18! Build something amazing.',
-    badge: 'Register', badgeVariant: 'squad' as const,
-    time: '2h ago',
-    posterUrl: 'https://d33g7orf12ceoo.cloudfront.net/eyJidWNrZXQiOiJvbmx5dGVtcHRlc3RpbmdtYWNiZWFzZSIsImtleSI6InB1YmxpYy9ldmVudC82YTk4NjdlYjdmMTA4MzUwN2ZiOGRjZjkvMTc4ODUyODAxMzE3Ml82NjYyNDE0ZjcwOWU4NGZjMTI5YWFhZTVmZWU2MGI1MC5wbmciLCJlZGl0cyI6eyJyZXNpemUiOnsiZml0IjoiY292ZXIiLCJ3aWR0aCI6ODAwfX19'
-  },
-  {
-    id: 'f4', type: 'quest',
-    title: ' Daily Quest Available',
-    body: 'Morning Mover: Check in at the Sports Complex before 9 AM for +50 XP.',
-    badge: '+50 XP', badgeVariant: 'xp' as const,
-    time: '3h ago',
-  },
-];
+const MOCK_FEED: any[] = [];
 
 export default function HomeScreen() {
   const systemColorScheme = useColorScheme();

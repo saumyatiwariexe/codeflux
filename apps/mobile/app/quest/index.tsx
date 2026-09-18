@@ -22,22 +22,9 @@ const QUEST_TYPES: { key: QuestType; label: string; emoji: string }[] = [
   { key: 'academic', label: 'Academic', emoji: '📚' },
 ];
 
-const MOCK_QUESTS = [
-  { id: 'q1', title: 'Campus Explorer', type: 'explorer', desc: 'Visit the main library, MAC, and Block 32.', xpReward: 500, status: 'available', icon: '🗺️' },
-  { id: 'q2', title: 'HackLPU Registration', type: 'academic', desc: 'Register for the upcoming HackLPU event and form a team.', xpReward: 1000, progress: 1, total: 3, status: 'in_progress', icon: '💻', timeLeft: '2d left' },
-  { id: 'q3', title: 'Social Butterfly', type: 'social', desc: 'Match with 5 people on SquadUp.', xpReward: 800, progress: 5, total: 5, status: 'completed', icon: '🤝' },
-  { id: 'q4', title: 'Morning Hustle', type: 'daily', desc: 'Attend a morning lecture before 9 AM.', xpReward: 300, progress: 0, total: 1, status: 'available', icon: '☕', timeLeft: '14h left' },
-  { id: 'q5', title: 'Library Scavenger', type: 'weekly', desc: 'Find the hidden QR code in the central library fiction section.', xpReward: 1500, progress: 0, total: 1, status: 'available', icon: '📚', timeLeft: '5d left' },
-  { id: 'q6', title: 'Tech Talk Attendee', type: 'academic', desc: 'Attend any guest lecture this week.', xpReward: 600, status: 'available', icon: '🎤' },
-];
+const MOCK_QUESTS: any[] = [];
 
-const MOCK_LEADERBOARD = [
-  { rank: 1, handle: 'isha.kashyap', displayName: 'Isha Kashyap', department: 'CSE', level: 8, campusXp: 15400 },
-  { rank: 2, handle: 'oggy.ji', displayName: 'Oggy ji', department: 'Design', level: 7, campusXp: 14200 },
-  { rank: 3, handle: 'saumyatiwari', displayName: 'Saumya Tiwari', department: 'BCA', level: 6, campusXp: 9500 },
-  { rank: 4, handle: 'karansinghal.7', displayName: 'Karan Singhal', department: 'CSE', level: 5, campusXp: 8100 },
-  { rank: 5, handle: 'tara.senn', displayName: 'Tara Sen', department: 'MBA', level: 4, campusXp: 6400 },
-];
+const MOCK_LEADERBOARD: any[] = [];
 
 const STATUS_BADGE = {
   available: { label: 'Available', variant: 'xp' as const },

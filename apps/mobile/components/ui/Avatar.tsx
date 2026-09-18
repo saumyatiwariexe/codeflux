@@ -14,6 +14,7 @@ interface AvatarProps {
 
 /** Gets initials from a display name */
 function getInitials(name: string): string {
+  if (!name) return '?';
   return name
     .split(' ')
     .map((w) => w[0])
@@ -25,6 +26,7 @@ function getInitials(name: string): string {
 /** Gets a deterministic color from a name string */
 function getAvatarColor(name: string): string {
   const COLORS = ['#6C63FF', '#FF6584', '#43E97B', '#F59E0B', '#06B6D4', '#8B5CF6', '#EC4899'];
+  if (!name) return COLORS[0];
   let hash = 0;
   for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
   return COLORS[Math.abs(hash) % COLORS.length];

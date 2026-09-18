@@ -22,25 +22,7 @@ const CATEGORY_ICONS: Record<string, string> = {
   MOOC: 'school',
 };
 
-const MOCK_ACHIEVEMENTS = [
-  {
-    id: 'a1', category: 'CERTIFICATION', title: 'AWS Cloud Practitioner',
-    description: 'Passed with 90% score.', status: 'approved',
-    attendanceRelaxation: 5, gradeBenefit: 'Grade improvement in Cloud Computing',
-    xpAwarded: 200, submittedAt: '2026-08-26',
-  },
-  {
-    id: 'a2', category: 'COMPETITION_WIN', title: '2nd Place — VIT National Hackathon',
-    description: 'Built AI campus safety system. Team of 4. Won ₹50,000.',
-    status: 'approved', attendanceRelaxation: 8, xpAwarded: 500,
-    submittedAt: '2026-07-11',
-  },
-  {
-    id: 'a3', category: 'RESEARCH_PAPER', title: 'Paper: Efficient Transformers for Edge Devices',
-    description: 'Accepted at IEEE ICISC 2026.',
-    status: 'pending', submittedAt: '2026-09-05',
-  },
-];
+const MOCK_ACHIEVEMENTS: any[] = [];
 
 const CATEGORY_LABELS: Record<string, string> = {
   CERTIFICATION: 'Certification',

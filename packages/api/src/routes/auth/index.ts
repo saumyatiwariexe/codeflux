@@ -1,151 +1,135 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
-import { ApiResponse } from '../../../../shared/src/types';
 import { supabase } from '../../lib/supabase';
 
-// OTPs are short-lived and per-process — in-memory storage is fine for a single API instance.
-// Real delivery (email/SMS) is out of hackathon scope; see docs/AMENDMENTS.md.
-const MOCK_OTP_STORE = new Map<string, { otp: string; expires: number }>();
+// Helper to decode JWT
+function decodeJWT(token: string) {
+    try {
+        const payload = token.split('.')[1];
+        const decoded = Buffer.from(payload, 'base64').toString('utf8');
+        return JSON.parse(decoded);
+    } catch (e) {
+        return null;
+    }
+}
 
-const sendOtpSchema = z.object({
-  email: z.string().email().endsWith('@lpu.in', 'Must be a valid LPU email (@lpu.in)'),
+const loginSchema = z.object({
+  regNo: z.string().min(8, 'Invalid Registration Number'),
+  password: z.string().min(1, 'Password is required'),
 });
 
-const verifyOtpSchema = z.object({
-  email: z.string().email(),
-  otp: z.string().length(6),
-});
-
-/**
- * Auth routes: OTP send/verify, token refresh, logout
- */
 const authRoutes: FastifyPluginAsync = async (fastify) => {
-  /**
-   * POST /api/v1/auth/send-otp
-   * Sends a 6-digit OTP to the provided LPU email address.
-   */
-  fastify.post<{ Body: z.infer<typeof sendOtpSchema> }>('/send-otp', async (request, reply) => {
-    const body = sendOtpSchema.safeParse(request.body);
+  fastify.post<{ Body: z.infer<typeof loginSchema> }>('/login', async (request, reply) => {
+    const body = loginSchema.safeParse(request.body);
     if (!body.success) {
       return reply.status(400).send({
         success: false,
         data: null,
         error: body.error.errors[0].message,
-      } satisfies ApiResponse<null>);
+      });
     }
 
-    const { email } = body.data;
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
-    const expires = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const { regNo, password } = body.data;
+    const API_BASE = 'https://mobileapi.lpu.in';
+    const payload = { Username: regNo, Password: password, DEVICE_ID: "Paladeium-App" };
 
-    MOCK_OTP_STORE.set(email, { otp, expires });
+    try {
+      fastify.log.info(`Attempting to auth user: ${regNo}`);
+      // 1. Fetch JWT Token from LPU Touch
+      const tokenResponse = await fetch(`${API_BASE}/security/createToken`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 11; Pixel 4) LPUTouch/23.45'
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      const tokenData = await tokenResponse.json();
 
-    fastify.log.info(`OTP for ${email}: ${otp}`); // In prod, send email instead
+      if (tokenData.status === true && tokenData.token) {
+        const decodedProfile = decodeJWT(tokenData.token);
+        
+        // Find or create the user row for this registration number.
+        // We use regNo as the primary key as per AMD-010.
+        const { data: existingUser, error: findError } = await supabase
+          .from('users')
+          .select('id')
+          .eq('id', regNo)
+          .maybeSingle();
 
-    const response: ApiResponse<{ expiresIn: number; devOtp?: string }> = {
-      success: true,
-      data: {
-        expiresIn: 600,
-        ...(process.env.NODE_ENV !== 'production' ? { devOtp: otp } : {}),
-      },
-      error: null,
-    };
+        if (findError) {
+          fastify.log.error(findError);
+          return reply.status(500).send({ success: false, data: null, error: 'Database error' });
+        }
 
-    return reply.status(200).send(response);
-  });
+        let isNewUser = false;
+        
+        if (!existingUser) {
+          const { data: created, error: insertError } = await supabase
+            .from('users')
+            .insert({ id: regNo, email: `${regNo}@lpu.in`, is_active: true })
+            .select('id')
+            .single();
 
-  /**
-   * POST /api/v1/auth/verify-otp
-   * Verifies the OTP, upserts a real `users` row, and returns a JWT keyed to that row's UUID.
-   */
-  fastify.post<{ Body: z.infer<typeof verifyOtpSchema> }>('/verify-otp', async (request, reply) => {
-    const body = verifyOtpSchema.safeParse(request.body);
-    if (!body.success) {
-      return reply.status(400).send({
-        success: false,
-        data: null,
-        error: body.error.errors[0].message,
-      } satisfies ApiResponse<null>);
-    }
+          if (insertError) {
+            fastify.log.error(insertError);
+            return reply.status(500).send({ success: false, data: null, error: 'Failed to create user' });
+          }
+          isNewUser = true;
+          
+          // create a dummy profile row as well
+          await supabase.from('profiles').insert({
+            id: regNo,
+            handle: `user_${regNo}`,
+            display_name: decodedProfile?.Name || regNo,
+          });
+        } else {
+           const { data: profile } = await supabase
+            .from('profiles')
+            .select('onboarding_complete')
+            .eq('id', regNo)
+            .maybeSingle();
+           isNewUser = !profile?.onboarding_complete;
+        }
 
-    const { email, otp } = body.data;
-    const stored = MOCK_OTP_STORE.get(email);
+        // Generate our own JWT
+        const token = fastify.jwt.sign({ userId: regNo, role: 'student' }, { expiresIn: '7d' });
 
-    if (!stored || stored.otp !== otp || Date.now() > stored.expires) {
-      return reply.status(401).send({
-        success: false,
-        data: null,
-        error: 'Invalid or expired OTP. Please request a new one.',
-      } satisfies ApiResponse<null>);
-    }
+        return reply.status(200).send({
+          success: true,
+          data: {
+            token,
+            userId: regNo,
+            isNewUser,
+            name: decodedProfile?.Name || regNo,
+          },
+          error: null,
+        });
 
-    MOCK_OTP_STORE.delete(email);
-
-    // Find or create the user row for this LPU email.
-    const { data: existingUser, error: findError } = await supabase
-      .from('users')
-      .select('id')
-      .eq('lpu_email', email)
-      .maybeSingle();
-
-    if (findError) {
-      fastify.log.error(findError);
-      return reply.status(500).send({ success: false, data: null, error: 'Database error' } satisfies ApiResponse<null>);
-    }
-
-    let userId: string;
-    let isNewUser: boolean;
-
-    if (existingUser) {
-      userId = existingUser.id;
-      isNewUser = false;
-    } else {
-      const { data: created, error: insertError } = await supabase
-        .from('users')
-        .insert({ lpu_email: email, is_active: true })
-        .select('id')
-        .single();
-
-      if (insertError || !created) {
-        fastify.log.error(insertError);
-        return reply.status(500).send({ success: false, data: null, error: 'Failed to create user' } satisfies ApiResponse<null>);
+      } else {
+        return reply.status(401).send({
+          success: false,
+          data: null,
+          error: tokenData.message || 'Login failed with LPU servers.'
+        });
       }
-      userId = created.id;
-      isNewUser = true;
+    } catch (err: any) {
+      fastify.log.error(`Proxy Error: ${err.message}`);
+      return reply.status(500).send({
+        success: false,
+        data: null,
+        error: "Connection Error to LPU servers",
+      });
     }
-
-    // A user row existing doesn't mean onboarding is done — check for a completed profile.
-    if (!isNewUser) {
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('onboarding_complete')
-        .eq('id', userId)
-        .maybeSingle();
-      isNewUser = !profile?.onboarding_complete;
-    }
-
-    const token = fastify.jwt.sign({ userId, email, role: 'student' }, { expiresIn: '7d' });
-
-    const response: ApiResponse<{ token: string; userId: string; isNewUser: boolean }> = {
-      success: true,
-      data: { token, userId, isNewUser },
-      error: null,
-    };
-
-    return reply.status(200).send(response);
   });
 
-  /**
-   * DELETE /api/v1/auth/logout
-   * Invalidates the session. Client should also clear local token.
-   */
   fastify.delete('/logout', async (_request, reply) => {
-    // In prod: add token to Redis blocklist
     return reply.status(200).send({
       success: true,
       data: { message: 'Logged out successfully' },
       error: null,
-    } satisfies ApiResponse<{ message: string }>);
+    });
   });
 };
 

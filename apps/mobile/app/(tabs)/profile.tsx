@@ -16,63 +16,6 @@ import { useAuthStore } from '../../stores/useAuthStore';
 import { usersApi, setAuthToken } from '../../services/api';
 import { Ionicons } from '@expo/vector-icons';
 
-const SAMEER_PROFILE = {
-  displayName: 'Saumya Tiwari',
-  avatarUrl: 'https://saumyatiwari.vercel.app/images/hero/hero-portrait.png',
-  handle: 'saumyatiwari',
-  department: 'BCA',
-  year: 1,
-  degreeLevel: 'UG',
-  hostelBlock: 'Block 32',
-  bio: 'Full Stack Dev, AR/VR builder & AI enthusiast. Founder of Elevecrafts. 1st Runner-Up at HackDiwas 3.0.',
-  campusXp: 9500,
-  level: 6,
-  xpToNextLevel: 10000,
-  streakDays: 42,
-  squadVisibility: 'all',
-  skills: [
-    { name: 'Next.js', proficiency: 'expert' as const },
-    { name: 'React', proficiency: 'expert' as const },
-    { name: 'Python', proficiency: 'expert' as const },
-    { name: 'WebXR', proficiency: 'expert' as const },
-    { name: 'Node.js', proficiency: 'intermediate' as const },
-  ],
-  badges: [
-    { name: 'Hackathon Winner', emoji: '🏆', rarity: 'epic' as const },
-    { name: 'AI Explorer', emoji: '🤖', rarity: 'rare' as const },
-    { name: 'Squad Founder', emoji: '🤝', rarity: 'rare' as const },
-  ],
-  stats: { events: 12, squads: 5, quests: 24, achievements: 8 },
-};
-
-const RISHABH_PROFILE = {
-  displayName: 'Rishabh Dubey',
-  avatarUrl: 'https://cdn-icons-png.flaticon.com/512/3135/3135715.png', // generic avatar for now
-  handle: 'rishabh.dubey',
-  department: 'BCA',
-  year: 3,
-  degreeLevel: 'UG',
-  hostelBlock: 'Block 41',
-  bio: 'Data-minded builder. I turn noise into next steps. Exploring data, systems, and people.',
-  campusXp: 7200,
-  level: 5,
-  xpToNextLevel: 8000,
-  streakDays: 14,
-  squadVisibility: 'all',
-  skills: [
-    { name: 'Python', proficiency: 'expert' as const },
-    { name: 'Data Analytics', proficiency: 'expert' as const },
-    { name: 'Power BI', proficiency: 'intermediate' as const },
-    { name: 'Project Management', proficiency: 'expert' as const },
-    { name: 'JavaScript', proficiency: 'intermediate' as const },
-  ],
-  badges: [
-    { name: 'Data Explorer', emoji: '📊', rarity: 'epic' as const },
-    { name: 'Certified Analyst', emoji: '📜', rarity: 'rare' as const },
-  ],
-  stats: { events: 5, squads: 2, quests: 18, achievements: 8 },
-};
-
 export default function ProfileScreen() {
   const systemColorScheme = useColorScheme();
   const theme = useThemeStore((state) => state.getColors(systemColorScheme));
@@ -80,9 +23,6 @@ export default function ProfileScreen() {
   const setThemeMode = useThemeStore((state) => state.setThemeMode);
   const signOut = useAuthStore((state) => state.signOut);
   const user = useAuthStore((state) => state.user);
-
-  const isSameer = user?.email?.toLowerCase().includes('sameersingh');
-  const isRishabh = user?.email?.toLowerCase().includes('rishabhdubey');
 
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -119,19 +59,19 @@ export default function ProfileScreen() {
     );
   }
 
-  // Fallback defaults if null, with SAMEER_PROFILE or RISHABH_PROFILE override
-  const p = isSameer ? SAMEER_PROFILE : isRishabh ? RISHABH_PROFILE : (profile || {
-    displayName: 'Paladeium User',
-    handle: 'user',
-    department: 'Unknown',
-    year: 1,
-    hostelBlock: 'Unknown',
-    bio: 'Ready to explore.',
-    campusXp: 0,
+  // Fallback defaults if null
+  const p = profile || {
+    displayName: user?.name || 'Paladeium User',
+    handle: user?.handle || user?.id || 'user',
+    department: user?.department || 'Unknown',
+    year: user?.year || 1,
+    hostelBlock: user?.hostelBlock || 'Unknown',
+    bio: user?.bio || 'Ready to explore.',
+    campusXp: user?.campusXp || 0,
     level: 1,
-    skills: [],
-    badges: [],
-  });
+    skills: user?.skills || [],
+    badges: user?.badges || [],
+  };
 
   const currentXp = p.campusXp || 0;
   const level = p.level || 1;

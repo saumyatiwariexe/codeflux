@@ -26,49 +26,9 @@ const CATEGORY_ICONS: Record<string, string> = {
   other: 'help-circle',
 };
 
-const MOCK_LOST = [
-  {
-    id: 'l1', category: 'electronics',
-    title: 'Black OnePlus 12R',
-    description: 'Lost near cafeteria around 1 PM. Cracked screen protector.',
-    location: 'Main Cafeteria Block',
-    time: '3h ago', reporterName: 'Aarav S.',
-    aiMatch: { score: 82, foundTitle: 'Found Android phone near Block 34' },
-  },
-  {
-    id: 'l2', category: 'id_card',
-    title: 'LPU Student ID Card — Priya Krishnan',
-    description: 'Needed for hostel access. Please contact if found.',
-    location: 'Library 2nd Floor',
-    time: '6h ago', reporterName: 'Priya K.',
-    aiMatch: null,
-  },
-  {
-    id: 'l3', category: 'wallet',
-    title: 'Brown leather wallet',
-    description: 'Lost during evening sports session. Had ₹200 and ID inside.',
-    location: 'Sports Complex',
-    time: '1 day ago', reporterName: 'Rohan M.',
-    aiMatch: null,
-  },
-];
+const MOCK_LOST: any[] = [];
 
-const MOCK_FOUND = [
-  {
-    id: 'f1', category: 'electronics',
-    title: 'Android phone — black, cracked back',
-    description: 'Found on bench outside Block 34. Still has battery.',
-    location: 'Block 34 entrance bench',
-    time: '1h ago', reporterName: 'Neha S.',
-  },
-  {
-    id: 'f2', category: 'keys',
-    title: 'Key ring with 3 keys + Scooty remote',
-    description: 'Found near parking lot A, Block 16 area.',
-    location: 'Parking Lot A, Block 16',
-    time: '4h ago', reporterName: 'Karan A.',
-  },
-];
+const MOCK_FOUND: any[] = [];
 
 const CATEGORY_OPTIONS = [
   { key: 'electronics', label: 'Electronics' },
