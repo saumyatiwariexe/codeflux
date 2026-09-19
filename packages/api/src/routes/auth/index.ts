@@ -68,7 +68,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
         if (!existingUser) {
           const { data: created, error: insertError } = await supabase
             .from('users')
-            .insert({ id: regNo, email: `${regNo}@lpu.in`, is_active: true })
+            .insert({ id: regNo, lpu_email: `${regNo}@lpu.in`, is_active: true })
             .select('id')
             .single();
 

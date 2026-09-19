@@ -5,7 +5,7 @@
 // ============================================================
 
 const BASE_URL = __DEV__
-  ? 'http://localhost:3000/api/v1'
+  ? (process.env.EXPO_PUBLIC_API_URL || 'https://paladeium-backend.loca.lt') + '/api/v1'
   : 'https://campus-pulse-api.railway.app/api/v1';
 
 /** Global token stored in memory after login */
@@ -24,6 +24,7 @@ async function request<T>(
 ): Promise<{ success: boolean; data: T | null; error: string | null }> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
+    'Bypass-Tunnel-Reminder': 'true', // Bypasses localtunnel's abuse page
     ...(options.headers as Record<string, string>),
   };
 
@@ -44,33 +45,95 @@ async function request<T>(
   }
 }
 
+import { supabase } from '../lib/supabase';
+
+function decodeJWT(token: string) {
+  try {
+    const payload = token.split('.')[1];
+    if (typeof atob === 'function') {
+      return JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+    }
+  } catch (e) {
+    console.error("Decode err:", e);
+  }
+  return null;
+}
+
 // ---- Auth ----
 export const authApi = {
   login: async (data: { regNo: string; password: string }) => {
-    // Mocking the response so you can test the UI without running the backend!
-    console.log("Mocking login for:", data.regNo);
-    return {
-      success: true,
-      data: {
-        userId: 'mock-user-id',
-        name: 'Test Student',
-        token: 'mock-jwt-token',
-        isNewUser: true // Set to true so it routes you to the Onboarding/Signup screen!
+    try {
+      // 1. Fetch real LPU Auth token directly from mobile device!
+      const res = await fetch('https://mobileapi.lpu.in/security/createToken', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Dalvik/2.1.0 (Linux; U; Android 11; Pixel 4) LPUTouch/23.45'
+        },
+        body: JSON.stringify({ Username: data.regNo, Password: data.password, DEVICE_ID: "Paladeium-App" })
+      });
+      const tokenData = await res.json();
+      
+      if (tokenData.status === true && tokenData.token) {
+         const decoded = decodeJWT(tokenData.token);
+         
+         // 2. Upsert User in Supabase (Uses the Service Key in lib/supabase.ts to bypass RLS)
+         await supabase.from('users').upsert({ id: data.regNo, lpu_email: `${data.regNo}@lpu.in`, is_active: true });
+         
+         // 3. Check profile and create if missing
+         const { data: profile } = await supabase.from('profiles').select('id, onboarding_complete').eq('id', data.regNo).maybeSingle();
+         if (!profile) {
+            await supabase.from('profiles').insert({ id: data.regNo, handle: `user_${data.regNo}`, display_name: decoded?.Name || data.regNo });
+         }
+         
+         return {
+           success: true,
+           data: {
+             userId: data.regNo,
+             token: tokenData.token,
+             isNewUser: !profile?.onboarding_complete,
+             name: decoded?.Name || data.regNo
+           }
+         };
+      } else {
+         return { success: false, error: tokenData.message || "Invalid LPU credentials" };
       }
-    };
+    } catch (err) {
+      return { success: false, error: "Network Error hitting LPU server" };
+    }
   },
-  logout: () => request<any>('/auth/logout', { method: 'POST' }),
+  logout: () => Promise.resolve({ success: true, data: null, error: null }),
 };
 
 // ---- Users ----
 export const usersApi = {
-  getMe: () => request<any>('/users/me'),
+  getMe: async () => {
+    const { useAuthStore } = require('../stores/useAuthStore');
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) return { success: false, error: 'Not logged in' };
+    
+    const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    if (error) return { success: false, error: error.message };
+    
+    return { success: true, data: { ...data, squadVisibility: data.squad_visibility } };
+  },
   updateMe: async (data: Partial<any>) => {
-    console.log("Mocking updateMe with data:", data);
-    return {
-      success: true,
-      data: { ...data }
+    const { useAuthStore } = require('../stores/useAuthStore');
+    const userId = useAuthStore.getState().user?.id;
+    if (!userId) return { success: false, error: 'Not logged in' };
+
+    const profileData = {
+      id: userId,
+      bio: data.bio,
+      onboarding_complete: data.onboardingComplete !== undefined ? data.onboardingComplete : undefined,
+      handle: data.socialHandles?.github || userId,
+      display_name: data.displayName || 'Paladeium User',
     };
+
+    const { error } = await supabase.from('profiles').upsert(profileData);
+    if (error) return { success: false, error: error.message };
+
+    return { success: true, data: { ...data } };
   },
   getProfile: (handle: string) => request<any>(`/users/${handle}`),
 };
